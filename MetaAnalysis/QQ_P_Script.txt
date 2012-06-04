@@ -1,0 +1,105 @@
+######################################################################################
+#                         Here are the things you can change.  		       
+######################################################################################
+
+###Input file name.
+input_file<-"/home/aaron/CHARGE/QRS_Voltage/QRS_Voltage_Results/mmscore_corn_add.out.txt"
+
+###Minor allele frequency strata.  Only four currently.
+maf_levels<-c(0.01,0.025,0.05,0.1)
+
+###Minor allele frequency graph file name.
+maf_file<-"QQ_Plot_MAF_Strata_P_ERF.png"
+
+###Minor allele frequency graph main title.
+maf_main<-"QQ Plot - MAF Strata (Cornell Voltage)"
+
+###Imputation quality strata.  Only four currently.
+imp_levels<-c(0.15,0.3,0.5,0.7)
+
+###Imputation quality graph file name.
+imp_file<-"QQ_Plot_Imp_Qual_Strata_P_ERF.png"
+
+###Imputation quality graph main title.
+imp_main<-"QQ Plot - Imputation Quality Strata (Cornell Voltage)"
+
+###Lambda list file name.
+lambda_file<-"lambdas_P.txt"
+
+###Colors for plots.  First one is for "All SNPs."
+colors<-c("black","red","green","blue","purple")
+######################################################################################
+
+library(GenABEL)
+data<-read.table(input_file,header=T)
+data$chi<-(data$beta_SNP_add/data$sebeta_SNP_add)^2
+data<-subset(data,data$chi>=0&!is.na(data$chi)==T)
+data$p<-pchisq(data$chi,df=1,lower.tail=F)
+data$lp<--log(data$p,base=10)
+data$maf[data$Mean_predictor_allele<=0.5]<-data$Mean_predictor_allele[data$Mean_predictor_allele<=0.5]
+data$maf[data$Mean_predictor_allele>0.5]<-1-data$Mean_predictor_allele[data$Mean_predictor_allele>0.5]
+
+maf_levels<-sort(maf_levels)
+imp_levels<-sort(imp_levels)
+obs_p<-data$p
+obs<-data$lp
+exp<-pchisq(rchisq(length(obs),df=1),df=1,lower.tail=F)
+exp<--log(exp,base=10)
+obs_max<-max(obs)
+exp_max<-max(exp)
+max<-max(obs_max,exp_max)
+lam<-rep(NA,length(maf_levels)+1)
+lam[1]<-round(estlambda(obs_p,plot=F)$est,2)
+
+png(maf_file)
+qqplot(exp,obs,ylim=c(0,max),xlim=c(0,max),pch=20,main=maf_main,xlab=expression(-log[10] (italic(P)) - Expected),ylab=expression(-log[10] (italic(P)) - Observed))
+abline(0,1,col="red")
+for(i in 1:(length(maf_levels))){
+	if(i==1)(obsf_p<-sort(data$p[data$maf<maf_levels[i]]))else(obsf_p<-sort(data$p[data$maf>=maf_levels[i-1]&data$maf<maf_levels[i]]))
+	if(i==1)(obsf<-sort(data$lp[data$maf<maf_levels[i]]))else(obsf<-sort(data$lp[data$maf>=maf_levels[i-1]&data$maf<maf_levels[i]]))
+	expf<-sort(sample(exp,length(obsf)))
+	lam[i+1]<-round(estlambda(obsf_p,plot=F)$est,2)
+	points(expf,obsf,col=colors[i+1],pch=20,cex=0.75)
+}
+legend("topleft",c("All SNPs",
+	paste("MAF < ",maf_levels[1],sep=""),
+	paste(maf_levels[1]," <= MAF < ",maf_levels[2],sep=""),
+	paste(maf_levels[2]," <= MAF < ",maf_levels[3],sep=""),
+	paste(maf_levels[3]," <= MAF < ",maf_levels[4],sep="")),
+	text.col=colors,cex=0.8)
+legend("bottomright",c(rep(expression(paste(lambda,plain(" = "),sep=" ")),5),lam),ncol=2,text.col=rep(colors,2),cex=0.8)
+dev.off()
+
+lam2<-rep(NA,length(imp_levels)+1)
+lam2[1]<-lam[1]
+
+png(imp_file)
+qqplot(exp,obs,ylim=c(0,max),xlim=c(0,max),pch=20,main=imp_main,xlab=expression(-log[10] (italic(P)) - Expected),ylab=expression(-log[10] (italic(P)) - Observed))
+abline(0,1,col="red")
+for(i in 1:(length(imp_levels))){
+	if(i==1)(obsf_p<-sort(data$p[data$Rsq<imp_levels[i]]))else(obsf_p<-sort(data$p[data$Rsq>=imp_levels[i-1]&data$Rsq<imp_levels[i]]))
+	if(i==1)(obsf<-sort(data$lp[data$Rsq<imp_levels[i]]))else(obsf<-sort(data$lp[data$Rsq>=imp_levels[i-1]&data$Rsq<imp_levels[i]]))
+	expf<-sort(sample(exp,length(obsf)))
+	lam2[i+1]<-round(estlambda(obsf_p,plot=F)$est,2)
+	points(expf,obsf,col=colors[i+1],pch=20,cex=0.75)
+}
+legend("topleft",c("All SNPs",paste("r2 < ",imp_levels[1],sep=""),
+	paste(imp_levels[1]," <= r2 < ",imp_levels[2],sep=""),
+	paste(imp_levels[2]," <= r2 < ",imp_levels[3],sep=""),
+	paste(imp_levels[3]," <= r2 < ",imp_levels[4],sep="")),
+	text.col=colors,cex=0.8)
+legend("bottomright",c(rep(expression(paste(lambda,plain(" = "),sep=" ")),5),lam2),ncol=2,text.col=rep(colors,2),cex=0.8)
+dev.off()
+
+sink(lambda_file)
+print("Minor Allele Frequency")
+print("Levels")
+print(maf_levels)
+print("Lambdas")
+print(lam)
+print("Imputation Quality")
+print("Levels")
+print(imp_levels)
+print("Lambdas")
+print(lam2)
+sink()

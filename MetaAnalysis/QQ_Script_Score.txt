@@ -1,0 +1,73 @@
+######################################################################################
+#                         Here are the things you can change.  		        
+######################################################################################
+
+###Input file name.
+input_file<-"/home/aaron/CHARGE/QRS_Voltage/QRS_Voltage_Results/mmscore_corn_add.out.txt"
+
+###Score strata.  Only four currently.
+score_levels<-c(5,25,50,100)
+
+###Score graph file name.
+score_file<-"QQ_Plot_Score_Strata_CV_ERF.png"
+
+###Score graph main title.
+score_main<-"QQ Plot - Score Strata (Cornell Voltage)"
+
+###Lambda list file name.
+lambda_file<-"lambdas_score_CV.txt"
+
+###Colors for plots.  First one is for "All SNPs."
+colors<-c("black","red","green","blue","purple")
+######################################################################################
+
+library(GenABEL)
+data<-read.table(input_file,header=T)
+data$chi<-(data$beta_SNP_add/data$sebeta_SNP_add)^2
+data<-subset(data,data$chi>=0&!is.na(data$chi)==T)
+data$p<-pchisq(data$chi,df=1,lower.tail=F)
+data$maf[data$Mean_predictor_allele<=0.5]<-data$Mean_predictor_allele[data$Mean_predictor_allele<=0.5]
+data$maf[data$Mean_predictor_allele>0.5]<-1-data$Mean_predictor_allele[data$Mean_predictor_allele>0.5]
+data$score<-2*data$maf*data$n*data$Rsq
+data<-data[order(data$p),]
+	t20<-data[1:20,]
+	write.table(t20,file="Top_20_All_SNPs.txt",quote=F,row.names=F,dec=".",sep="\t")
+
+score_levels<-sort(score_levels)
+obs<-data$chi
+exp<-rchisq(length(obs),df=1)
+obs_max<-max(obs)
+exp_max<-max(exp)
+max<-max(obs_max,exp_max)
+lam<-rep(NA,length(score_levels)+1)
+lam[1]<-round(estlambda(obs,plot=F)$est,2)
+
+png(score_file)
+qqplot(exp,obs,ylim=c(0,max),xlim=c(0,max),pch=20,main=score_main,xlab=expression(paste(chi^2,plain( - Expected)),sep=""),ylab=expression(paste(chi^2,plain( - Observed)),sep=""))
+abline(0,1,col="red")
+for(i in 1:(length(score_levels))){
+	if(i==1)(obsf<-sort(data$chi[data$score<score_levels[i]]))else(obsf<-sort(data$chi[data$score>=score_levels[i-1]&data$score<score_levels[i]]))
+	expf<-sort(sample(exp,length(obsf)))
+	lam[i+1]<-round(estlambda(obsf,plot=F)$est,2)
+	points(expf,obsf,col=colors[i+1],pch=20,cex=0.75)
+	t20<-subset(data,data$score>=score_levels[i])
+	t20<-t20[order(t20$p),]
+	t20<-t20[1:20,]
+	write.table(t20,file=paste("Top_20_Score_>=_",score_levels[i],".txt",sep=""),quote=F,row.names=F,dec=".",sep="\t")
+}
+legend("topleft",c("All SNPs",
+	paste("Score < ",score_levels[1],sep=""),
+	paste(score_levels[1]," <= Score < ",score_levels[2],sep=""),
+	paste(score_levels[2]," <= Score < ",score_levels[3],sep=""),
+	paste(score_levels[3]," <= Score < ",score_levels[4],sep="")),
+	text.col=colors,cex=0.8)
+legend("bottomright",c(rep(expression(paste(lambda,plain(" = "),sep=" ")),5),lam),ncol=2,text.col=rep(colors,2),cex=0.8)
+dev.off()
+
+sink(lambda_file)
+print("Score")
+print("Levels")
+print(score_levels)
+print("Lambdas")
+print(lam)
+sink()
