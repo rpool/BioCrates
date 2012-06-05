@@ -1,5 +1,5 @@
 ######################################################################################
-#                         Here are the things you can change.  		       
+#                         Here are the things you can change.
 ######################################################################################
 
 ###Input file name.
@@ -33,8 +33,8 @@ colors<-c("black","red","green","blue","purple")
 library(GenABEL)
 data<-read.table(input_file,header=T)
 data$chi<-(data$beta_SNP_add/data$sebeta_SNP_add)^2
-data<-subset(data,data$chi>=0&!is.na(data$chi)==T)
-data$p<-pchisq(data$chi,df=1,lower.tail=F)
+data<-subset(data,data$chi>=0&!is.na(data$chi)==T) # select chi>=0 and deselect NA values
+data$p<-pchisq(data$chi,df=1,lower.tail=F)         # observed p-values
 data$lp<--log(data$p,base=10)
 data$maf[data$Mean_predictor_allele<=0.5]<-data$Mean_predictor_allele[data$Mean_predictor_allele<=0.5]
 data$maf[data$Mean_predictor_allele>0.5]<-1-data$Mean_predictor_allele[data$Mean_predictor_allele>0.5]
@@ -43,7 +43,7 @@ maf_levels<-sort(maf_levels)
 imp_levels<-sort(imp_levels)
 obs_p<-data$p
 obs<-data$lp
-exp<-pchisq(rchisq(length(obs),df=1),df=1,lower.tail=F)
+exp<-pchisq(rchisq(length(obs),df=1),df=1,lower.tail=F) # expected p-values, rchisq generates random deviates
 exp<--log(exp,base=10)
 obs_max<-max(obs)
 exp_max<-max(exp)
