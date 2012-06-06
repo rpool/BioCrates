@@ -6,6 +6,7 @@ import re
 import scipy
 import scipy.stats
 import copy
+import pylab
 
 # Homebrew modules
 import Logger
@@ -14,8 +15,38 @@ import File
 import DataContainer
 import Defines
 
+def PylabGetParams():
+    figwidth_pt   = 246.0 # pt (from revtex \showthe\columnwidth)
+    inches_per_pt = 1.0/72.27
+    figwidth      = figwidth_pt*inches_per_pt
+    golden_mean   = (scipy.sqrt(5.0)-1.0)/2.0 # Aesthetic ratio
+    figheight     = figwidth*golden_mean
+    fig_size      = [figwidth,figheight]
+    params        = {'backend': 'pdf',
+                     'patch.antialiased': True,
+                     'axes.labelsize': 8,
+                     'axes.linewidth': 0.5,
+                     'grid.color': '0.75',
+                     'grid.linewidth': 0.25,
+                     'grid.linestyle': ':',
+                     'axes.axisbelow': False,
+                     'text.fontsize': 8,
+                     'legend.fontsize': 5,
+                     'xtick.labelsize': 8,
+                     'ytick.labelsize': 8,
+                     'text.usetex': True,
+                     'figure.figsize': fig_size}
+    left   = 0.16
+    bottom = 0.16
+    width  = 0.86-left
+    height = 0.95-bottom
+
+    return params,\
+           [left, bottom, width, height]
+
 def QQPlotAndSummary(DCs=DataContainer.DataContainers,
-                     QQModes=argparse.Namespace):
+                     QQModes=argparse.Namespace,
+                     Log=Logger):
     boPMode = False
     boSMode = False
     if(re.search('P',QQModes)):
@@ -45,19 +76,68 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
     ImpLevels = copy.deepcopy(Defines.ImpLevels)
     ImpLevels.sort()
 
-    Chi2Array    = scipy.real(scipy.power((BetaArray/SEArray),2.0)).astype(float)
-    FilterArray  = (Chi2Array>=0.0)
-    Chi2Array    = scipy.compress(FilterArray,Chi2Array)
-    PValArray    = scipy.stats.chi2.cdf(Chi2Array,\
-                                        1) # df=1
-    LPValArray   = -scipy.log10(PValArray)
-    PValExpArray = scipy.stats.chi2.cdf(scipy.stats.chi2.rvs(1,\
-                                                             size=len(PValArray)),\
-                                        1)                                          # the 1's are for df=1
+    Chi2Array     = scipy.real(scipy.power((BetaArray/SEArray),2.0)).astype(float)
+    FilterArray   = (Chi2Array>=0.0)
+    Chi2Array     = scipy.compress(FilterArray,Chi2Array)
+    PValArray     = scipy.stats.chi2.cdf(Chi2Array,\
+                                         1) # df=1
+    LPValArray    = -scipy.log10(PValArray)
+    PValExpArray  = scipy.stats.chi2.cdf(scipy.stats.chi2.rvs(1,\
+                                                              size=len(PValArray)),\
+                                         1)                                          # the 1's are for df=1
     LPValExpArray = -scipy.log10(PValExpArray)
 
-#    for i in range(len(LPValArray)):
-#        print '@@', LPValExpArray[i], LPValArray[i]
+    LogString = '++ Plotting QQ plot in \"p-value\" mode ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    PylabParameters,\
+    Rectangle         = PylabGetParams()
+    Size = 2.5
+    pylab.rcParams.update(PylabParameters)
+    PylabFigure = pylab.figure()
+    PylabFigure.clf()
+    PylabAxis = PylabFigure.add_axes(Rectangle)
+    PlotName  = 'Plot.png'
+    PylabAxis.scatter(scipy.sort(LPValExpArray),
+                      scipy.sort(LPValArray),
+                      color=Defines.Colors[0],
+                      s=Size)
+    for i in range(len(Defines.MafLevels)):
+        Color       = Defines.Colors[i+1]
+        FilterArray = None
+        if(i==0):
+            FilterArray = (MAFArray < Defines.MafLevels[i])
+        else:
+            FilterArray  = (MAFArray >= Defines.MafLevels[i-1])
+            FilterArray *= (MAFArray  < Defines.MafLevels[i])
+        ObsFP = scipy.sort(scipy.compress(FilterArray,PValArray))
+        ObsF  = scipy.sort(scipy.compress(FilterArray,LPValArray))
+        scipy.random.shuffle(LPValExpArray)
+        ExpF  = scipy.sort(scipy.compress(FilterArray,LPValExpArray))
+        PylabAxis.scatter(ExpF,
+                          ObsF,
+                          color=Color,
+                          s=Size)
+    MaxLPVal    = LPValArray.max()
+    MaxLPValExp = LPValExpArray.max()
+    Max         = max(MaxLPVal,MaxLPValExp)+0.5
+    PylabAxis.plot([0.0,Max],
+                   [0.0,Max],
+                   color='black',
+                   linestyle='--',
+                   linewidth=0.5)
+    PylabAxis.set_ylim([0.0,Max])
+    PylabAxis.set_xlim([0.0,Max])
+    PylabAxis.spines['right'].set_visible(False)
+    PylabAxis.spines['top'].set_visible(False)
+    PylabAxis.xaxis.set_ticks_position('bottom')
+    PylabAxis.yaxis.set_ticks_position('left')
+    PylabAxis.grid(True)
+    PylabFigure.savefig(PlotName)
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
     return
 
 def main(ExecutableName):
@@ -117,8 +197,12 @@ def main(ExecutableName):
         GwaFile.Close()
         GwaFile.Cleanup()
         del GwaFile
+        LogString = '-- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
         QQPlotAndSummary(GwaFileDCs,
-                         Arguments.QQModes)
+                         Arguments.QQModes,
+                         Log)
         LogString = '-- Done ...'
         print LogString
         Log.Write(LogString+'\n')
