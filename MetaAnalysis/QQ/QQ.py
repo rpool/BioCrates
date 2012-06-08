@@ -49,10 +49,13 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
                      Log=Logger):
     boPMode = False
     boSMode = False
+    boIMode = False
     if(re.search('P',QQModes)):
         boPMode = True
     if(re.search('S',QQModes)):
         boSMode = True
+    if(re.search('I',QQModes)):
+        boIMode = True
 
     # Filter out 'NA' values
     FilterArray  = (DCs.DataContainers['beta'].GetDataArray()!='NA')

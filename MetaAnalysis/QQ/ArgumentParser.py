@@ -42,11 +42,13 @@ def ParseArguments(Log=None):
                                 dest='QQModes',
                                 help='PROPERTY: Determines the QQModes you want to run (input): '+\
                                      '\"P\"  sets the \"p-value\" mode; '+\
-                                     '\"S\"  sets the \"score\" mode and '+\
-                                     '\"PS\" sets them both.',
+                                     '\"S\"  sets the \"score\" mode;  '+\
+                                     '\"I\"  sets the \"score\" mode; '+\
+                                     '\"XY\", where X=["P","S"] and Y=["S","I"] and X!=Y, sets two modes;'
+                                     '\"PSI\" sets them all.',
                                 metavar='PROPERTY',
                                 default='P',
-                                choices=['P','S','PS'])
+                                choices=['P','S','PS','PI','SI','PSI'])
     ArgumentParser.add_argument('-x',
                                 '--xproperty',
                                 dest='XProperty',
