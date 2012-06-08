@@ -136,7 +136,7 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
     PylabAxis.grid(True)
-    PylabFigure.savefig(PlotName)
+    PylabFigure.savefig(PlotName,dpi=600)
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')
@@ -206,7 +206,6 @@ def main(ExecutableName):
         QQPlotAndSummary(GwaFileDCs,
                          Arguments.QQModes,
                          Log)
-        LogString = '-- Done ...'
         print LogString
         Log.Write(LogString+'\n')
 
