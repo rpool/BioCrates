@@ -43,9 +43,7 @@ def ParseArguments(Log=None):
                                 help='PROPERTY: Determines the QQModes you want to run (input): '+\
                                      '\"P\"  sets the \"p-value\" mode; '+\
                                      '\"S\"  sets the \"score\" mode;  '+\
-                                     '\"I\"  sets the \"score\" mode; '+\
-                                     '\"XY\", where X=["P","S"] and Y=["S","I"] and X!=Y, sets two modes;'
-                                     '\"PSI\" sets them all.',
+                                     '\"PS\" sets them both.',
                                 metavar='PROPERTY',
                                 default='P',
                                 choices=['P','S','PS','PI','SI','PSI'])
