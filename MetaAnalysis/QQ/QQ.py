@@ -8,6 +8,7 @@ import scipy.stats
 import scipy.optimize
 import copy
 import pylab
+import sys
 
 # Homebrew modules
 import Logger
@@ -28,6 +29,68 @@ def Residuals(Parameters=[],
     Err = Y - LinearModel(X,
                           Parameters)
     return Err
+
+def GetPPointsArray(QChi2Array=scipy.array):
+    PPointsArray   = [] # probability points array
+    ThreeOverEight = 3.0/8.0
+    Half           = 0.5
+    for Entry in QChi2Array:
+        if(Entry <= 10):
+            PPointsArray.append((Entry-ThreeOverEight)/(Entry+1-2*ThreeOverEight))
+        else:
+            PPointsArray.append((Entry-Half)/(Entry+1.0-2.0*Half))
+    PPointsArray = scipy.array(PPointsArray)
+
+    return PPointsArray
+
+def LambdaEstimate(PValArray=scipy.array,
+                   Filter=True):
+    #===========================================================================
+    # copied from R-GenABEL.lamdaest
+    #===========================================================================
+    Estimate   = None
+    Ntp        = len(PValArray)
+
+    QChi2Array = scipy.stats.chi2.isf(PValArray,
+                                      1)            # quantile function of PValObsArray, df = 1
+    if(Filter):
+        FilterArray        = (PValArray>=1.0e-8)
+        QChi2FilteredArray = scipy.compress(FilterArray,PValArray)
+    else:
+        QChi2FilteredArray = QChi2Array
+    QChi2Array.sort()
+
+    PPointsArray = GetPPointsArray(QChi2FilteredArray)
+    PPointsArray = scipy.sort(scipy.stats.chi2.isf((1.0-PPointsArray),1)) # df=1
+
+    FilterArray  = (PPointsArray!=0.0)
+    FilterArray *= (QChi2FilteredArray!=0.0)
+    FilterArray *= (PPointsArray!=scipy.inf)
+    FilterArray *= (QChi2FilteredArray!=scipy.inf)
+    FilterArray *= (PPointsArray!=scipy.nan)
+    FilterArray *= (QChi2FilteredArray!=scipy.nan)
+    FilterArray *= (PPointsArray!=scipy.NaN)
+    FilterArray *= (QChi2FilteredArray!=scipy.NaN)
+    FilterArray *= (PPointsArray!=scipy.NAN)
+    FilterArray *= (QChi2FilteredArray!=scipy.NAN)
+    PPointsArray = scipy.compress(FilterArray,PPointsArray)
+    QChi2Array   = scipy.compress(FilterArray,QChi2FilteredArray)
+#    for i in range(len(PPointsArray)):
+#        print '@@',PPointsArray[i],QChi2Array[i]
+    P0           = [0.1]
+    PBest        = scipy.optimize.leastsq(Residuals,
+                                          P0,
+                                          args=(QChi2FilteredArray,PPointsArray),
+                                          full_output=1,
+                                          maxfev=100)
+    print PBest
+#
+##    if(Ntp==1):
+##        LambdaEst = 1.0
+##    if(PValObsArray.max()<=1.0):
+##
+
+    return Estimate
 
 def PylabGetParams():
     figwidth_pt   = 246.0 # pt (from revtex \showthe\columnwidth)
@@ -83,48 +146,7 @@ def PlotQQFilteredOnMAF(MtbName=str,
                       facecolor='None',
                       label=r'${\tt '+MtbName+r'}: {\rm ~all~SNPs}$')
     Lambdas    = []
-    LambdaEst  = None
-    Ntp        = len(PValObsArray)
-    QChi2Array = scipy.stats.chi2.cdf(PValObsArray,
-                                      1)            # quantile function of PValObsArray, df = 1
-    QChi2Array.sort()
-    PPointsArray   = [] # probability points array
-    ThreeOverEight = 3.0/8.0
-    Half           = 0.5
-    for Entry in QChi2Array:
-        if(Entry <= 10):
-            PPointsArray.append((Entry-ThreeOverEight)/(Entry+1-2*ThreeOverEight))
-        else:
-            PPointsArray.append((Entry-Half)/(Entry+1.0-2.0*Half))
-    PPointsArray = scipy.array(PPointsArray)
-    PPointsArray = scipy.sort(scipy.stats.chi2.cdf((1.0-PPointsArray),1)) # df=1
-    FilterArray  = (PPointsArray!=0.0)
-    FilterArray *= (QChi2Array!=0.0)
-    FilterArray *= (PPointsArray!=scipy.inf)
-    FilterArray *= (QChi2Array!=scipy.inf)
-    FilterArray *= (PPointsArray!=scipy.nan)
-    FilterArray *= (QChi2Array!=scipy.nan)
-    FilterArray *= (PPointsArray!=scipy.NaN)
-    FilterArray *= (QChi2Array!=scipy.NaN)
-    FilterArray *= (PPointsArray!=scipy.NAN)
-    FilterArray *= (QChi2Array!=scipy.NAN)
-    PPointsArray = scipy.compress(FilterArray,PPointsArray)
-    QChi2Array   = scipy.compress(FilterArray,QChi2Array)
-    for i in range(len(PPointsArray)):
-        print '@@',PPointsArray[i],QChi2Array[i]
-    P0           = [0.1]
-    PBest        = scipy.optimize.leastsq(Residuals,
-                                          P0,
-                                          args=(QChi2Array,PPointsArray),
-                                          full_output=1,
-                                          maxfev=100)
-    print PBest
-#
-##    if(Ntp==1):
-##        LambdaEst = 1.0
-##    if(PValObsArray.max()<=1.0):
-##
-##    Lambdas.append(round(LambdaEst,2))
+    Lambdas.append(round(LambdaEstimate(PValObsArray),2))
     for i in range(len(MAFLevels)):
         Color       = Defines.Colors[i+1]
         FilterArray = None
@@ -407,12 +429,12 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             ImpQLevels = copy.deepcopy(Defines.ImpLevels)
             ImpQLevels.sort()
 
-            PValObsArray  = scipy.stats.chi2.pdf(Chi2ObsArray,\
-                                                 1) # df=1
+            PValObsArray  = scipy.stats.chi2.sf(Chi2ObsArray,\
+                                                1) # df=1
             LPValObsArray = -scipy.log10(PValObsArray)
-            PValExpArray  = scipy.stats.chi2.pdf(scipy.stats.chi2.rvs(1,\
+            PValExpArray  = scipy.stats.chi2.sf(scipy.stats.chi2.rvs(1,\
                                                                       size=len(PValObsArray)),\
-                                                 1)                                          # the 1's are for df=1
+                                                1,)                                          # the 1's are for df=1
             LPValExpArray = -scipy.log10(PValExpArray)
 
             LogString = '++ Plotting QQ plots in \"p-value\" mode ...'
