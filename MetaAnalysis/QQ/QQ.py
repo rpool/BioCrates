@@ -30,16 +30,23 @@ def Residuals(Parameters=[],
                           Parameters)
     return Err
 
-def GetPPointsArray(QChi2Array=scipy.array):
+def GetPPointsArray(ArraySize=int):
+    #===========================================================================
+    # Copied fromm R-ppoints
+    #===========================================================================
     PPointsArray   = [] # probability points array
     ThreeOverEight = 3.0/8.0
     Half           = 0.5
-    for Entry in QChi2Array:
-        if(Entry <= 10):
-            PPointsArray.append((Entry-ThreeOverEight)/(Entry+1-2*ThreeOverEight))
-        else:
-            PPointsArray.append((Entry-Half)/(Entry+1.0-2.0*Half))
-    PPointsArray = scipy.array(PPointsArray)
+    N              = None
+    Factor         = None
+    if(ArraySize>1):
+        N = ArraySize
+    if(N<=10):
+        Factor = ThreeOverEight
+    else:
+        Factor = Half
+    OffSet       = Factor/float(N)
+    PPointsArray = scipy.linspace(0.0+OffSet,1.0-OffSet,N)
 
     return PPointsArray
 
@@ -60,35 +67,21 @@ def LambdaEstimate(PValArray=scipy.array,
         QChi2FilteredArray = QChi2Array
     QChi2Array.sort()
 
-    PPointsArray = GetPPointsArray(QChi2FilteredArray)
-    PPointsArray = scipy.sort(scipy.stats.chi2.isf((1.0-PPointsArray),1)) # df=1
+    PPointsArray = GetPPointsArray(len(QChi2FilteredArray))
+    PPointsArray = scipy.sort(scipy.stats.chi2.ppf(PPointsArray,1)) # df=1
 
     FilterArray  = (PPointsArray!=0.0)
     FilterArray *= (QChi2FilteredArray!=0.0)
-    FilterArray *= (PPointsArray!=scipy.inf)
-    FilterArray *= (QChi2FilteredArray!=scipy.inf)
-    FilterArray *= (PPointsArray!=scipy.nan)
-    FilterArray *= (QChi2FilteredArray!=scipy.nan)
-    FilterArray *= (PPointsArray!=scipy.NaN)
-    FilterArray *= (QChi2FilteredArray!=scipy.NaN)
-    FilterArray *= (PPointsArray!=scipy.NAN)
-    FilterArray *= (QChi2FilteredArray!=scipy.NAN)
     PPointsArray = scipy.compress(FilterArray,PPointsArray)
     QChi2Array   = scipy.compress(FilterArray,QChi2FilteredArray)
-#    for i in range(len(PPointsArray)):
-#        print '@@',PPointsArray[i],QChi2Array[i]
+
     P0           = [0.1]
     PBest        = scipy.optimize.leastsq(Residuals,
                                           P0,
-                                          args=(QChi2FilteredArray,PPointsArray),
+                                          args=(PPointsArray,QChi2FilteredArray),
                                           full_output=1,
                                           maxfev=100)
-    print PBest
-#
-##    if(Ntp==1):
-##        LambdaEst = 1.0
-##    if(PValObsArray.max()<=1.0):
-##
+    Estimate     = PBest[0][0]
 
     return Estimate
 
@@ -145,8 +138,9 @@ def PlotQQFilteredOnMAF(MtbName=str,
                       s=Size,
                       facecolor='None',
                       label=r'${\tt '+MtbName+r'}: {\rm ~all~SNPs}$')
-    Lambdas    = []
-    Lambdas.append(round(LambdaEstimate(PValObsArray),2))
+    Lambdas = []
+    Lambdas.append(round(LambdaEstimate(PValArray=PValObsArray,Filter=False),2))
+    print -1,len(PValObsArray)
     for i in range(len(MAFLevels)):
         Color       = Defines.Colors[i+1]
         FilterArray = None
@@ -154,16 +148,16 @@ def PlotQQFilteredOnMAF(MtbName=str,
         if(i==0):
             FilterArray = (MAFArray < MAFLevels[i])
             LabelString = 'MAF < '+str(MAFLevels[i])
-            Lambdas.append(0.0)
         else:
             FilterArray  = (MAFArray >= MAFLevels[i-1])
             FilterArray *= (MAFArray  < MAFLevels[i])
             LabelString  = str(MAFLevels[i-1])+r'\leq {\rm MAF} <'+str(MAFLevels[i])
-            Lambdas.append(1.0)
         ObsFP = scipy.sort(scipy.compress(FilterArray,PValObsArray))
-        ObsF  = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
+        print i,len(ObsFP)
+        Lambdas.append(round(LambdaEstimate(PValArray=ObsFP,Filter=False),2))
+        ObsF = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
         scipy.random.shuffle(LPValExpArray)
-        ExpF  = scipy.sort(scipy.compress(FilterArray,LPValExpArray))
+        ExpF = scipy.sort(scipy.compress(FilterArray,LPValExpArray))
         PylabAxis.scatter(ExpF,
                           ObsF,
                           color=Color,
@@ -209,10 +203,12 @@ def PlotQQFilteredOnMAF(MtbName=str,
     Log.Write(LogString+'\n')
 
     fw = open(SummaryName,'w')
+    print len(MAFLevels),len(Lambdas)
     print("# Minor Allele Frequency")
     print("# Levels")
     print("Lambdas")
-    for i in range(len(MAFLevels)):
+    print 'all SNPs', Lambdas[0]
+    for i in range(1,len(MAFLevels)):
         print MAFLevels[i], Lambdas[i]
 
     fw.close()
