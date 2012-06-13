@@ -82,8 +82,12 @@ def LambdaEstimate(PValArray=scipy.array,
                                           full_output=1,
                                           maxfev=100)
     Estimate     = PBest[0][0]
+    # Error estimation of parameter
+    Chi2 = scipy.power(PBest[2]['fvec'],2.0).sum()
+    Dof  = len(QChi2FilteredArray)-len(P0)-1
+    SE   = scipy.real(scipy.sqrt(PBest[1][0,0])*scipy.sqrt(Chi2/float(Dof)))
 
-    return Estimate
+    return Estimate,SE
 
 def PylabGetParams():
     figwidth_pt   = 246.0 # pt (from revtex \showthe\columnwidth)
@@ -138,9 +142,12 @@ def PlotQQFilteredOnMAF(MtbName=str,
                       s=Size,
                       facecolor='None',
                       label=r'${\tt '+MtbName+r'}: {\rm ~all~SNPs}$')
-    Lambdas = []
-    Lambdas.append(round(LambdaEstimate(PValArray=PValObsArray,Filter=False),2))
-    print -1,len(PValObsArray)
+    Lambdas   = []
+    SEsLambda = []
+    LambdaEst,\
+    SELambdaEst = LambdaEstimate(PValArray=PValObsArray,Filter=False)
+    Lambdas.append(round(LambdaEst,2))
+    SEsLambda.append(SELambdaEst)
     for i in range(len(MAFLevels)):
         Color       = Defines.Colors[i+1]
         FilterArray = None
@@ -153,8 +160,10 @@ def PlotQQFilteredOnMAF(MtbName=str,
             FilterArray *= (MAFArray  < MAFLevels[i])
             LabelString  = str(MAFLevels[i-1])+r'\leq {\rm MAF} <'+str(MAFLevels[i])
         ObsFP = scipy.sort(scipy.compress(FilterArray,PValObsArray))
-        print i,len(ObsFP)
-        Lambdas.append(round(LambdaEstimate(PValArray=ObsFP,Filter=False),2))
+        LambdaEst,\
+        SELambdaEst = LambdaEstimate(PValArray=ObsFP,Filter=False)
+        Lambdas.append(round(LambdaEst,2))
+        SEsLambda.append(SELambdaEst)
         ObsF = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
         scipy.random.shuffle(LPValExpArray)
         ExpF = scipy.sort(scipy.compress(FilterArray,LPValExpArray))
@@ -203,14 +212,11 @@ def PlotQQFilteredOnMAF(MtbName=str,
     Log.Write(LogString+'\n')
 
     fw = open(SummaryName,'w')
-    print len(MAFLevels),len(Lambdas)
-    print("# Minor Allele Frequency")
-    print("# Levels")
-    print("Lambdas")
-    print 'all SNPs', Lambdas[0]
+    fw.write('"## Minor Allele Frequency\n')
+    fw.write('# MAF level,Lambda,SELambda\n')
+    fw.write('all SNPs,'+str(Lambdas[0])+','+str(SEsLambda[0])+'\n')
     for i in range(1,len(MAFLevels)):
-        print MAFLevels[i], Lambdas[i]
-
+        fw.write(str(MAFLevels[i-1])+' <= MAF <'+str(MAFLevels[i])+','+str(Lambdas[i])+','+str(SEsLambda[0])+'\n')
     fw.close()
 
     LogString = '  -- Done ...'
@@ -244,6 +250,13 @@ def PlotQQFilteredOnImpQ(MtbName=str,
                       s=Size,
                       facecolor='None',
                       label=r'${\tt '+MtbName+r'}: {\rm ~all~SNPs}$')
+
+    Lambdas   = []
+    SEsLambda = []
+    LambdaEst,\
+    SELambdaEst = LambdaEstimate(PValArray=PValObsArray,Filter=False)
+    Lambdas.append(round(LambdaEst,2))
+    SEsLambda.append(SELambdaEst)
     for i in range(len(ImpQLevels)):
         Color       = Defines.Colors[i+1]
         FilterArray = None
@@ -256,7 +269,11 @@ def PlotQQFilteredOnImpQ(MtbName=str,
             FilterArray *= (ImpQArray  < ImpQLevels[i])
             LabelString  = str(ImpQLevels[i-1])+r'\leq {\rm ImpQ} <'+str(ImpQLevels[i])
         ObsFP = scipy.sort(scipy.compress(FilterArray,PValObsArray))
-        ObsF  = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
+        LambdaEst,\
+        SELambdaEst = LambdaEstimate(PValArray=ObsFP,Filter=False)
+        Lambdas.append(round(LambdaEst,2))
+        SEsLambda.append(SELambdaEst)
+        ObsF = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
         scipy.random.shuffle(LPValExpArray)
         ExpF  = scipy.sort(scipy.compress(FilterArray,LPValExpArray))
         PylabAxis.scatter(ExpF,
@@ -292,6 +309,25 @@ def PlotQQFilteredOnImpQ(MtbName=str,
     print LogString
     Log.Write(LogString+'\n')
     PylabFigure.savefig(PlotName,dpi=600)
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+
+    SummaryName = 'QQPValModeFilteredOnImpQ_'+MtbName+'.summary.txt'
+    SummaryName = os.path.join(SummaryPath,SummaryName)
+    LogString = '  ++ Saving imputation quality filtering summary to \"'+SummaryName+'\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    fw = open(SummaryName,'w')
+    fw.write('## Imputation Quality (ImpQ)\n')
+    fw.write('# ImpQ level,Lambda,SELambda\n')
+    fw.write('all SNPs,'+str(Lambdas[0])+','+str(SEsLambda[0])+'\n')
+    for i in range(1,len(ImpQLevels)):
+        fw.write(str(ImpQLevels[i-1])+' <= ImpQ <'+str(ImpQLevels[i])+','+str(Lambdas[i])+','+str(SEsLambda[0])+'\n')
+    fw.close()
+
     LogString = '  -- Done ...'
     print LogString
     Log.Write(LogString+'\n')
@@ -400,6 +436,12 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
         FilterArray *= (DCs.DataContainers['AF_coded_all'].GetDataArray()!='NA')
         BetaArray    = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['beta'].GetDataArray()).astype(float))
         SEArray      = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['SE'].GetDataArray()).astype(float))
+        if((len(BetaArray)<1) or
+           (len(SEArray)<1)):
+            LogString  = 'xx Error message from \"QQPlotAndSummary\":\n'
+            LogString += 'xx Beta and SE arrays too small after filtering on missingness!'
+            print LogString
+            Log.Write(LogString+'\n')
         AFArray      = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['AF_coded_all'].GetDataArray()).astype(float))
         ImpQArray    = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['oevar_imp'].GetDataArray()).astype(float))
         NTotArray    = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['n_total'].GetDataArray()).astype(float))
@@ -485,6 +527,21 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             print LogString
             Log.Write(LogString+'\n')
 
+    return
+def LaTeXQQPModeFilteredOnMafSection():
+    String  = r'\section{QQ $p$--value mode: filtered on MAF}\n\n'
+    String += r'Below the QQ plot in $p$--value mode, filtered on '
+    String += r'${\rm MAF} \in $[0.0,0.5]$, is shown on the left hand side. '
+    String += r'The right hand side summarizes the estimates for the genomic '
+    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
+    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
+    String += r'each MAF level.'
+    return
+
+def LaTeXQQPModeFilteredOnImpQSection():
+    return
+
+def LaTeXQQScoreModeFilteredQSection():
     return
 
 def main(ExecutableName):
