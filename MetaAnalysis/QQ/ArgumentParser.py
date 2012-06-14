@@ -46,7 +46,7 @@ def ParseArguments(Log=None):
                                      '\"PS\" sets them both.',
                                 metavar='PROPERTY',
                                 default='P',
-                                choices=['P','S','PS','PI','SI','PSI'])
+                                choices=['P','S','PS'])
     ArgumentParser.add_argument('-x',
                                 '--xproperty',
                                 dest='XProperty',

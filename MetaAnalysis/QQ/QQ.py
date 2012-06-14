@@ -50,32 +50,37 @@ def GetPPointsArray(ArraySize=int):
 
     return PPointsArray
 
-def LambdaEstimate(PValArray=scipy.array,
+def LambdaEstimate(Array=scipy.array,
                    Filter=True):
     #===========================================================================
     # copied from R-GenABEL.lamdaest
     #===========================================================================
     Estimate   = None
-    Ntp        = len(PValArray)
+    Ntp        = len(Array)
+    QChi2Array = None
 
-    QChi2Array = scipy.stats.chi2.isf(PValArray,
-                                      1)            # quantile function of PValObsArray, df = 1
+    if(Array.max()<=1.0):
+        QChi2Array = scipy.stats.chi2.isf(Array,
+                                          1)            # quantile function of PValObsArray, df = 1
+    else:
+        QChi2Array = Array
+
     if(Filter):
-        FilterArray        = (PValArray>=1.0e-8)
-        QChi2FilteredArray = scipy.compress(FilterArray,PValArray)
+        FilterArray        = (QChi2Array>=1.0e-8)
+        QChi2FilteredArray = scipy.compress(FilterArray,QChi2Array)
     else:
         QChi2FilteredArray = QChi2Array
-    QChi2Array.sort()
+    QChi2FilteredArray.sort()
 
     PPointsArray = GetPPointsArray(len(QChi2FilteredArray))
     PPointsArray = scipy.sort(scipy.stats.chi2.ppf(PPointsArray,1)) # df=1
 
-    FilterArray  = (PPointsArray!=0.0)
-    FilterArray *= (QChi2FilteredArray!=0.0)
-    PPointsArray = scipy.compress(FilterArray,PPointsArray)
-    QChi2Array   = scipy.compress(FilterArray,QChi2FilteredArray)
+    FilterArray          = (PPointsArray!=0.0)
+    FilterArray         *= (QChi2FilteredArray!=0.0)
+    PPointsArray         = scipy.compress(FilterArray,PPointsArray)
+    QChi2FilteredArray   = scipy.compress(FilterArray,QChi2FilteredArray)
 
-    P0           = [0.1]
+    P0           = [1.0]
     PBest        = scipy.optimize.leastsq(Residuals,
                                           P0,
                                           args=(PPointsArray,QChi2FilteredArray),
@@ -145,8 +150,8 @@ def PlotQQFilteredOnMAF(MtbName=str,
     Lambdas   = []
     SEsLambda = []
     LambdaEst,\
-    SELambdaEst = LambdaEstimate(PValArray=PValObsArray,Filter=False)
-    Lambdas.append(round(LambdaEst,2))
+    SELambdaEst = LambdaEstimate(Array=PValObsArray,Filter=False)
+    Lambdas.append(LambdaEst)
     SEsLambda.append(SELambdaEst)
     for i in range(len(MAFLevels)):
         Color       = Defines.Colors[i+1]
@@ -154,15 +159,15 @@ def PlotQQFilteredOnMAF(MtbName=str,
         LabelString = None
         if(i==0):
             FilterArray = (MAFArray < MAFLevels[i])
-            LabelString = 'MAF < '+str(MAFLevels[i])
+            LabelString = '0.0 < MAF < '+str(MAFLevels[i])
         else:
             FilterArray  = (MAFArray >= MAFLevels[i-1])
             FilterArray *= (MAFArray  < MAFLevels[i])
             LabelString  = str(MAFLevels[i-1])+r'\leq {\rm MAF} <'+str(MAFLevels[i])
         ObsFP = scipy.sort(scipy.compress(FilterArray,PValObsArray))
         LambdaEst,\
-        SELambdaEst = LambdaEstimate(PValArray=ObsFP,Filter=False)
-        Lambdas.append(round(LambdaEst,2))
+        SELambdaEst = LambdaEstimate(Array=ObsFP,Filter=False)
+        Lambdas.append(LambdaEst)
         SEsLambda.append(SELambdaEst)
         ObsF = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
         scipy.random.shuffle(LPValExpArray)
@@ -211,12 +216,31 @@ def PlotQQFilteredOnMAF(MtbName=str,
     print LogString
     Log.Write(LogString+'\n')
 
+    # Set precision
+    Precision = 2
+    for SE in SEsLambda:
+        if(SE<1.0):
+            Precision = max(Precision,int(round(-scipy.log10(SE))))
     fw = open(SummaryName,'w')
-    fw.write('"## Minor Allele Frequency\n')
+    fw.write('## Minor Allele Frequency\n')
     fw.write('# MAF level,Lambda,SELambda\n')
-    fw.write('all SNPs,'+str(Lambdas[0])+','+str(SEsLambda[0])+'\n')
-    for i in range(1,len(MAFLevels)):
-        fw.write(str(MAFLevels[i-1])+' <= MAF <'+str(MAFLevels[i])+','+str(Lambdas[i])+','+str(SEsLambda[0])+'\n')
+    fw.write('all SNPs,'+\
+             str(round(Lambdas[0],Precision))+','+\
+             str(round(SEsLambda[0],Precision))+\
+             '\n')
+    for i in range(len(MAFLevels)):
+        if(i==0):
+            fw.write('0.0 < MAF < '+\
+                     str(MAFLevels[i])+','+\
+                     str(round(Lambdas[i+1],Precision))+','+\
+                     str(round(SEsLambda[i+1],Precision))+\
+                     '\n')
+        else:
+            fw.write(str(MAFLevels[i-1])+' <= MAF < '+\
+                     str(MAFLevels[i])+','+\
+                     str(round(Lambdas[i+1],Precision))+','+\
+                     str(round(SEsLambda[i+1],Precision))+\
+                     '\n')
     fw.close()
 
     LogString = '  -- Done ...'
@@ -254,8 +278,8 @@ def PlotQQFilteredOnImpQ(MtbName=str,
     Lambdas   = []
     SEsLambda = []
     LambdaEst,\
-    SELambdaEst = LambdaEstimate(PValArray=PValObsArray,Filter=False)
-    Lambdas.append(round(LambdaEst,2))
+    SELambdaEst = LambdaEstimate(Array=PValObsArray,Filter=False)
+    Lambdas.append(LambdaEst)
     SEsLambda.append(SELambdaEst)
     for i in range(len(ImpQLevels)):
         Color       = Defines.Colors[i+1]
@@ -263,15 +287,15 @@ def PlotQQFilteredOnImpQ(MtbName=str,
         LabelString = None
         if(i==0):
             FilterArray = (ImpQArray < ImpQLevels[i])
-            LabelString = 'ImpQ < '+str(ImpQLevels[i])
+            LabelString = '0.0 < ImpQ < '+str(ImpQLevels[i])
         else:
             FilterArray  = (ImpQArray >= ImpQLevels[i-1])
             FilterArray *= (ImpQArray  < ImpQLevels[i])
             LabelString  = str(ImpQLevels[i-1])+r'\leq {\rm ImpQ} <'+str(ImpQLevels[i])
         ObsFP = scipy.sort(scipy.compress(FilterArray,PValObsArray))
         LambdaEst,\
-        SELambdaEst = LambdaEstimate(PValArray=ObsFP,Filter=False)
-        Lambdas.append(round(LambdaEst,2))
+        SELambdaEst = LambdaEstimate(Array=ObsFP,Filter=False)
+        Lambdas.append(LambdaEst)
         SEsLambda.append(SELambdaEst)
         ObsF = scipy.sort(scipy.compress(FilterArray,LPValObsArray))
         scipy.random.shuffle(LPValExpArray)
@@ -320,12 +344,31 @@ def PlotQQFilteredOnImpQ(MtbName=str,
     print LogString
     Log.Write(LogString+'\n')
 
+    # Set precision
+    Precision = 2
+    for SE in SEsLambda:
+        if(SE<1.0):
+            Precision = max(Precision,int(round(-scipy.log10(SE))))
     fw = open(SummaryName,'w')
     fw.write('## Imputation Quality (ImpQ)\n')
     fw.write('# ImpQ level,Lambda,SELambda\n')
-    fw.write('all SNPs,'+str(Lambdas[0])+','+str(SEsLambda[0])+'\n')
-    for i in range(1,len(ImpQLevels)):
-        fw.write(str(ImpQLevels[i-1])+' <= ImpQ <'+str(ImpQLevels[i])+','+str(Lambdas[i])+','+str(SEsLambda[0])+'\n')
+    fw.write('all SNPs,'+\
+             str(round(Lambdas[0],Precision))+','+\
+             str(round(SEsLambda[0],Precision))+\
+             '\n')
+    for i in range(len(ImpQLevels)):
+        if(i==0):
+            fw.write(str('0.0 < ImpQ < '+\
+                     str(ImpQLevels[i])+','+\
+                     str(round(Lambdas[i+1],Precision))+','+\
+                     str(round(SEsLambda[i+1],Precision))+\
+                     '\n'))
+        else:
+            fw.write(str(ImpQLevels[i-1])+' <= ImpQ < '+\
+                     str(ImpQLevels[i])+','+\
+                     str(round(Lambdas[i+1],Precision))+','+\
+                     str(round(SEsLambda[i+1],Precision))+\
+                     '\n')
     fw.close()
 
     LogString = '  -- Done ...'
@@ -341,6 +384,8 @@ def PlotQQFilteredOnScore(MtbName=str,
                           Chi2ObsArray=scipy.array,
                           ScoreArray=scipy.array,
                           ScoreLevels=[],
+                          RsIdArray=scipy.array,
+                          PValArray=scipy.array,
                           Log=Logger):
     PylabParameters,\
     Rectangle         = PylabGetParams()
@@ -357,18 +402,47 @@ def PlotQQFilteredOnScore(MtbName=str,
                       s=Size,
                       facecolor='None',
                       label=r'${\tt '+MtbName+r'}: {\rm ~all~SNPs}$')
-    for i in range(len(Defines.MafLevels)):
+
+    Lambdas   = []
+    SEsLambda = []
+    LambdaEst,\
+    SELambdaEst = LambdaEstimate(Array=Chi2ObsArray,Filter=True)
+    Lambdas.append(LambdaEst)
+    SEsLambda.append(SELambdaEst)
+    Top20RsIds  = []
+    Top20PVals  = []
+    Top20RsIds.append([])
+    Top20PVals.append([])
+    ArgSortArray = scipy.argsort(PValArray)
+    for i in range(20):
+        Index = ArgSortArray[i]
+        Top20RsIds[-1].append(RsIdArray[Index])
+        Top20PVals[-1].append(PValArray[Index])
+    for i in range(len(ScoreLevels)):
         Color       = Defines.Colors[i+1]
         FilterArray = None
         LabelString = None
         if(i==0):
-            FilterArray = (ScoreArray < Defines.MafLevels[i])
-            LabelString = 'Score < '+str(ScoreLevels[i])
+            FilterArray = (ScoreArray < ScoreLevels[i])
+            LabelString = '0.0 < Score < '+str(ScoreLevels[i])
         else:
             FilterArray  = (ScoreArray >= ScoreLevels[i-1])
             FilterArray *= (ScoreArray  < ScoreLevels[i])
             LabelString  = str(ScoreLevels[i-1])+r'\leq {\rm Score} <'+str(ScoreLevels[i])
         ObsF  = scipy.sort(scipy.compress(FilterArray,Chi2ObsArray))
+        LambdaEst,\
+        SELambdaEst = LambdaEstimate(Array=ObsF,Filter=True)
+        Lambdas.append(LambdaEst)
+        SEsLambda.append(SELambdaEst)
+        Top20RsIds.append([])
+        Top20PVals.append([])
+        RsIdSubArray = scipy.compress(FilterArray,RsIdArray)
+        PValSubArray = scipy.compress(FilterArray,PValArray)
+        ArgSortArray = scipy.argsort(PValSubArray)
+        for i in range(20):
+            Index = ArgSortArray[i]
+            Top20RsIds[-1].append(RsIdArray[Index])
+            Top20PVals[-1].append(PValArray[Index])
         scipy.random.shuffle(Chi2ExpArray)
         ExpF  = scipy.sort(scipy.compress(FilterArray,Chi2ExpArray))
         PylabAxis.scatter(ExpF,
@@ -404,6 +478,60 @@ def PlotQQFilteredOnScore(MtbName=str,
     print LogString
     Log.Write(LogString+'\n')
     PylabFigure.savefig(PlotName,dpi=600)
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    SummaryName = 'QQScoreModeFilteredOnScore_'+MtbName+'.summary.txt'
+    SummaryName = os.path.join(SummaryPath,SummaryName)
+    LogString = '  ++ Saving score filtering summary to \"'+SummaryName+'\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    # Set precision
+    Precision = 2
+    for SE in SEsLambda:
+        if(SE<1.0):
+            Precision = max(Precision,int(round(-scipy.log10(SE))))
+    fw = open(SummaryName,'w')
+    fw.write('## Score\n')
+    fw.write('# Score level,Lambda,SELambda\n')
+    fw.write('all SNPs,'+\
+             str(round(Lambdas[0],Precision))+','+\
+             str(round(SEsLambda[0],Precision))+\
+             '\n')
+    for i in range(len(ScoreLevels)):
+        if(i==0):
+            fw.write(str('0.0 < Score < '+\
+                     str(ScoreLevels[i])+','+\
+                     str(round(Lambdas[i+1],Precision))+','+\
+                     str(round(SEsLambda[i+1],Precision))+\
+                     '\n'))
+        else:
+            fw.write(str(ScoreLevels[i-1])+' <= Score < '+\
+                     str(ScoreLevels[i])+','+\
+                     str(round(Lambdas[i+1],Precision))+','+\
+                     str(round(SEsLambda[i+1],Precision))+\
+                     '\n')
+    fw.write('# Top 20 hits per score level\n')
+    fw.write('#\n')
+    fw.write('# Score level: all SNPs\n')
+    fw.write('# rank,rsid,p-value\n')
+    for j in range(20):
+        fw.write(str(j+1)+','+str(Top20RsIds[0][j])+','+str(Top20PVals[0][j])+'\n')
+    for i in range(len(ScoreLevels)):
+        fw.write('#\n')
+        if(i==0):
+            fw.write(str('# Score level: 0.0 < Score < '+\
+                     str(ScoreLevels[i])+'\n'))
+        else:
+            fw.write(str(ScoreLevels[i-1])+' <= Score < '+\
+                     str(ScoreLevels[i])+'\n')
+        fw.write('# rank,rsid,p-value\n')
+        for j in range(20):
+            fw.write(str(j+1)+','+str(Top20RsIds[i+1][j])+','+str(Top20PVals[i+1][j])+'\n')
+    fw.close()
+
     LogString = '  -- Done ...'
     print LogString
     Log.Write(LogString+'\n')
@@ -445,9 +573,12 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
         AFArray      = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['AF_coded_all'].GetDataArray()).astype(float))
         ImpQArray    = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['oevar_imp'].GetDataArray()).astype(float))
         NTotArray    = scipy.real(scipy.compress(FilterArray,DCs.DataContainers['n_total'].GetDataArray()).astype(float))
+        RsIdArray    = scipy.compress(FilterArray,DCs.DataContainers['SNPID'].GetDataArray())
         Chi2ObsArray = scipy.real(scipy.power((BetaArray/SEArray),2.0)).astype(float)
         FilterArray  = (Chi2ObsArray>=0.0)
         Chi2ObsArray = scipy.compress(FilterArray,Chi2ObsArray)
+        PValObsArray  = scipy.stats.chi2.sf(Chi2ObsArray,\
+                                            1) # df=1
 
         # Convert AF to MAF
         CondArray    = [AFArray<=0.5]
@@ -467,8 +598,6 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             ImpQLevels = copy.deepcopy(Defines.ImpLevels)
             ImpQLevels.sort()
 
-            PValObsArray  = scipy.stats.chi2.sf(Chi2ObsArray,\
-                                                1) # df=1
             LPValObsArray = -scipy.log10(PValObsArray)
             PValExpArray  = scipy.stats.chi2.sf(scipy.stats.chi2.rvs(1,\
                                                                       size=len(PValObsArray)),\
@@ -508,8 +637,8 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             Log.Write(LogString+'\n')
 
             ScoreArray  = MAFArray*ImpQArray*NTotArray*2.0 # why this expression??
-            ScoreArray /= ScoreArray.max()                 # normalize to unity
-            ScoreArray *= 100.0                            # normalize to 100%
+#            ScoreArray /= ScoreArray.max()                 # normalize to unity
+#            ScoreArray *= 100.0                            # normalize to 100%
             ScoreLevels = copy.deepcopy(Defines.ScoreLevels)
             ScoreLevels.sort()
             Chi2ExpArray = scipy.stats.chi2.rvs(1,\
@@ -521,6 +650,8 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
                                   Chi2ObsArray,
                                   ScoreArray,
                                   ScoreLevels,
+                                  RsIdArray,
+                                  PValObsArray,
                                   Log)
 
             LogString = '-- Done ...'
