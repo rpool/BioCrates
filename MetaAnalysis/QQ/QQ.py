@@ -659,7 +659,8 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             Log.Write(LogString+'\n')
 
     return
-def LaTeXQQPModeFilteredOnMafSection():
+def LaTeXQQPModeFilteredOnMafSection(PlotFile=str,
+                                     SummaryFile=str):
     String  = r'\section{QQ $p$--value mode: filtered on MAF}'
     String += '\n\n'
     String += r'Below the QQ plot in $p$--value mode, filtered on '
@@ -674,9 +675,21 @@ def LaTeXQQPModeFilteredOnMafSection():
     String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
     String += r'each MAF level.'
     String += '\n\n'
+    String += r'\begin{tabular}{cc}'
+    String += '\n'
+    File    = re.sub('\.','_',os.path.basename(PlotFile))
+    File    = re.sub('_png','.png',File)
+    File    = os.path.join('Plots',File)
+    os.system('ln -sf '+PlotFile+' '+File)
+    String += r'\includegraphics[width=6cm]{../'+File
+    String += r'} &'
+    String += '\n'
+    String += r'\end{tabular}'
+    String += '\n\n'
     return String
 
-def LaTeXQQPModeFilteredOnImpQSection():
+def LaTeXQQPModeFilteredOnImpQSection(PlotFile=str,
+                                      SummaryFile=str):
     String  = r'\section{QQ $p$--value mode: filtered on ImpQ}'
     String += '\n\n'
     String += r'Below the QQ plot in $p$--value mode, filtered on imputation '
@@ -691,9 +704,21 @@ def LaTeXQQPModeFilteredOnImpQSection():
     String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
     String += r'each ImpQ level.'
     String += '\n\n'
+    String += r'\begin{tabular}{cc}'
+    String += '\n'
+    File    = re.sub('\.','_',os.path.basename(PlotFile))
+    File    = re.sub('_png','.png',File)
+    File    = os.path.join('Plots',File)
+    os.system('ln -sf '+PlotFile+' '+File)
+    String += r'\includegraphics[width=6cm]{../'+File
+    String += r'} &'
+    String += '\n'
+    String += r'\end{tabular}'
+    String += '\n\n'
     return String
 
-def LaTeXQQScoreModeFilteredQSection():
+def LaTeXQQScoreModeFilteredQSection(PlotFile=str,
+                                     SummaryFile=str):
     String  = r'\section{QQ $\chi^{2}$ mode: filtered on score}'
     String += '\n\n'
     String += r'Below the QQ plot in $\chi^{2}$ mode, filtered on score '
@@ -704,6 +729,17 @@ def LaTeXQQScoreModeFilteredQSection():
     String += r'inflation factor $\lambda_{\rm est}$ and the associated '
     String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
     String += r'each score level.'
+    String += '\n\n'
+    String += r'\begin{tabular}{cc}'
+    String += '\n'
+    File    = re.sub('\.','_',os.path.basename(PlotFile))
+    File    = re.sub('_png','.png',File)
+    File    = os.path.join('Plots',File)
+    os.system('ln -sf '+PlotFile+' '+File)
+    String += r'\includegraphics[width=6cm]{../'+File
+    String += r'} &'
+    String += '\n'
+    String += r'\end{tabular}'
     String += '\n\n'
     return String
 
@@ -737,7 +773,7 @@ def LaTeXPreamble():
     return String
 
 def LaTeXTitle(MtbName=str):
-    String  = r'\title{QQ Analysis Report for Retabolite '
+    String  = r'\title{QQ Analysis Report for Metabolite '
     String += r'{\tt '
     String += MtbName
     String += r'}'
@@ -781,6 +817,8 @@ def GenerateLaTeXReport(Log=Logger,
     if(not os.path.isdir(PdfPath)):
         os.mkdir(PdfPath)
 
+    PlotPath    = os.path.join(BasePath,'Plots')
+    SummaryPath = os.path.join(BasePath,'Summaries')
     for MtbName in MtbNames:
         LaTeXSrcFile    = os.path.join(LaTeXPath,'QQReport_'+MtbName+'.tex')
         LaTeXStdoutFile = os.path.join(LaTeXPath,'QQReport_'+MtbName+'.stdout')
@@ -796,9 +834,51 @@ def GenerateLaTeXReport(Log=Logger,
         fw.write(LaTeXBeginDocument())
         fw.write(LaTeXTitle(MtbName))
         fw.write(LaTeXMakeTitle())
-        fw.write(LaTeXQQPModeFilteredOnMafSection())
-        fw.write(LaTeXQQPModeFilteredOnImpQSection())
-        fw.write(LaTeXQQScoreModeFilteredQSection())
+        boHavePlot       = False
+        QQMafPlotFile    = None
+        boHaveSummary    = False
+        QQMafSummaryFile = None
+        for FileName in os.listdir(PlotPath):
+            if(FileName=='QQPValModeFilteredOnMaf_'+MtbName+'.png'):
+                QQMafPlotFile = os.path.join(PlotPath,FileName)
+                boHavePlot    = True
+        for FileName in os.listdir(SummaryPath):
+            if(FileName=='QQPValModeFilteredOnMaf_'+MtbName+'.summary.txt'):
+                QQMafSummaryFile = os.path.join(SummaryPath,FileName)
+                boHaveSummary    = True
+        if(boHavePlot and boHaveSummary):
+            fw.write(LaTeXQQPModeFilteredOnMafSection(QQMafPlotFile,
+                                                      QQMafSummaryFile))
+        boHavePlot        = False
+        QQImpQPlotFile    = None
+        boHaveSummary     = False
+        QQImpQSummaryFile = None
+        for FileName in os.listdir(PlotPath):
+            if(FileName=='QQPValModeFilteredOnImpQ_'+MtbName+'.png'):
+                QQImpQPlotFile = os.path.join(PlotPath,FileName)
+                boHavePlot     = True
+        for FileName in os.listdir(SummaryPath):
+            if(FileName=='QQPValModeFilteredOnImpQ_'+MtbName+'.summary.txt'):
+                QQImpQSummaryFile = os.path.join(SummaryPath,FileName)
+                boHaveSummary     = True
+        if(boHavePlot and boHaveSummary):
+            fw.write(LaTeXQQPModeFilteredOnImpQSection(QQImpQPlotFile,
+                                                       QQImpQSummaryFile))
+        boHavePlot         = False
+        QQScorePlotFile    = None
+        boHaveSummary      = False
+        QQScoreSummaryFile = None
+        for FileName in os.listdir(PlotPath):
+            if(FileName=='QQScoreModeFilteredOnScore_'+MtbName+'.png'):
+                QQScorePlotFile = os.path.join(PlotPath,FileName)
+                boHavePlot      = True
+        for FileName in os.listdir(SummaryPath):
+            if(FileName=='QQScoreModeFilteredOnScore_'+MtbName+'.summary.txt'):
+                QQScoreSummaryFile = os.path.join(SummaryPath,FileName)
+                boHaveSummary      = True
+        if(boHavePlot and boHaveSummary):
+            fw.write(LaTeXQQScoreModeFilteredQSection(QQScorePlotFile,
+                                                      QQScoreSummaryFile))
         fw.write(LaTeXEndDocument())
         fw.close()
         LogString = '  -- Done ...'
@@ -814,7 +894,7 @@ def GenerateLaTeXReport(Log=Logger,
         os.chdir(LaTeXPath)
         os.system('pdflatex '+LaTeXSrcFile+' > '+LaTeXStdoutFile+' 2> '+LaTeXStdErrFile)
         os.chdir(BasePath)
-        os.symlink(re.sub('.tex','.pdf',LaTeXSrcFile),PdfOutFile)
+        os.system('ln -sf '+re.sub('.tex','.pdf',LaTeXSrcFile)+' '+PdfOutFile)
         LogString = '  -- Done ...'
         print LogString
         Log.Write(LogString+'\n')
@@ -858,7 +938,7 @@ def main(ExecutableName):
     LogString = '++ Parsing \"'+Arguments.MtbNameFile+'\" ...'
     print LogString
     Log.Write(LogString+'\n')
-    MtbNameFile = File.File(Name=Arguments.GwaFiles,
+    MtbNameFile = File.File(Name=Arguments.MtbNameFile,
                             boHeader=False)
     MtbNameFile.SetFileHandle(Mode='r')
     MtbNameFileDCs = MtbNameFile.ParseToDataContainers()
@@ -870,28 +950,40 @@ def main(ExecutableName):
     Log.Write(LogString+'\n')
 
     # Loop over GwaFiles
-    MtbNames = []
-    for N in MtbNameFile.DataContainers['0'].GetDataArray(): # '0' because there should be ONE column && NO header
-        LogString = '++ Parsing \"'+F+'\" ...'
+    MtbNames        = []
+    GwaDataFileList = os.listdir(Arguments.GWADataPath)
+    for MtbName in MtbNameFileDCs.DataContainers['0'].GetDataArray(): # '0' because there should be ONE column && NO header
+        MtbNames.append(MtbName)
+        GwaFileName = None
+        DelIndex    = None
+        for FileName in GwaDataFileList:
+            FSplit      = FileName.split('_')
+            GwaFileName = None
+            if(len(FSplit)>3):
+                Name = FSplit[2]
+            if(Name==MtbName):
+                DelIndex    = GwaDataFileList.index(FileName)
+                GwaFileName = os.path.join(Arguments.GWADataPath,FileName)
+                break
+        del GwaDataFileList[DelIndex]
+        LogString = '++ Parsing \"'+GwaFileName+'\" ...'
         print LogString
         Log.Write(LogString+'\n')
-        GwaFile = File.File(Name=F,
-                            boHeader=True)
-        GwaFile.SetboUsePigz(boUsePigz=True)
-        GwaFile.SetFileHandle(Mode='r')
-        GwaFileDCs = GwaFile.ParseToDataContainers()
-        GwaFile.Close()
-        GwaFile.Cleanup()
-        del GwaFile
+#        GwaFile = File.File(Name=GwaFileName,
+#                            boHeader=True)
+#        GwaFile.SetboUsePigz(boUsePigz=True)
+#        GwaFile.SetFileHandle(Mode='r')
+#        GwaFileDCs = GwaFile.ParseToDataContainers()
+#        GwaFile.Close()
+#        GwaFile.Cleanup()
+#        del GwaFile
         LogString = '-- Done ...'
         print LogString
         Log.Write(LogString+'\n')
-        MtbName = F.split('_')[2]
-        MtbNames.append(MtbName)
-        QQPlotAndSummary(GwaFileDCs,
-                         Arguments.QQModes,
-                         MtbName,
-                         Log)
+#        QQPlotAndSummary(GwaFileDCs,
+#                         Arguments.QQModes,
+#                         MtbName,
+#                         Log)
 
     if(Arguments.boGeneratePdfReport):
         GenerateLaTeXReport(Log,
