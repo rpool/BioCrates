@@ -441,8 +441,8 @@ def PlotQQFilteredOnScore(MtbName=str,
         ArgSortArray = scipy.argsort(PValSubArray)
         for i in range(20):
             Index = ArgSortArray[i]
-            Top20RsIds[-1].append(RsIdArray[Index])
-            Top20PVals[-1].append(PValArray[Index])
+            Top20RsIds[-1].append(RsIdSubArray[Index])
+            Top20PVals[-1].append(PValSubArray[Index])
         scipy.random.shuffle(Chi2ExpArray)
         ExpF  = scipy.sort(scipy.compress(FilterArray,Chi2ExpArray))
         PylabAxis.scatter(ExpF,
@@ -663,6 +663,8 @@ def LaTeXQQPModeFilteredOnMafSection():
     String  = r'\section{QQ $p$--value mode: filtered on MAF}\n\n'
     String += r'Below the QQ plot in $p$--value mode, filtered on '
     String += r'${\rm MAF} \in $[0.0,0.5]$, is shown on the left hand side. '
+    String += r'The symbol $P$ denotes the $p$--value calculated for the '
+    String += r'$\chi^{2}$ distribution of $\beta/SE$ with $df=1$.'
     String += r'The right hand side summarizes the estimates for the genomic '
     String += r'inflation factor $\lambda_{\rm est}$ and the associated '
     String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
@@ -670,9 +672,27 @@ def LaTeXQQPModeFilteredOnMafSection():
     return
 
 def LaTeXQQPModeFilteredOnImpQSection():
+    String  = r'\section{QQ $p$--value mode: filtered on ImpQ}\n\n'
+    String += r'Below the QQ plot in $p$--value mode, filtered on imputation '
+    String += r'quality ${\rm ImpQ} \in $[0.0,1.0]$, is shown on the left hand side. '
+#    String += r'The symbol $P$ denotes the $p$--value calculated for the '
+#    String += r'$\chi^{2}$ distribution of $\beta/SE$ with $df=1$.'
+#    String += r'The right hand side summarizes the estimates for the genomic '
+#    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
+#    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
+#    String += r'each MAF level.'
     return
 
 def LaTeXQQScoreModeFilteredQSection():
+    String  = r'\section{QQ $\chi^{2}$ mode: filtered on score}\n\n'
+    String += r'Below the QQ plot in $\chi^{2}$ mode, filtered on score '
+    String += r'quality ${\rm score} \in $[0.0,100.0]$, is shown on the left hand side. '
+#    String += r'The symbol $P$ denotes the $p$--value calculated for the '
+#    String += r'$\chi^{2}$ distribution of $\beta/SE$ with $df=1$.'
+#    String += r'The right hand side summarizes the estimates for the genomic '
+#    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
+#    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
+#    String += r'each MAF level.'
     return
 
 def main(ExecutableName):
