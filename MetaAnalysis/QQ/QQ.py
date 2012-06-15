@@ -660,39 +660,169 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
 
     return
 def LaTeXQQPModeFilteredOnMafSection():
-    String  = r'\section{QQ $p$--value mode: filtered on MAF}\n\n'
+    String  = r'\section{QQ $p$--value mode: filtered on MAF}'
+    String += '\n\n'
     String += r'Below the QQ plot in $p$--value mode, filtered on '
-    String += r'${\rm MAF} \in $[0.0,0.5]$, is shown on the left hand side. '
-    String += r'The symbol $P$ denotes the $p$--value calculated for the '
+    String += r'${\rm MAF} \in [0.0,0.5]$, is shown on the left hand side. '
+    String += r'The symbol $P$ denotes the $p$--value calculated from the '
     String += r'$\chi^{2}$ distribution of $\beta/SE$ with $df=1$.'
+    String += r'For the observed $p$--value $\chi^{2}$ is defined as $\chi^{2}=(\beta/SE)^{2}$. '
+    String += r'For the expected $p$--values, a random sample from the $\chi^{2}$ '
+    String += r'distribution was taken with the same length as the observed $\chi^{2}$ array.'
     String += r'The right hand side summarizes the estimates for the genomic '
     String += r'inflation factor $\lambda_{\rm est}$ and the associated '
     String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
     String += r'each MAF level.'
-    return
+    String += '\n\n'
+    return String
 
 def LaTeXQQPModeFilteredOnImpQSection():
-    String  = r'\section{QQ $p$--value mode: filtered on ImpQ}\n\n'
+    String  = r'\section{QQ $p$--value mode: filtered on ImpQ}'
+    String += '\n\n'
     String += r'Below the QQ plot in $p$--value mode, filtered on imputation '
-    String += r'quality ${\rm ImpQ} \in $[0.0,1.0]$, is shown on the left hand side. '
-#    String += r'The symbol $P$ denotes the $p$--value calculated for the '
-#    String += r'$\chi^{2}$ distribution of $\beta/SE$ with $df=1$.'
-#    String += r'The right hand side summarizes the estimates for the genomic '
-#    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
-#    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
-#    String += r'each MAF level.'
-    return
+    String += r'quality ${\rm ImpQ} \in [0.0,1.0]$, is shown on the left hand side. '
+    String += r'The symbol $P$ denotes the $p$--value calculated from the '
+    String += r'$\chi^{2}$ distribution $df=1$. '
+    String += r'For the observed $p$--value $\chi^{2}$ is defined as $\chi^{2}=(\beta/SE)^{2}$. '
+    String += r'For the expected $p$--values, a random sample from the $\chi^{2}$ '
+    String += r'distribution was taken with the same length as the observed $\chi^{2}$ array.'
+    String += r'The right hand side summarizes the estimates for the genomic '
+    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
+    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
+    String += r'each ImpQ level.'
+    String += '\n\n'
+    return String
 
 def LaTeXQQScoreModeFilteredQSection():
-    String  = r'\section{QQ $\chi^{2}$ mode: filtered on score}\n\n'
+    String  = r'\section{QQ $\chi^{2}$ mode: filtered on score}'
+    String += '\n\n'
     String += r'Below the QQ plot in $\chi^{2}$ mode, filtered on score '
-    String += r'quality ${\rm score} \in $[0.0,100.0]$, is shown on the left hand side. '
-#    String += r'The symbol $P$ denotes the $p$--value calculated for the '
-#    String += r'$\chi^{2}$ distribution of $\beta/SE$ with $df=1$.'
-#    String += r'The right hand side summarizes the estimates for the genomic '
-#    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
-#    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
-#    String += r'each MAF level.'
+    String += r'quality ${\rm Score} \in [0.0,100.0]$, is shown on the left hand side. '
+    String += r'The observed $\chi^{2}$ values were determined by squaring '
+    String += r'$\beta/SE$.'
+    String += r'The right hand side summarizes the estimates for the genomic '
+    String += r'inflation factor $\lambda_{\rm est}$ and the associated '
+    String += r'standard error ${\rm SE}(\lambda_{\rm est})$, determined at '
+    String += r'each score level.'
+    String += '\n\n'
+    return String
+
+def LaTeXPreamble():
+    String  =r'\documentclass[pre,amsmath,onecolumn,floatfix,fleqn,a4paper,superscriptaddress]{revtex4}'
+    String += '\n'
+    String +=r'\usepackage{latexsym}'
+    String += '\n'
+    String +=r'\usepackage{amsmath,amsfonts,amssymb}'
+    String += '\n'
+    String +=r'\usepackage[dvips]{graphicx}'
+    String += '\n'
+    String +=r'\usepackage{subfigure}'
+    String += '\n'
+    String +=r'\usepackage{float}'
+    String += '\n'
+    String +=r'\usepackage{pifont}'
+    String += '\n'
+    String +=r'\usepackage{color}'
+    String += '\n'
+    String += '\n'
+    String +=r'\renewcommand{\textfraction}{0.00} \renewcommand{\topfraction}{1.0}'
+    String += '\n'
+    String +=r'\renewcommand{\bottomfraction}{1.0}'
+    String += '\n'
+    String +=r'\renewcommand{\floatpagefraction}{1}'
+    String += '\n'
+    String +=r'\newcommand\vcent[1]{\ensuremath{\vcenter{\hbox{{#1}}}}}'
+    String += '\n'
+    String += '\n'
+    return String
+
+def LaTeXTitle(MtbName=str):
+    String  = r'\title{QQ Analysis Report for Retabolite '
+    String += r'{\tt '
+    String += MtbName
+    String += r'}'
+    String += r'}'
+    String += '\n'
+    return String
+
+def LaTeXDate():
+    String  = r'\date{\today}'
+    String += '\n'
+    String += '\n'
+    return String
+
+def LaTeXBeginDocument():
+    String  = r'\begin{document}'
+    String += '\n'
+    return String
+
+def LaTeXMakeTitle():
+    String  = r'\maketitle'
+    String += '\n'
+    String += '\n'
+    return String
+
+def LaTeXEndDocument():
+    String  = r'\end{document}'
+    String += '\n'
+    return String
+
+
+def GenerateLaTeXReport(Log=Logger,
+                        MtbNames=[]):
+    LogString = '++ Generating QQ analysis reports using LaTeX ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    BasePath  = os.getcwd()
+    LaTeXPath = os.path.join(BasePath,'LaTeX')
+    if(not os.path.isdir(LaTeXPath)):
+        os.mkdir(LaTeXPath)
+    PdfPath = os.path.join(BasePath,'Pdf')
+    if(not os.path.isdir(PdfPath)):
+        os.mkdir(PdfPath)
+
+    for MtbName in MtbNames:
+        LaTeXSrcFile    = os.path.join(LaTeXPath,'QQReport_'+MtbName+'.tex')
+        LaTeXStdoutFile = os.path.join(LaTeXPath,'QQReport_'+MtbName+'.stdout')
+        LaTeXStdErrFile = os.path.join(LaTeXPath,'QQReport_'+MtbName+'.stderr')
+
+        LogString  = '  ++ Generating LaTeX source file for metabolite \"'+MtbName+'\" ...\n'
+        LogString += '     LaTeX source file: \"'+LaTeXSrcFile+'\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        fw = open(LaTeXSrcFile,'w')
+        fw.write(LaTeXPreamble())
+        fw.write(LaTeXDate())
+        fw.write(LaTeXBeginDocument())
+        fw.write(LaTeXTitle(MtbName))
+        fw.write(LaTeXMakeTitle())
+        fw.write(LaTeXQQPModeFilteredOnMafSection())
+        fw.write(LaTeXQQPModeFilteredOnImpQSection())
+        fw.write(LaTeXQQScoreModeFilteredQSection())
+        fw.write(LaTeXEndDocument())
+        fw.close()
+        LogString = '  -- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+        PdfOutFile = os.path.join(PdfPath,'QQReport_'+MtbName+'.pdf')
+
+        LogString  = '  ++ Generating pdf summary source file using \"pdflatex\" for metabolite \"'+MtbName+'\" ...\n'
+        LogString += '     Pdf output file: \"'+PdfOutFile+'\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        os.chdir(LaTeXPath)
+        os.system('pdflatex '+LaTeXSrcFile+' > '+LaTeXStdoutFile+' 2> '+LaTeXStdErrFile)
+        os.chdir(BasePath)
+        os.symlink(re.sub('.tex','.pdf',LaTeXSrcFile),PdfOutFile)
+        LogString = '  -- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
     return
 
 def main(ExecutableName):
@@ -725,22 +855,23 @@ def main(ExecutableName):
     # START Do the work!
     #===========================================================================
     # Parse Arguments.GwaFiles
-    LogString = '++ Parsing \"'+Arguments.GwaFiles+'\" ...'
+    LogString = '++ Parsing \"'+Arguments.MtbNameFile+'\" ...'
     print LogString
     Log.Write(LogString+'\n')
-    GwaFiles = File.File(Name=Arguments.GwaFiles,
-                         boHeader=False)
-    GwaFiles.SetFileHandle(Mode='r')
-    GwaFilesDCs = GwaFiles.ParseToDataContainers()
-    GwaFiles.Close()
-    GwaFiles.Cleanup()
-    del GwaFiles
+    MtbNameFile = File.File(Name=Arguments.GwaFiles,
+                            boHeader=False)
+    MtbNameFile.SetFileHandle(Mode='r')
+    MtbNameFileDCs = MtbNameFile.ParseToDataContainers()
+    MtbNameFile.Close()
+    MtbNameFile.Cleanup()
+    del MtbNameFile
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')
 
     # Loop over GwaFiles
-    for F in GwaFilesDCs.DataContainers['0'].GetDataArray(): # '0' because there should be ONE column && NO header
+    MtbNames = []
+    for N in MtbNameFile.DataContainers['0'].GetDataArray(): # '0' because there should be ONE column && NO header
         LogString = '++ Parsing \"'+F+'\" ...'
         print LogString
         Log.Write(LogString+'\n')
@@ -756,10 +887,15 @@ def main(ExecutableName):
         print LogString
         Log.Write(LogString+'\n')
         MtbName = F.split('_')[2]
+        MtbNames.append(MtbName)
         QQPlotAndSummary(GwaFileDCs,
                          Arguments.QQModes,
                          MtbName,
                          Log)
+
+    if(Arguments.boGeneratePdfReport):
+        GenerateLaTeXReport(Log,
+                            MtbNames)
 
     #===========================================================================
     # END Do the work!

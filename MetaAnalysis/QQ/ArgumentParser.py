@@ -31,12 +31,18 @@ def LogArguments(Log=Logger,
 def ParseArguments(Log=None):
     ArgumentParser = argparse.ArgumentParser(description=\
                                              'This python module can be used for generating QQ plots in p-value and/or score mode.')
-    ArgumentParser.add_argument('-f',
-                                '--gwafiles',
-                                dest='GwaFiles',
+    ArgumentParser.add_argument('-M',
+                                '--mtbnamefile',
+                                dest='MtbNameFile',
                                 help='PATH: Name of file that lists the GWA output files to be analyzes (input)',
                                 metavar='PATH',
-                                default=os.path.join(os.getcwd(),'GWAFiles.txt'))
+                                default=os.path.join(os.getcwd(),'MtbNames.txt'))
+    ArgumentParser.add_argument('-p',
+                                '--GWAdatapath',
+                                dest='GWADataPath',
+                                help='PATH: Name of path that contains the GWA output files to be analyzed (input)',
+                                metavar='PATH',
+                                default=os.path.join(os.getcwd(),'Data'))
     ArgumentParser.add_argument('-m',
                                 '--qqmodes',
                                 dest='QQModes',
@@ -47,18 +53,12 @@ def ParseArguments(Log=None):
                                 metavar='PROPERTY',
                                 default='P',
                                 choices=['P','S','PS'])
-    ArgumentParser.add_argument('-x',
-                                '--xproperty',
-                                dest='XProperty',
-                                help='STRING: Property to be displayed on the x-axis (input)',
-                                metavar='STRING',
-                                default='pos')
-    ArgumentParser.add_argument('-y',
-                                '--yproperty',
-                                dest='YProperty',
-                                help='STRING: Property to be displayed on the y-axis (input)',
-                                metavar='STRING',
-                                default='PHE')
+    ArgumentParser.add_argument('-r',
+                                '--PDFReport',
+                                dest='boGeneratePdfReport',
+                                help='FLAG: Generate a QQ analysis report in pdf format (input).',
+                                action='store_true',
+                                default=False)
 
     Arguments = ArgumentParser.parse_args()
 
