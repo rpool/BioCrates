@@ -1,3 +1,4 @@
+import sys
 import os
 import pwd
 import platform
@@ -62,7 +63,8 @@ class Logger:
         self.StartLogString += '# time (hh:mm:ss)   : '+str(StartDate.time())+'\n'
         self.StartLogString += '# platform          : '+' '.join(platform.uname())+'\n'
         self.StartLogString += '# user              : '+str(pwd.getpwuid(os.getuid())[0])+'\n'
-        self.StartLogString += '# path              : '+os.getcwd()
+        self.StartLogString += '# path              : '+os.getcwd()+'\n'
+        self.StartLogString += '# python version    : '+str(sys.version_info)
         self.StartLogString += '\n'
 
         return
