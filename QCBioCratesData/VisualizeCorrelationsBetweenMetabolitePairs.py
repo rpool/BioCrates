@@ -23,7 +23,7 @@ def LogArguments(Log=Logger,
     print LogString
     Log.Write(LogString+'\n')
 
-    FormatString = '{:<'+str(MaxLen)+'}'
+    FormatString = '{0:<'+str(MaxLen)+'}'
     LogString    = ''
     for Key,Value in vars(Arguments).iteritems():
         LogString += FormatString.format(Key)+': '+str(Value)+'\n'

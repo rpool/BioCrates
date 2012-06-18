@@ -87,7 +87,7 @@ class RMiceImpute:
         for i in range(len(imp.names)):
             Name = imp.names[i]
             DataDict[Name] = DataNdArray[i]
-        FormatString = '{:>'+str(10)+'}'
+        FormatString = '{0:>'+str(10)+'}'
         Line         = ''
         for i in range(len(imp.names)):
             Line += FormatString.format(imp.names[i])
@@ -128,7 +128,7 @@ class RMiceImpute:
                     Counter += 1
             AvArray /= float(Counter)
             DataDict[Name] = AvArray
-        FormatString = '{:>'+str(10)+'}'
+        FormatString = '{0:>'+str(10)+'}'
         Line         = ''
         for i in range(len(imp.names)):
             Line += FormatString.format(imp.names[i])
