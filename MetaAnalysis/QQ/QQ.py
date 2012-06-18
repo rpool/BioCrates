@@ -827,7 +827,7 @@ def LaTeXQQPModeFilteredOnMafSection(PlotFile=str,
 #    File    = re.sub('\.png','',File)
 #    File    = os.path.join('Plots',File)
 #    os.system('ln -sf '+PlotFile+' '+File)
-    String += r'\vcent{\includegraphics[width=7.25cm,type=png,ext=.png,read=.png]{'+re.sub('\,.png','',PlotFile)
+    String += r'\vcent{\includegraphics[width=7.25cm,type=png,ext=.png,read=.png]{'+re.sub('\.png','',PlotFile)
     String += r'}} &'
     String += '\n'
     String += r'\begin{tabular}{l|ll|ll|ll|ll|ll|}'
@@ -988,7 +988,7 @@ def LaTeXQQPModeFilteredOnImpQSection(PlotFile=str,
 #    File    = re.sub('_png','',File)
 #    File    = os.path.join('Plots',File)
 #    os.system('ln -sf '+PlotFile+' '+File)
-    String += r'\vcent{\includegraphics[width=7.25cm,type=png,ext=.png,read=.png]{'+re.sub('\,.png','',PlotFile)
+    String += r'\vcent{\includegraphics[width=7.25cm,type=png,ext=.png,read=.png]{'+re.sub('\.png','',PlotFile)
     String += r'}} &'
     String += '\n'
     String += r'\begin{tabular}{l|ll|ll|ll|ll|ll|}'
@@ -1142,7 +1142,7 @@ def LaTeXQQScoreModeFilteredQSection(PlotFile=str,
 #    File    = re.sub('_png','',File)
 #    File    = os.path.join('Plots',File)
 #    os.system('ln -sf '+PlotFile+' '+File)
-    String += r'\vcent{\includegraphics[width=7.25cm,type=png,ext=.png,read=.png]{'+re.sub('\,.png','',PlotFile)
+    String += r'\vcent{\includegraphics[width=7.25cm,type=png,ext=.png,read=.png]{'+re.sub('\.png','',PlotFile)
     String += r'}} &'
     String += '\n'
     String += r'\begin{tabular}{l|ll|ll|ll|ll|ll|}'
