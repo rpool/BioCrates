@@ -266,8 +266,7 @@ def PlotQQFilteredOnMAF(MtbName=str,
                      Labels,
                      fancybox=True,
                      shadow=True,
-                     loc='lower right',
-                     markerscale=1)
+                     loc='lower right')
     PylabAxis.grid(True)
     LogString = '  ++ Saving MAF filtered plot to \"'+PlotName+'\" ...'
     print LogString
@@ -439,8 +438,7 @@ def PlotQQFilteredOnImpQ(MtbName=str,
                      Labels,
                      fancybox=True,
                      shadow=True,
-                     loc='lower right',
-                     markerscale=1)
+                     loc='lower right')
     PylabAxis.grid(True)
     LogString = '  ++ Saving imputation quality filtered plot to \"'+PlotName+'\" ...'
     print LogString
@@ -609,8 +607,7 @@ def PlotQQFilteredOnScore(MtbName=str,
                      Labels,
                      fancybox=True,
                      shadow=True,
-                     loc='lower right',
-                     markerscale=1)
+                     loc='lower right')
     PylabAxis.grid(True)
     LogString = '  ++ Saving score filtered plot to \"'+PlotName+'\" ...'
     print LogString
