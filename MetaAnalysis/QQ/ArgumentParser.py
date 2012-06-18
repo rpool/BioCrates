@@ -3,9 +3,14 @@ import os
 
 import Logger
 
+#===============================================================================
+# This module parses the command line options and generates a log
+#===============================================================================
+
 def LogArguments(Log=Logger,
                  ArgParser=argparse.ArgumentParser,
                  Arguments=argparse.Namespace):
+#   Argument logging module
     ArgParser.print_help()
     ArgParser.print_help(Log.GetFileHandle())
 
@@ -29,12 +34,13 @@ def LogArguments(Log=Logger,
     return
 
 def ParseArguments(Log=None):
+#   Argument parsing module
     ArgumentParser = argparse.ArgumentParser(description=\
                                              'This python module can be used for generating QQ plots in p-value and/or score mode.')
     ArgumentParser.add_argument('-M',
                                 '--mtbnamefile',
                                 dest='MtbNameFile',
-                                help='PATH: Name of file that lists the GWA output files to be analyzes (input)',
+                                help='PATH: Name of file that lists the GWA output files to be analyzed (input)',
                                 metavar='PATH',
                                 default=os.path.join(os.getcwd(),'MtbNames.txt'))
     ArgumentParser.add_argument('-p',

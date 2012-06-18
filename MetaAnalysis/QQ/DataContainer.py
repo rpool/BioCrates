@@ -5,6 +5,12 @@ import sys
 
 import Logger
 
+#===============================================================================
+# This module contains the basic DataContainer and DataContainers classes.
+# Their members and member modules should speak for themselves, if not a
+# comment is provided.
+#===============================================================================
+
 class DataContainer:
     def __init__(self):
         self.DataName  = None

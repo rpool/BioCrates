@@ -4,6 +4,12 @@ import platform
 import datetime
 import re
 
+#===============================================================================
+# This module contains the basic Logger class.
+# Its members and member modules should speak for themselves, if not a
+# comment is provided.
+#===============================================================================
+
 class Logger:
     def __init__(self,
                  FileName=str,
@@ -25,6 +31,9 @@ class Logger:
 
     def InitFileHandle(self):
         ListDir        = os.listdir(os.getcwd())
+#       The following is done to prevent previous log files to be overwritten.
+#       NOTE: Counting goes until 9, so the *.log9 file will be overwritten in
+#       case it is present!
         LogCounterList = [-1]
         for File in ListDir:
             if(re.search(self.GetFileName(),File)):
@@ -70,7 +79,7 @@ class Logger:
         self.EndLogString += '# FINISHED AT:\n'
         self.EndLogString += '# date (yyyy-mm-dd) : '+str(EndDate.date())+'\n'
         self.EndLogString += '# time (hh:mm:ss)   : '+str(EndDate.time())+'\n'
-        self.EndLogString += '# elapsed (s)       : '+str((EndDate-self.StartDate).seconds)
+        self.EndLogString += '# elapsed (s)       : '+str((EndDate-self.StartDate).seconds) # Report total time.
 
         return
     def GetEndLogString(self):
