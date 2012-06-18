@@ -120,7 +120,11 @@ def LambdaEstimate(Array=scipy.array,
                                           args=(PPointsArray,QChi2FilteredArray),
                                           full_output=1,
                                           maxfev=100)
-    Estimate     = PBest[0][0]
+    Estimate = None
+    if(type(PBest[0])==scipy.float64):
+        Estimate = PBest[0]
+    else:
+        Estimate     = PBest[0][0]
 #   Error estimation of parameter.
     Chi2 = scipy.power(PBest[2]['fvec'],2.0).sum()
     Dof  = len(QChi2FilteredArray)-len(P0)-1
