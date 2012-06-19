@@ -778,7 +778,7 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             Log.Write(LogString+'\n')
 
             ScoreArray  = MAFArray*ImpQArray*NTotArray*2.0  # Aaron, could you explain  this expression??
-#            ScoreArray /= ScoreArray.max()                 # Should this be normalizes to unity?
+#            ScoreArray /= ScoreArray.max()                 # Should this be normalized to unity?
 #            ScoreArray *= 100.0                            # If so: normalize to 100%.
             ScoreLevels = copy.deepcopy(Defines.ScoreLevels)
             ScoreLevels.sort()
