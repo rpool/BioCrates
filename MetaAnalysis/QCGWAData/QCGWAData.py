@@ -67,7 +67,8 @@ def main(ExecutableName):
     ExtraInfoDCsDict = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log)
     ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
                                 Log=Log,
-                                Path=CommentsPath)
+                                Path=CommentsPath,
+                                FilePreExtName='CheckFormatExtraInfoFiles')
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')

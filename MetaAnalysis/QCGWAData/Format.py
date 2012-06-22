@@ -1,5 +1,6 @@
 import os
 import re
+import scipy
 import lxml.etree
 
 import File
@@ -114,17 +115,20 @@ class Format:
     def CheckFormat(self,
                     DCsDict={},
                     Log=Logger,
-                    Path=str):
+                    Path=str,
+                    FilePreExtName=str):
         LogString = '  ++ Checking format of extra info files ...'
         print LogString
         Log.Write(LogString+'\n')
 
-        FName  = os.path.join(Path,'CheckFormatExtraInfoFiles')
+        FName  = os.path.join(Path,FilePreExtName)
         FmtLog = Logger.Logger(FileName=FName,
                                Extension='')
         LogString  = '## START TIMESTAMP\n'
         LogString += str(FmtLog.GetStartDate())+'\n'
         LogString += '## END TIMESTAMP'
+        FmtLog.Write(LogString+'\n')
+        LogString = Log.GetStartLogString()
         FmtLog.Write(LogString+'\n')
 
         self.CheckColumnFormat(DCsDict=DCsDict,
@@ -133,9 +137,18 @@ class Format:
         self.CheckSNPIDs(DCsDict=DCsDict,
                          Log=Log,
                          FmtLog=FmtLog)
-        self.Checkchrs(DCsDict=DCsDict,
+        self.CheckChrs(DCsDict=DCsDict,
                        Log=Log,
                        FmtLog=FmtLog)
+        self.CheckStrandGenomes(DCsDict=DCsDict,
+                                Log=Log,
+                                FmtLog=FmtLog)
+        self.CheckImputeds(DCsDict=DCsDict,
+                           Log=Log,
+                           FmtLog=FmtLog)
+        self.CheckUsedForImps(DCsDict=DCsDict,
+                              Log=Log,
+                              FmtLog=FmtLog)
 
         LogString = '\n**** Done :-)'
         FmtLog.Write(LogString+'\n')
@@ -149,30 +162,113 @@ class Format:
 
         return
 
-    def Checkchrs(self,
+    def CheckUsedForImps(self,
+                         DCsDict={},
+                         Log=Logger,
+                         FmtLog=Logger):
+        for FName, DCs in DCsDict.iteritems():
+            LogString = '    ++ Checking \"used_for_imp\" fields format for \"'+FName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+            FilterArray    = (DCs.DataContainers['used_for_imp'].GetDataArray()=='1')
+            TmpFilterArray = (DCs.DataContainers['used_for_imp'].GetDataArray()=='0')
+            FilterArray    = (FilterArray | TmpFilterArray)
+            LogString = '    ** Array \"used_for_imp\" complies with the ENGAGE analysis plan v3.0!'
+            if(len(scipy.compress(FilterArray,DCs.DataContainers['imputed'].GetDataArray()))!=
+               len(DCs.DataContainers['imputed'].GetDataArray())):
+                LogString = '    ** Array \"used_for_imp\" does not comply with the ENGAGE analysis plan v3.0!'
+
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+            LogString = '    -- Done ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+        return
+
+    def CheckImputeds(self,
+                      DCsDict={},
+                      Log=Logger,
+                      FmtLog=Logger):
+        for FName, DCs in DCsDict.iteritems():
+            LogString = '    ++ Checking \"imputed\" fields format for \"'+FName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+            FilterArray    = (DCs.DataContainers['imputed'].GetDataArray()=='1')
+            TmpFilterArray = (DCs.DataContainers['imputed'].GetDataArray()=='0')
+            FilterArray    = (FilterArray | TmpFilterArray)
+            LogString = '    ** Array \"imputed\" complies with the ENGAGE analysis plan v3.0!'
+            if(len(scipy.compress(FilterArray,DCs.DataContainers['imputed'].GetDataArray()))!=
+               len(DCs.DataContainers['imputed'].GetDataArray())):
+                LogString = '    ** Array \"imputed\" does not comply with the ENGAGE analysis plan v3.0!'
+
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+            LogString = '    -- Done ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+        return
+
+    def CheckStrandGenomes(self,
+                           DCsDict={},
+                           Log=Logger,
+                           FmtLog=Logger):
+        for FName, DCs in DCsDict.iteritems():
+            LogString = '    ++ Checking \"strand_genome\" fields format for \"'+FName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+            FilterArray    = (DCs.DataContainers['strand_genome'].GetDataArray()=='+')
+            TmpFilterArray = (DCs.DataContainers['strand_genome'].GetDataArray()=='-')
+            FilterArray    = (FilterArray | TmpFilterArray)
+            LogString = '    ** Array \"strand_genome\" complies with the ENGAGE analysis plan v3.0!'
+            if(len(scipy.compress(FilterArray,DCs.DataContainers['strand_genome'].GetDataArray()))!=
+               len(DCs.DataContainers['strand_genome'].GetDataArray())):
+                LogString = '    ** Array \"strand_genome\" does not comply with the ENGAGE analysis plan v3.0!'
+
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+            LogString = '    -- Done ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+        return
+
+    def CheckChrs(self,
                   DCsDict={},
                   Log=Logger,
                   FmtLog=Logger):
         for FName, DCs in DCsDict.iteritems():
-            LogString = '    ++ Checking SNPID fields format for \"'+FName+'\" ...'
+            LogString = '    ++ Checking \"chr\" fields format for \"'+FName+'\" ...'
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
-            LogString  = ''
-            boComplies = True
-            for Entry in DCs.DataContainers['SNPID'].GetDataArray():
-                if(Entry[0:2]!='rs'):
-                    LogString += '    ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
-                    LogString += '    ** SNPID '+Entry+' does not start with \"rs\"! '
-                    boComplies = False
-                    break
-                if(not re.search('[0-9]',Entry)):
-                    LogString += '    ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
-                    LogString += '    ** SNPID '+Entry+' does not have a number! '
-                    boComplies = False
-                    break
-            if(boComplies):
-                LogString += '    ** All SNPIDs comply the ENGAGE analysis plan v3.0!'
+
+            ChrRange = []
+            for i in range(22):
+                ChrRange.append(str(i+1))
+            FilterArray = (DCs.DataContainers['chr'].GetDataArray()==ChrRange[0])
+            for i  in range(1,len(ChrRange)):
+                TmpFilterArray = (DCs.DataContainers['chr'].GetDataArray()==ChrRange[i])
+                FilterArray    = (FilterArray | TmpFilterArray)
+            LogString = '    ** Array \"chr\" complies with the ENGAGE analysis plan v3.0!'
+            if(len(scipy.compress(FilterArray,DCs.DataContainers['chr'].GetDataArray()))!=
+               len(DCs.DataContainers['chr'].GetDataArray())):
+                LogString = '    ** Array \"chr\" does not comply with the ENGAGE analysis plan v3.0!'
+
+            print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
             LogString = '    -- Done ...'
@@ -187,7 +283,7 @@ class Format:
                     Log=Logger,
                     FmtLog=Logger):
         for FName, DCs in DCsDict.iteritems():
-            LogString = '    ++ Checking SNPID fields format for \"'+FName+'\" ...'
+            LogString = '    ++ Checking \"SNPID\" fields format for \"'+FName+'\" ...'
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
@@ -205,7 +301,9 @@ class Format:
                     boComplies = False
                     break
             if(boComplies):
-                LogString += '    ** All SNPIDs comply the ENGAGE analysis plan v3.0!'
+                LogString += '    ** Array \"SNPID\" complies with the ENGAGE analysis plan v3.0!'
+
+            print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
             LogString = '    -- Done ...'
