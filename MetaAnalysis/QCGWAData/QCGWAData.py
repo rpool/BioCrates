@@ -6,6 +6,7 @@ import os
 import Logger
 import ArgumentParser
 import File
+import Format
 
 def main(ExecutableName):
 
@@ -47,6 +48,29 @@ def main(ExecutableName):
     print LogString
     Log.Write(LogString+'\n')
 
+    CommentsPath = os.path.join(os.getcwd(),'Comments')
+    if(not os.path.isdir(CommentsPath)):
+        os.mkdir(CommentsPath)
+
+    # Perform file format check on extra info file
+    LogString = '++ Running file format check on extra info files ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    ExtraInfoFormat = Format.Format()
+    ExtraInfoFormat.SetDelimiter(XmlObj=XmlProtocol,
+                                 Log=Log)
+    ExtraInfoFormat.SetSplitFunction(Log=Log)
+    ExtraInfoFormat.SetColumnFormat(XmlObj=XmlProtocol,
+                                    Log=Log)
+    ExtraInfoFormat.AppendFilesToExtraInfoFiles(XmlObj=XmlProtocol,
+                                                Log=Log)
+    ExtraInfoDCsDict = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log)
+    ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
+                                Log=Log,
+                                Path=CommentsPath)
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
     #===========================================================================
     # END Do the work!
