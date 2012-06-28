@@ -57,6 +57,9 @@ def main(ExecutableName):
     print LogString
     Log.Write(LogString+'\n')
     ExtraInfoFormat = Format.Format()
+    ExtraInfoFormat.CheckIfFilesExist(XmlObj=XmlProtocol,
+                                      Tag='ExtraInfoFiles',
+                                      Log=Log)
     ExtraInfoFormat.SetDelimiter(XmlObj=XmlProtocol,
                                  Log=Log)
     ExtraInfoFormat.SetSplitFunction(Log=Log)
@@ -68,10 +71,102 @@ def main(ExecutableName):
     ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
                                 Log=Log,
                                 Path=CommentsPath,
-                                FilePreExtName='CheckFormatExtraInfoFiles')
+                                FilePreExtName='CheckFormatExtraInfoFiles',
+                                FileType='extra info files')
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')
+
+    # Parse MtbNames file and fill MtbNames DataArray
+    if(eval(XmlProtocol.getroot().find('MtbNameFile').find('boUse').text)):
+        FPath     = XmlProtocol.getroot().find('MtbNameFile').find('Path').text
+        FName     = XmlProtocol.getroot().find('MtbNameFile').find('Name').text
+        FileName  = os.path.join(FPath,FName)
+        LogString = '  ++ Parsing \"'+FileName+'\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        MtbNameFile = File.File(Name=FileName,
+                                boHeader=False)
+        MtbNameFile.SetFileHandle(Mode='r')
+        MtbNameFileDCs = MtbNameFile.ParseToDataContainers()
+        MtbNameFile.Close()
+        MtbNameFile.Cleanup()
+        del MtbNameFile
+        LogString = '  -- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+        LogString = '  ++ Processing GWA output files corresponding \"'+\
+                    FileName+\
+                    '\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        GWADataPath    = XmlProtocol.getroot().find('GWAOutputPath').text.strip()
+        GWADataListDir = os.listdir(GWADataPath)
+        for N in MtbNameFileDCs.DataContainers['0'].GetDataArray(): # first column, no header
+            GWADataFile = None
+            Index       = None
+            for i in range(len(GWADataListDir)):
+                F      = GWADataListDir[i]
+                FSplit = F.split('_')
+                if(len(FSplit)>3):
+                    CompareName = FSplit[2] # if file names are correctly formatted
+                    if(CompareName==N):
+                        GWADataFile = os.path.join(GWADataPath,F)
+                        Index = i
+            if(Index!=None):
+                del GWADataListDir[Index]
+
+            if(GWADataFile==None):
+                LogString  = '    ** Did not find a GWA output file for metabolite \"'+\
+                             N+\
+                             '\"!\n'
+                LogString += '    ** Setting all QC properties to \"False\" or \"Unknown\" for this metabolite!'
+                print LogString
+                Log.Write(LogString+'\n')
+            else:
+                LogString  = '    ** Found the GWA output file for metabolite \"'+\
+                             N+\
+                             '\"!'
+                print LogString
+                Log.Write(LogString+'\n')
+                if(os.path.isfile(GWADataFile) or os.path.islink(GWADataFile)):
+                    LogString  = '    ** This file is a regular file or a symbolic link to one!'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                LogString = '    ++ Running file format check on \"'+GWADataFile+'\"  ...'
+                print LogString
+                Log.Write(LogString+'\n')
+
+                GWAFormat = Format.Format()
+                GWAFormat.SetGWADataFileName(Name=GWADataFile)
+                GWAFormat.SetDelimiter(XmlObj=XmlProtocol,
+                                       Log=Log,
+                                       HeadingSpaces='    ')
+                GWAFormat.SetSplitFunction(Log=Log,
+                                           HeadingSpaces='    ')
+                GWAFormat.SetColumnFormat(XmlObj=XmlProtocol,
+                                          Log=Log,
+                                          HeadingSpaces='    ')
+                GWADCsDict = GWAFormat.ParseGWADataFile(Log=Log,
+                                                        HeadingSpaces='    ')
+                GWAFormat.CheckFormat(DCsDict=GWADCsDict,
+                                      Log=Log,
+                                      HeadingSpaces='    ',
+                                      Path=CommentsPath,
+                                      FilePreExtName='CheckFormat_'+N,
+                                      FileType='GWA data file')
+
+                LogString = '    -- Done ...'
+                print LogString
+                Log.Write(LogString+'\n')
+
+
+        LogString = '  -- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+
 
     #===========================================================================
     # END Do the work!
