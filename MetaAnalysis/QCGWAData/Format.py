@@ -10,12 +10,38 @@ import DataContainer
 
 class Format:
     def __init__(self):
-        self.ExtraInfoFiles     = None
-        self.ColumnFormat       = None
-        self.Delimiter          = None
-        self.Split              = None
-        self.GWADataFileName    = None
+        self.ExtraInfoFiles      = None
+        self.ColumnFormat        = None
+        self.Delimiter           = None
+        self.Split               = None
+        self.GWADataFileName     = None
+        self.boColumnFormatOK    = None
+        self.boFieldFormatOKDict = None
         return
+
+    def InitboFieldFormatOKDict(self):
+        self.boFieldFormatOKDict = {}
+        return
+
+    def SetboFieldFormatOKDict(self,
+                               ColumnID=str,
+                               Flag=bool):
+        if(self.boFieldFormatOKDict==None):
+            self.InitboFieldFormatOKDict()
+        self.boFieldFormatOKDict[ColumnID] = Flag
+        return
+
+    def GetboFieldFormatOKDict(self):
+        return self.boFieldFormatOKDict
+
+    def SetboColumnFormatOK(self,
+                            Flag=bool):
+        self.boColumnFormatOK = Flag
+        return
+
+    def GetboColumnFormatOK(self):
+        return self.boColumnFormatOK
+
 
     def SetGWADataFileName(self,
                        Name=str):
@@ -263,10 +289,14 @@ class Format:
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"used_for_imp\" complies with the ENGAGE analysis plan v3.0!'
+            boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['imputed'].GetDataArray()))!=
                len(DCs.DataContainers['imputed'].GetDataArray())):
                 LogString  = HeadingSpaces
                 LogString += '    ** Array \"used_for_imp\" does not comply with the ENGAGE analysis plan v3.0!'
+                boComplies = False
+            self.SetboFieldFormatOKDict(ColumnID='used_for_imp',
+                                        Flag=boComplies)
 
             print LogString
             Log.Write(LogString+'\n')
@@ -300,10 +330,14 @@ class Format:
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"imputed\" complies with the ENGAGE analysis plan v3.0!'
+            boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['imputed'].GetDataArray()))!=
                len(DCs.DataContainers['imputed'].GetDataArray())):
                 LogString  = HeadingSpaces
                 LogString += '    ** Array \"imputed\" does not comply with the ENGAGE analysis plan v3.0!'
+                boComplies = False
+            self.SetboFieldFormatOKDict(ColumnID='imputed',
+                                        Flag=boComplies)
 
             print LogString
             Log.Write(LogString+'\n')
@@ -337,10 +371,14 @@ class Format:
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"strand_genome\" complies with the ENGAGE analysis plan v3.0!'
+            boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['strand_genome'].GetDataArray()))!=
                len(DCs.DataContainers['strand_genome'].GetDataArray())):
                 LogString  = HeadingSpaces
                 LogString += '    ** Array \"strand_genome\" does not comply with the ENGAGE analysis plan v3.0!'
+                boComplies = False
+            self.SetboFieldFormatOKDict(ColumnID='strand_genome',
+                                        Flag=boComplies)
 
             print LogString
             Log.Write(LogString+'\n')
@@ -378,10 +416,14 @@ class Format:
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"chr\" complies with the ENGAGE analysis plan v3.0!'
+            boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['chr'].GetDataArray()))!=
                len(DCs.DataContainers['chr'].GetDataArray())):
                 LogString  = HeadingSpaces
                 LogString += '    ** Array \"chr\" does not comply with the ENGAGE analysis plan v3.0!'
+                boComplies = False
+            self.SetboFieldFormatOKDict(ColumnID='chr',
+                                        Flag=boComplies)
 
             print LogString
             Log.Write(LogString+'\n')
@@ -418,6 +460,8 @@ class Format:
                     LogString += '    ** SNPID '+Entry+' does not have a number! '
                     boComplies = False
                     break
+            self.SetboFieldFormatOKDict(ColumnID='SNPID',
+                                        Flag=boComplies)
             if(boComplies):
                 LogString += '    ** Array \"SNPID\" complies with the ENGAGE analysis plan v3.0!'
 
@@ -449,8 +493,10 @@ class Format:
                 if((Key in self.GetColumnFormat()) and
                    (DCs.DataContainers[Key].GetDataName() in self.GetColumnFormat())):
                     LogString += 'complies with the ENGAGE analysis plan v3.0!'
+                    self.SetboColumnFormatOK(Flag=True)
                 else:
                     LogString += 'does not comply with the ENGAGE analysis plan v3.0!'
+                    self.SetboColumnFormatOK(Flag=False)
                 print LogString
                 Log.Write(LogString+'\n')
                 FmtLog.Write(LogString+'\n')

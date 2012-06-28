@@ -2,8 +2,10 @@ import re
 import gzip
 import scipy
 import sys
+import collections
 
 import Logger
+from Plotting import DataArray
 
 #===============================================================================
 # This module contains the basic DataContainer and DataContainers classes.
@@ -13,8 +15,10 @@ import Logger
 
 class DataContainer:
     def __init__(self):
-        self.DataName  = None
-        self.DataArray = None
+        self.DataName         = None
+        self.DataArray        = None
+        self.DuplicateDict    = None
+        self.UniqueIndices    = None
         return
 
     def SetDataName(self,
@@ -39,6 +43,56 @@ class DataContainer:
 
     def GetDataArray(self):
         return self.DataArray
+
+    def RenameFieldsInDataArray(self,
+                                Source=str,
+                                Dest=str):
+        DataArray      = self.GetDataArray()
+        ExtractedArray = scipy.where(DataArray==Source)[0]
+        for Index in ExtractedArray:
+            DataArray[Index] = Dest
+        self.DataArray = DataArray
+        return
+
+    def RenameColumnOfDataArray(self,
+                                Source,
+                                Dest):
+        self.SetDataName(Dest)
+        return
+
+    def FindDuplicates(self):
+        self.CounterDict = collections.defaultdict(int)
+        for Entry in self.GetDataArray():
+            self.CounterDict[Entry] += 1
+        self.DuplicateDict = {}
+        for Key, Value in self.CounterDict.iteritems():
+            if(Value>1):
+                self.DuplicateDict[Key] = Value
+        return self.DuplicateDict
+
+    def RemoveDuplicates(self):
+        DataArray,\
+        UniqueIndices = scipy.unique(ar=self.GetDataArray(),
+                                     return_index=True)
+        self.DataArray        = DataArray
+        self.UniqueIndices    = UniqueIndices
+        duplicate indices by scipy.in1d(ar1, ar2, assume_unique)
+        return
+
+    def InitEntry2IndexDict(self):
+        self.Entry2IndexDict = {}
+        return
+
+    def SetEntry2IndexDict(self):
+        if(self.GetEntry2IndexDict()==None):
+            self.InitEntry2IndexDict()
+        for i in range(len(self.GetDataArray())):
+            Entry = self.GetDataArray()[i]
+            self.Entry2IndexDict[Entry] = i
+        return
+
+    def GetEntry2IndexDict(self):
+        return self.Entry2IndexDict
 
 class DataContainers:
     def __init__(self):
