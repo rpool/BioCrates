@@ -54,72 +54,75 @@ def main(ExecutableName):
     if(not os.path.isdir(CommentsPath)):
         os.mkdir(CommentsPath)
 
-#    # Perform file format check on extra info file
-#    LogString = '++ Running file format check on extra info files ...'
-#    print LogString
-#    Log.Write(LogString+'\n')
-#    ExtraInfoFormat = Format.Format()
-#    ExtraInfoFormat.CheckIfFilesExist(XmlObj=XmlProtocol,
-#                                      Tag='ExtraInfoFiles',
-#                                      Log=Log)
-#    ExtraInfoFormat.SetDelimiter(XmlObj=XmlProtocol,
-#                                 Log=Log)
-#    ExtraInfoFormat.SetSplitFunction(Log=Log)
-#    ExtraInfoFormat.SetColumnFormat(XmlObj=XmlProtocol,
-#                                    Log=Log)
-#    ExtraInfoFormat.AppendFilesToExtraInfoFiles(XmlObj=XmlProtocol,
-#                                                Log=Log)
-#    ExtraInfoDCsDict = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log)
-#    for Key in ExtraInfoDCsDict.iterkeys():
-#        for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
-#                if(type(EIColumn)!=lxml.etree._Comment and
-#                   eval(EIColumn.find('boSetColumnName').text)):
-#                    Source = EIColumn.find('ColumnName').text
-#                    Dest   = EIColumn.find('SetColumnName').text
-#
-#                    LogString  = '      ++ Renaming column \"'+Source+\
-#                                     '\" fields to \"'+Dest+'\" ...'
-#                    print LogString
-#                    Log.Write(LogString+'\n')
-#
-#                    ExtraInfoDCsDict[Key].DataContainers[Dest] = ExtraInfoDCsDict[Key].DataContainers[Source]
-#                    ExtraInfoDCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
-#                                                                                       Dest)
-#                    del ExtraInfoDCsDict[Key].DataContainers[Source]
-#
-#                    LogString  = '      -- Done ...'
-#                    print LogString
-#                    Log.Write(LogString+'\n')
-#
-#        for Key in ExtraInfoDCsDict.iterkeys():
-#            for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
-#                if(EIColumn.find('Renames')!=None):
-#                    for Rename in EIColumn.find('Renames'):
-#                        Source = Rename.find('Source').text
-#                        Dest   = Rename.find('Dest').text
-#
-#                        LogString  = '    ++ Renaming \"'+Source+\
-#                                     '\" fields to \"'+Dest+\
-#                                     '\" for column \"'+EIColumn.tag+\
-#                                     '\" ...'
-#                        print LogString
-#                        Log.Write(LogString+'\n')
-#
-#                        ExtraInfoDCsDict[Key].DataContainers[EIColumn.tag].RenameFieldsInDataArray(Source,
-#                                                                                                    Dest)
-#
-#                        LogString  = '    -- Done ...'
-#                        print LogString
-#                        Log.Write(LogString+'\n')
-#
-#    ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
-#                                Log=Log,
-#                                Path=CommentsPath,
-#                                FilePreExtName='CheckFormatExtraInfoFiles',
-#                                FileType='extra info files')
-#    LogString = '-- Done ...'
-#    print LogString
-#    Log.Write(LogString+'\n')
+    # Perform file format check on extra info file
+    LogString = '++ Running file format check on extra info files ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    ExtraInfoFormat = Format.Format()
+    ExtraInfoFormat.CheckIfFilesExist(XmlObj=XmlProtocol,
+                                      Tag='ExtraInfoFiles',
+                                      Log=Log)
+    ExtraInfoFormat.SetDelimiter(XmlObj=XmlProtocol,
+                                 Log=Log)
+    ExtraInfoFormat.SetSplitFunction(Log=Log)
+    ExtraInfoFormat.SetColumnFormat(XmlObj=XmlProtocol,
+                                    Log=Log)
+    ExtraInfoFormat.AppendFilesToExtraInfoFiles(XmlObj=XmlProtocol,
+                                                Log=Log)
+    ExtraInfoDCsDict = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log)
+    for Key in ExtraInfoDCsDict.iterkeys():
+        for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
+                if(type(EIColumn)!=lxml.etree._Comment and
+                   eval(EIColumn.find('boSetColumnName').text)):
+                    Source = EIColumn.find('ColumnName').text
+                    Dest   = EIColumn.find('SetColumnName').text
+
+                    LogString  = '      ++ Renaming column \"'+Source+\
+                                     '\" fields to \"'+Dest+'\" ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    ExtraInfoDCsDict[Key].DataContainers[Dest] = ExtraInfoDCsDict[Key].DataContainers[Source]
+                    ExtraInfoDCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
+                                                                                       Dest)
+                    del ExtraInfoDCsDict[Key].DataContainers[Source]
+
+                    LogString  = '      -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+        for Key in ExtraInfoDCsDict.iterkeys():
+            for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
+                if(EIColumn.find('Renames')!=None):
+                    for Rename in EIColumn.find('Renames'):
+                        Source = Rename.find('Source').text
+                        Dest   = Rename.find('Dest').text
+
+                        LogString  = '    ++ Renaming \"'+Source+\
+                                     '\" fields to \"'+Dest+\
+                                     '\" for column \"'+EIColumn.tag+\
+                                     '\" ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        ExtraInfoDCsDict[Key].DataContainers[EIColumn.tag].RenameFieldsInDataArray(Source,
+                                                                                                    Dest)
+
+                        LogString  = '    -- Done ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+    ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
+                                Log=Log,
+                                Path=CommentsPath,
+                                FilePreExtName='CheckFormatExtraInfoFiles',
+                                FileType='extra info files',
+                                XmlObj=XmlProtocol,
+                                Tag='ExtraInfoColumns')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    sys.exit()
 
     # Parse MtbNames file and fill MtbNames DataArray
     if(eval(XmlProtocol.getroot().find('MtbNameFile').find('boUse').text)):
@@ -132,12 +135,16 @@ def main(ExecutableName):
         MtbNameFile = File.File(Name=FileName,
                                 boHeader=False)
         MtbNameFile.SetFileHandle(Mode='r')
-        NLinesInFile,\
-        NLinesInArray  = MtbNameFile.ParseToLineArray()
-        LogString = '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
-        print LogString
-        Log.Write(LogString+'\n')
-        MtbNameFileDCs = MtbNameFile.LineArray2DataContainers()
+        boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
+        if(boRemoveDuplicateLines):
+            NLinesInFile,\
+            NLinesInArray  = MtbNameFile.ParseToLineArray()
+            LogString = '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+            print LogString
+            Log.Write(LogString+'\n')
+            MtbNameFileDCs = MtbNameFile.LineArray2DataContainers()
+        else:
+            MtbNameFileDCs = MtbNameFile.ParseToDataContainers()
         MtbNameFile.Close()
         MtbNameFile.Cleanup()
         del MtbNameFile
@@ -197,8 +204,10 @@ def main(ExecutableName):
                 GWAFormat.SetColumnFormat(XmlObj=XmlProtocol,
                                           Log=Log,
                                           HeadingSpaces='    ')
+                boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
                 GWADCsDict = GWAFormat.ParseGWADataFile(Log=Log,
-                                                        HeadingSpaces='    ')
+                                                        HeadingSpaces='    ',
+                                                        boRemoveDuplicateLines=boRemoveDuplicateLines)
                 for Key in GWADCsDict.iterkeys():
                     for GWAColumn in XmlProtocol.getroot().find('MtbGWAColumns'):
                         if(type(GWAColumn)!=lxml.etree._Comment and
@@ -251,7 +260,7 @@ def main(ExecutableName):
                     DuplicateDict = GWADCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
                     print GWADCsDict[Key].DataContainers[SNPIDColumn].GetDuplicateIndexDict()
                     if(len(DuplicateDict)>0):
-                        LogString  = '      ** Found the following duplicate fields:\n'
+                        LogString  = '      ** Found the following duplicate SNPs:\n'
                         for Key, Value in DuplicateDict.iteritems():
                             LogString += '         '+Key+' (Occurrence: '+str(Value)+')\n'
                         print LogString[:-1]
@@ -264,14 +273,15 @@ def main(ExecutableName):
                     LogString  = '      -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
-                sys.exit()
 
                 GWAFormat.CheckFormat(DCsDict=GWADCsDict,
                                       Log=Log,
                                       HeadingSpaces='    ',
                                       Path=CommentsPath,
                                       FilePreExtName='CheckFormat_'+N,
-                                      FileType='GWA data file')
+                                      FileType='GWA data file',
+                                      XmlObj=XmlProtocol,
+                                      Tag='MtbGWAColumns')
                 if(not GWAFormat.GetboColumnFormatOK()):
                     LogString  = '      ** Something is wrong in the column naming!\n'
                     LogString += '      ** Set the proper renaming rules in \"'+Arguments.ProtocolFile+'\"!\n'

@@ -3,6 +3,7 @@ import re
 import os
 import lxml.etree
 import scipy
+import collections
 
 import DataContainer
 
@@ -43,14 +44,49 @@ class File:
     def GetTmpDir(self):
         return self.TmpDir
 
+    def FindDuplicates(self,
+                       Array=scipy.array):
+        CounterDict           = collections.defaultdict(int)
+        TmpDuplicateIndexDict = collections.defaultdict(list)
+        for i in range(len(Array)):
+            Entry               = Array[i]
+            CounterDict[Entry] += 1
+            TmpDuplicateIndexDict[Entry].append(i)
+        DuplicateDict      = {}
+        DuplicateIndexDict = {}
+        for Key, Value in CounterDict.iteritems():
+            if(Value>1):
+                DuplicateDict[Key]      = Value
+                DuplicateIndexDict[Key] = TmpDuplicateIndexDict[Key]
+        return DuplicateDict,\
+               DuplicateIndexDict
+
+    def RemoveDuplicates(self,
+                         DuplicateIndexDict={},
+                         DataArray=scipy.array):
+        DelList   = []
+        for Key in DuplicateIndexDict.iterkeys():
+            for i in range(1,len(DuplicateIndexDict[Key])):
+                Index = DuplicateIndexDict[Key][i]
+                DelList.append(Index)
+        DelList.sort()
+        DelList.reverse()
+        DataArray = scipy.delete(DataArray,tuple(DelList))
+
+        return DataArray
+
     def ParseToLineArray(self):
         LineArray = []
         for Line in self.GetFileHandle():
             LJoin = Line.strip().split()
             LJoin = ' '.join(LJoin)
             LineArray.append(LJoin)
-        self.LineArray = scipy.array(LineArray)
-        self.LineArray = scipy.unique(self.LineArray)
+        LineArray      = scipy.array(LineArray)
+        DuplicateDict,\
+        DuplicateIndexDict = self.FindDuplicates(LineArray)
+        self.LineArray     = self.RemoveDuplicates(DuplicateIndexDict,
+                                                   LineArray)
+
         return len(LineArray),len(self.LineArray)
 
     def GetLineArray(self):

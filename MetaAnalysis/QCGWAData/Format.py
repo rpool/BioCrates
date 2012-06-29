@@ -87,7 +87,8 @@ class Format:
 
     def ParseGWADataFile(self,
                          Log=Logger,
-                         HeadingSpaces=''):
+                         HeadingSpaces='',
+                         boRemoveDuplicateLines=False):
         DCsDict = {}
 
         LogString  = HeadingSpaces
@@ -110,15 +111,18 @@ class Format:
         print LogString
         Log.Write(LogString+'\n')
 
-        NLinesInFile,\
-        NLinesInArray  = FFile.ParseToLineArray()
+        if(boRemoveDuplicateLines):
+            NLinesInFile,\
+            NLinesInArray  = FFile.ParseToLineArray()
 
-        LogString  = HeadingSpaces
-        LogString += '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
-        print LogString
-        Log.Write(LogString+'\n')
+            LogString  = HeadingSpaces
+            LogString += '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+            print LogString
+            Log.Write(LogString+'\n')
 
-        DCsDict['GWADataFile'] = FFile.LineArray2DataContainers()
+            DCsDict['GWADataFile'] = FFile.LineArray2DataContainers()
+        else:
+            DCsDict['GWADataFile'] = FFile.ParseToDataContainers()
 
         FFile.Close()
         FFile.Cleanup()
@@ -226,7 +230,9 @@ class Format:
                     HeadingSpaces='',
                     Path=str,
                     FilePreExtName=str,
-                    FileType=str):
+                    FileType=str,
+                    XmlObj=lxml.etree._ElementTree,
+                    Tag=str):
         LogString  = HeadingSpaces
         LogString += '  ++ Checking format of '+FileType+' ...'
         print LogString
@@ -246,26 +252,106 @@ class Format:
                                Log=Log,
                                FmtLog=FmtLog,
                                HeadingSpaces='    ')
+        CondList = XmlObj.getroot().find(Tag).find('SNPID').find('MandatoryFieldEntries').text
+        CondList = CondList.split(',')
         self.CheckSNPIDs(DCsDict=DCsDict,
                          Log=Log,
                          FmtLog=FmtLog,
-                         HeadingSpaces='    ')
+                         HeadingSpaces='    ',
+                         ConditionList=CondList)
+        CondList = XmlObj.getroot().find(Tag).find('chr').find('MandatoryFieldEntries').text
+        CondList = CondList.split(',')
         self.CheckChrs(DCsDict=DCsDict,
                        Log=Log,
                        FmtLog=FmtLog,
-                       HeadingSpaces='    ')
+                       HeadingSpaces='    ',
+                       ConditionList=CondList)
+        CondList = XmlObj.getroot().find(Tag).find('strand_genome').find('MandatoryFieldEntries').text
+        CondList = CondList.split(',')
         self.CheckStrandGenomes(DCsDict=DCsDict,
                                 Log=Log,
                                 FmtLog=FmtLog,
-                                HeadingSpaces='    ')
+                                HeadingSpaces='    ',
+                                ConditionList=CondList)
+        CondList = XmlObj.getroot().find(Tag).find('imputed').find('MandatoryFieldEntries').text
+        CondList = CondList.split(',')
         self.CheckImputeds(DCsDict=DCsDict,
                            Log=Log,
                            FmtLog=FmtLog,
-                           HeadingSpaces='    ')
+                           HeadingSpaces='    ',
+                           ConditionList=CondList)
+        CondList = XmlObj.getroot().find(Tag).find('used_for_imp').find('MandatoryFieldEntries').text
+        CondList = CondList.split(',')
         self.CheckUsedForImps(DCsDict=DCsDict,
                               Log=Log,
                               FmtLog=FmtLog,
-                              HeadingSpaces='    ')
+                              HeadingSpaces='    ',
+                              ConditionList=CondList)
+
+        if(Tag=='MtbGWAColumns'):
+            CondList = XmlObj.getroot().find(Tag).find('position').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckPositions(DCsDict=DCsDict,
+                                Log=Log,
+                                FmtLog=FmtLog,
+                                HeadingSpaces='    ',
+                                ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('coded_all').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckCodedAlls(DCsDict=DCsDict,
+                                Log=Log,
+                                FmtLog=FmtLog,
+                                HeadingSpaces='    ',
+                                ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('noncoded_all').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckNonCodedAlls(DCsDict=DCsDict,
+                                   Log=Log,
+                                   FmtLog=FmtLog,
+                                   HeadingSpaces='    ',
+                                   ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('beta').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckBetas(DCsDict=DCsDict,
+                            Log=Log,
+                            FmtLog=FmtLog,
+                            HeadingSpaces='    ',
+                            ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('SE').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckSEs(DCsDict=DCsDict,
+                          Log=Log,
+                          FmtLog=FmtLog,
+                          HeadingSpaces='    ',
+                          ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('pval').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckPVals(DCsDict=DCsDict,
+                            Log=Log,
+                            FmtLog=FmtLog,
+                            HeadingSpaces='    ',
+                            ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('HWE_pval').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckHWEPVals(DCsDict=DCsDict,
+                               Log=Log,
+                               FmtLog=FmtLog,
+                               HeadingSpaces='    ',
+                               ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('n_total').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckNTotals(DCsDict=DCsDict,
+                              Log=Log,
+                              FmtLog=FmtLog,
+                              HeadingSpaces='    ',
+                              ConditionList=CondList)
+            CondList = XmlObj.getroot().find(Tag).find('oevar_imp').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckOeVarImps(DCsDict=DCsDict,
+                                Log=Log,
+                                FmtLog=FmtLog,
+                                HeadingSpaces='    ',
+                                ConditionList=CondList)
 
         LogString = FmtLog.GetEndLogString()
         FmtLog.Write(LogString+'\n')
@@ -282,7 +368,8 @@ class Format:
                          DCsDict={},
                          Log=Logger,
                          FmtLog=Logger,
-                         HeadingSpaces=''):
+                         HeadingSpaces='',
+                         ConditionList=[]):
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
             LogString += '    ++ Checking \"used_for_imp\" fields format for \"'+FName+'\" ...'
@@ -290,11 +377,10 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            FilterArray    = (DCs.DataContainers['used_for_imp'].GetDataArray()=='1')
-            TmpFilterArray = (DCs.DataContainers['used_for_imp'].GetDataArray()=='0')
-            FilterArray    = (FilterArray | TmpFilterArray)
-            TmpFilterArray = (DCs.DataContainers['used_for_imp'].GetDataArray()=='NA')
-            FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray    = (DCs.DataContainers['used_for_imp'].GetDataArray()==ConditionList[0])
+            for i in range(1,len(ConditionList)):
+                TmpFilterArray = (DCs.DataContainers['used_for_imp'].GetDataArray()==ConditionList[i])
+                FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"used_for_imp\" complies with the ENGAGE analysis plan v3.0!'
@@ -323,7 +409,8 @@ class Format:
                       DCsDict={},
                       Log=Logger,
                       FmtLog=Logger,
-                      HeadingSpaces=''):
+                      HeadingSpaces='',
+                      ConditionList=[]):
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
             LogString += '    ++ Checking \"imputed\" fields format for \"'+FName+'\" ...'
@@ -331,11 +418,10 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            FilterArray    = (DCs.DataContainers['imputed'].GetDataArray()=='1')
-            TmpFilterArray = (DCs.DataContainers['imputed'].GetDataArray()=='0')
-            FilterArray    = (FilterArray | TmpFilterArray)
-            TmpFilterArray = (DCs.DataContainers['imputed'].GetDataArray()=='NA')
-            FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray    = (DCs.DataContainers['imputed'].GetDataArray()==ConditionList[0])
+            for i in range(1,len(ConditionList)):
+                TmpFilterArray = (DCs.DataContainers['imputed'].GetDataArray()==ConditionList[i])
+                FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"imputed\" complies with the ENGAGE analysis plan v3.0!'
@@ -364,7 +450,8 @@ class Format:
                            DCsDict={},
                            Log=Logger,
                            FmtLog=Logger,
-                           HeadingSpaces=''):
+                           HeadingSpaces='',
+                           ConditionList=[]):
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
             LogString += '    ++ Checking \"strand_genome\" fields format for \"'+FName+'\" ...'
@@ -372,11 +459,10 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            FilterArray    = (DCs.DataContainers['strand_genome'].GetDataArray()=='+')
-            TmpFilterArray = (DCs.DataContainers['strand_genome'].GetDataArray()=='-')
-            FilterArray    = (FilterArray | TmpFilterArray)
-            TmpFilterArray = (DCs.DataContainers['strand_genome'].GetDataArray()=='NA')
-            FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray    = (DCs.DataContainers['strand_genome'].GetDataArray()==ConditionList[0])
+            for i in range(1,len(ConditionList)):
+                TmpFilterArray = (DCs.DataContainers['strand_genome'].GetDataArray()==ConditionList[i])
+                FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"strand_genome\" complies with the ENGAGE analysis plan v3.0!'
@@ -405,7 +491,8 @@ class Format:
                   DCsDict={},
                   Log=Logger,
                   FmtLog=Logger,
-                  HeadingSpaces=''):
+                  HeadingSpaces='',
+                  ConditionList=[]):
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
             LogString += '    ++ Checking \"chr\" fields format for \"'+FName+'\" ...'
@@ -413,15 +500,30 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            ChrRange = []
-            for i in range(22):
-                ChrRange.append(str(i+1))
-            FilterArray = (DCs.DataContainers['chr'].GetDataArray()==ChrRange[0])
-            for i  in range(1,len(ChrRange)):
-                TmpFilterArray = (DCs.DataContainers['chr'].GetDataArray()==ChrRange[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
-            TmpFilterArray = DCs.DataContainers['chr'].GetDataArray()=='NA'
-            FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray    = None
+            TmpFilterArray = None
+            for Condition in ConditionList:
+                if(re.match('RANGE',Condition)):
+                    Start = int(Condition.split('[')[-1].split(']')[0].split('-')[0])
+                    End   = int(Condition.split('[')[-1].split(']')[0].split('-')[-1])
+                    Range = []
+                    for i in range(Start,End+1):
+                        Range.append(str(i))
+                    if(FilterArray==None):
+                        FilterArray = (DCs.DataContainers['chr'].GetDataArray()==Range[0])
+                        for i  in range(1,len(Range)):
+                            TmpFilterArray = (DCs.DataContainers['chr'].GetDataArray()==Range[i])
+                            FilterArray    = (FilterArray | TmpFilterArray)
+                    else:
+                        for i  in range(0,len(Range)):
+                            TmpFilterArray = (DCs.DataContainers['chr'].GetDataArray()==Range[i])
+                            FilterArray    = (FilterArray | TmpFilterArray)
+                else:
+                    if(FilterArray==None):
+                        FilterArray = DCs.DataContainers['chr'].GetDataArray()==Condition
+                    else:
+                        TmpFilterArray = DCs.DataContainers['chr'].GetDataArray()==Condition
+                        FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
             LogString += '    ** Array \"chr\" complies with the ENGAGE analysis plan v3.0!'
@@ -449,7 +551,8 @@ class Format:
                     DCsDict={},
                     Log=Logger,
                     FmtLog=Logger,
-                    HeadingSpaces=''):
+                    HeadingSpaces='',
+                    ConditionList=[]):
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
             LogString += '    ++ Checking \"SNPID\" fields format for \"'+FName+'\" ...'
@@ -459,16 +562,14 @@ class Format:
             LogString  = HeadingSpaces
             boComplies = True
             for Entry in DCs.DataContainers['SNPID'].GetDataArray():
-                if(Entry[0:2]!='rs'):
+                boConditionHolds = bool(re.search(ConditionList[0],Entry))
+                for i in range(1,len(ConditionList)):
+                    boConditionHolds = (boConditionHolds or bool(re.search(ConditionList[i],Entry)))
+                if(not boConditionHolds):
                     LogString += '    ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
-                    LogString += '    ** SNPID '+Entry+' does not start with \"rs\"! '
                     boComplies = False
                     break
-                if(not re.search('[0-9]',Entry)):
-                    LogString += '    ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
-                    LogString += '    ** SNPID '+Entry+' does not have a number! '
-                    boComplies = False
-                    break
+
             self.SetboFieldFormatOKDict(ColumnID='SNPID',
                                         Flag=boComplies)
             if(boComplies):

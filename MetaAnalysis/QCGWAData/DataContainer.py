@@ -87,8 +87,7 @@ class DataContainer:
                 DelList.append(Index)
         DelList.sort()
         DelList.reverse()
-        for Index in DelList:
-            del DataArray[i]
+        DataArray = scipy.delete(DataArray,tuple(DelList))
 
         self.DataArray = DataArray
         return
