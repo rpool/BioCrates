@@ -2,6 +2,7 @@ import gzip
 import re
 import os
 import lxml.etree
+import scipy
 
 import DataContainer
 
@@ -22,6 +23,7 @@ class File:
         self.boUsePigz    = None
         self.boCompressed = None
         self.TmpDir       = None
+        self.LineArray    = None
 
         self.SetName(Name=Name)
         self.SetboHeader(boHeader=boHeader)
@@ -41,10 +43,64 @@ class File:
     def GetTmpDir(self):
         return self.TmpDir
 
+    def ParseToLineArray(self):
+        LineArray = []
+        for Line in self.GetFileHandle():
+            LJoin = Line.strip().split()
+            LJoin = ' '.join(LJoin)
+            LineArray.append(LJoin)
+        self.LineArray = scipy.array(LineArray)
+        self.LineArray = scipy.unique(self.LineArray)
+        return len(LineArray),len(self.LineArray)
+
+    def GetLineArray(self):
+        return self.LineArray
+
+    def LineArray2DataContainers(self):
+        DCs  = DataContainer.DataContainers()
+        if(self.GetboHeader()):
+            Header = re.sub('#','',self.GetLineArray()[0])
+            Names  = Header.strip().split()
+            for i in range(len(Names)):
+                Name                     = Names[i] # The names of the datacontainers are determined by the
+                                                    # header column names.
+                DCs.DataContainers[Name] = DataContainer.DataContainer()
+                DCs.Names2Columns[Name]  = i
+                DCs.Columns2Names[i]     = Name
+                DCs.DataContainers[Name].InitDataArray()
+                DCs.DataContainers[Name].SetDataName(Name)
+        else:
+            Line   = self.GetLineArray()[0]
+            LSplit = Line.strip().split()
+            for i in range(len(LSplit)):
+                Name                     = str(i)
+                DCs.DataContainers[Name] = DataContainer.DataContainer()
+                DCs.Names2Columns[Name]  = i
+                DCs.Columns2Names[i]     = Name
+                DCs.DataContainers[Name].InitDataArray()
+                DCs.DataContainers[Name].SetDataName(Name)
+                Entry = LSplit[i]
+                DCs.DataContainers[Name].AppendToArray(Entry)
+
+        for i in range(1,len(self.GetLineArray())):
+            Line = self.GetLineArray()[i]
+            LSplit = Line.strip().split()
+            for i in range(len(LSplit)):
+                Name  = DCs.Columns2Names[i]
+                Entry = LSplit[i]
+                DCs.DataContainers[Name].AppendToArray(Entry)
+
+        del self.LineArray
+        self.LineArray = None
+
+        for Key in DCs.DataContainers.iterkeys():
+            DCs.DataContainers[Key].CastDataArrayToScipy() # Make scipy.arrays of the lists.
+
+        return DCs
+
     def ParseAsXml(self):
         XmlObject = lxml.etree.parse(self.GetName())
         return XmlObject
-
 
     def ParseToDataContainers(self):
 #       Parse an input file into the DataContainers object

@@ -132,7 +132,12 @@ def main(ExecutableName):
         MtbNameFile = File.File(Name=FileName,
                                 boHeader=False)
         MtbNameFile.SetFileHandle(Mode='r')
-        MtbNameFileDCs = MtbNameFile.ParseToDataContainers()
+        NLinesInFile,\
+        NLinesInArray  = MtbNameFile.ParseToLineArray()
+        LogString = '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+        print LogString
+        Log.Write(LogString+'\n')
+        MtbNameFileDCs = MtbNameFile.LineArray2DataContainers()
         MtbNameFile.Close()
         MtbNameFile.Cleanup()
         del MtbNameFile
@@ -244,8 +249,9 @@ def main(ExecutableName):
                     Log.Write(LogString+'\n')
 
                     DuplicateDict = GWADCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
+                    print GWADCsDict[Key].DataContainers[SNPIDColumn].GetDuplicateIndexDict()
                     if(len(DuplicateDict)>0):
-                        LogString  = '      ** Found the following duplicates:\n'
+                        LogString  = '      ** Found the following duplicate fields:\n'
                         for Key, Value in DuplicateDict.iteritems():
                             LogString += '         '+Key+' (Occurrence: '+str(Value)+')\n'
                         print LogString[:-1]

@@ -5,7 +5,6 @@ import sys
 import collections
 
 import Logger
-from Plotting import DataArray
 
 #===============================================================================
 # This module contains the basic DataContainer and DataContainers classes.
@@ -15,10 +14,10 @@ from Plotting import DataArray
 
 class DataContainer:
     def __init__(self):
-        self.DataName         = None
-        self.DataArray        = None
-        self.DuplicateDict    = None
-        self.UniqueIndices    = None
+        self.DataName           = None
+        self.DataArray          = None
+        self.DuplicateDict      = None
+        self.DuplicateIndexDict = None
         return
 
     def SetDataName(self,
@@ -61,22 +60,37 @@ class DataContainer:
         return
 
     def FindDuplicates(self):
-        self.CounterDict = collections.defaultdict(int)
-        for Entry in self.GetDataArray():
+        self.CounterDict   = collections.defaultdict(int)
+        DuplicateIndexDict = collections.defaultdict(list)
+        for i in range(len(self.GetDataArray())):
+            Entry = self.GetDataArray()[i]
             self.CounterDict[Entry] += 1
-        self.DuplicateDict = {}
+            DuplicateIndexDict[Entry].append(i)
+        self.DuplicateDict      = {}
+        self.DuplicateIndexDict = {}
         for Key, Value in self.CounterDict.iteritems():
             if(Value>1):
-                self.DuplicateDict[Key] = Value
+                self.DuplicateDict[Key]      = Value
+                self.DuplicateIndexDict[Key] = DuplicateIndexDict[Key]
         return self.DuplicateDict
 
-    def RemoveDuplicates(self):
-        DataArray,\
-        UniqueIndices = scipy.unique(ar=self.GetDataArray(),
-                                     return_index=True)
-        self.DataArray        = DataArray
-        self.UniqueIndices    = UniqueIndices
-        duplicate indices by scipy.in1d(ar1, ar2, assume_unique)
+    def GetDuplicateIndexDict(self):
+        return self.DuplicateIndexDict
+
+    def RemoveDuplicates(self,
+                         DuplicateIndexDict={}):
+        DataArray = self.GetDataArray()
+        DelList   = []
+        for Key in DuplicateIndexDict.iterkeys():
+            for i in range(1,len(DuplicateIndexDict[Key])):
+                Index = DuplicateIndexDict[Key][i]
+                DelList.append(Index)
+        DelList.sort()
+        DelList.reverse()
+        for Index in DelList:
+            del DataArray[i]
+
+        self.DataArray = DataArray
         return
 
     def InitEntry2IndexDict(self):

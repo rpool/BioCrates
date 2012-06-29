@@ -110,7 +110,16 @@ class Format:
         print LogString
         Log.Write(LogString+'\n')
 
-        DCsDict['GWADataFile'] = FFile.ParseToDataContainers()
+        NLinesInFile,\
+        NLinesInArray  = FFile.ParseToLineArray()
+
+        LogString  = HeadingSpaces
+        LogString += '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+        print LogString
+        Log.Write(LogString+'\n')
+
+        DCsDict['GWADataFile'] = FFile.LineArray2DataContainers()
+
         FFile.Close()
         FFile.Cleanup()
 
