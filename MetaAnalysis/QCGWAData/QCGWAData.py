@@ -72,47 +72,47 @@ def main(ExecutableName):
     boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
     ExtraInfoDCsDict       = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log,
                                                                  boRemoveDuplicateLines=boRemoveDuplicateLines)
-    for Key in ExtraInfoDCsDict.iterkeys():
-        for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
-                if(type(EIColumn)!=lxml.etree._Comment and
-                   eval(EIColumn.find('boSetColumnName').text)):
-                    Source = EIColumn.find('ColumnName').text
-                    Dest   = EIColumn.find('SetColumnName').text
-
-                    LogString  = '      ++ Renaming column \"'+Source+\
-                                     '\" fields to \"'+Dest+'\" ...'
-                    print LogString
-                    Log.Write(LogString+'\n')
-
-                    ExtraInfoDCsDict[Key].DataContainers[Dest] = ExtraInfoDCsDict[Key].DataContainers[Source]
-                    ExtraInfoDCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
-                                                                                       Dest)
-                    del ExtraInfoDCsDict[Key].DataContainers[Source]
-
-                    LogString  = '      -- Done ...'
-                    print LogString
-                    Log.Write(LogString+'\n')
-
-        for Key in ExtraInfoDCsDict.iterkeys():
-            for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
-                if(EIColumn.find('Renames')!=None):
-                    for Rename in EIColumn.find('Renames'):
-                        Source = Rename.find('Source').text
-                        Dest   = Rename.find('Dest').text
-
-                        LogString  = '    ++ Renaming \"'+Source+\
-                                     '\" fields to \"'+Dest+\
-                                     '\" for column \"'+EIColumn.tag+\
-                                     '\" ...'
-                        print LogString
-                        Log.Write(LogString+'\n')
-
-                        ExtraInfoDCsDict[Key].DataContainers[EIColumn.tag].RenameFieldsInDataArray(Source,
-                                                                                                    Dest)
-
-                        LogString  = '    -- Done ...'
-                        print LogString
-                        Log.Write(LogString+'\n')
+#    for Key in ExtraInfoDCsDict.iterkeys():
+#        for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
+#                if(type(EIColumn)!=lxml.etree._Comment and
+#                   eval(EIColumn.find('boSetColumnName').text)):
+#                    Source = EIColumn.find('ColumnName').text
+#                    Dest   = EIColumn.find('SetColumnName').text
+#
+#                    LogString  = '      ++ Renaming column \"'+Source+\
+#                                     '\" fields to \"'+Dest+'\" ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#
+#                    ExtraInfoDCsDict[Key].DataContainers[Dest] = ExtraInfoDCsDict[Key].DataContainers[Source]
+#                    ExtraInfoDCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
+#                                                                                       Dest)
+#                    del ExtraInfoDCsDict[Key].DataContainers[Source]
+#
+#                    LogString  = '      -- Done ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#
+#        for Key in ExtraInfoDCsDict.iterkeys():
+#            for EIColumn in XmlProtocol.getroot().find('ExtraInfoColumns'):
+#                if(EIColumn.find('Renames')!=None):
+#                    for Rename in EIColumn.find('Renames'):
+#                        Source = Rename.find('Source').text
+#                        Dest   = Rename.find('Dest').text
+#
+#                        LogString  = '    ++ Renaming \"'+Source+\
+#                                     '\" fields to \"'+Dest+\
+#                                     '\" for column \"'+EIColumn.tag+\
+#                                     '\" ...'
+#                        print LogString
+#                        Log.Write(LogString+'\n')
+#
+#                        ExtraInfoDCsDict[Key].DataContainers[EIColumn.tag].RenameFieldsInDataArray(Source,
+#                                                                                                    Dest)
+#
+#                        LogString  = '    -- Done ...'
+#                        print LogString
+#                        Log.Write(LogString+'\n')
 
     ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
                                 Log=Log,
@@ -209,74 +209,74 @@ def main(ExecutableName):
                 GWADCsDict = GWAFormat.ParseGWADataFile(Log=Log,
                                                         HeadingSpaces='  ',
                                                         boRemoveDuplicateLines=boRemoveDuplicateLines)
-                for Key in GWADCsDict.iterkeys():
-                    for GWAColumn in XmlProtocol.getroot().find('MtbGWAColumns'):
-                        if(type(GWAColumn)!=lxml.etree._Comment and
-                           eval(GWAColumn.find('boSetColumnName').text)):
-                            Source = GWAColumn.find('ColumnName').text
-                            Dest   = GWAColumn.find('SetColumnName').text
+#                for Key in GWADCsDict.iterkeys():
+#                    for GWAColumn in XmlProtocol.getroot().find('MtbGWAColumns'):
+#                        if(type(GWAColumn)!=lxml.etree._Comment and
+#                           eval(GWAColumn.find('boSetColumnName').text)):
+#                            Source = GWAColumn.find('ColumnName').text
+#                            Dest   = GWAColumn.find('SetColumnName').text
+#
+#                            LogString  = '    ++ Renaming column \"'+Source+\
+#                                             '\" fields to \"'+Dest+'\" ...'
+#                            print LogString
+#                            Log.Write(LogString+'\n')
+#
+#                            GWADCsDict[Key].DataContainers[Dest] = GWADCsDict[Key].DataContainers[Source]
+#                            GWADCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
+#                                                                                         Dest)
+#                            del GWADCsDict[Key].DataContainers[Source]
+#
+#                            LogString  = '    -- Done ...'
+#                            print LogString
+#                            Log.Write(LogString+'\n')
+#
+#                for Key in GWADCsDict.iterkeys():
+#                    for GWAColumn in XmlProtocol.getroot().find('MtbGWAColumns'):
+#                        if(GWAColumn.find('Renames')!=None):
+#                            for Rename in GWAColumn.find('Renames'):
+#                                Source = Rename.find('Source').text
+#                                Dest   = Rename.find('Dest').text
+#
+#                                LogString  = '    ++ Renaming \"'+Source+\
+#                                             '\" fields to \"'+Dest+\
+#                                             '\" for column \"'+GWAColumn.tag+\
+#                                             '\" ...'
+#                                print LogString
+#                                Log.Write(LogString+'\n')
+#
+#                                GWADCsDict[Key].DataContainers[GWAColumn.tag].RenameFieldsInDataArray(Source,
+#                                                                                                      Dest)
+#
+#                                LogString  = '    -- Done ...'
+#                                print LogString
+#                                Log.Write(LogString+'\n')
 
-                            LogString  = '    ++ Renaming column \"'+Source+\
-                                             '\" fields to \"'+Dest+'\" ...'
-                            print LogString
-                            Log.Write(LogString+'\n')
-
-                            GWADCsDict[Key].DataContainers[Dest] = GWADCsDict[Key].DataContainers[Source]
-                            GWADCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
-                                                                                         Dest)
-                            del GWADCsDict[Key].DataContainers[Source]
-
-                            LogString  = '    -- Done ...'
-                            print LogString
-                            Log.Write(LogString+'\n')
-
-                for Key in GWADCsDict.iterkeys():
-                    for GWAColumn in XmlProtocol.getroot().find('MtbGWAColumns'):
-                        if(GWAColumn.find('Renames')!=None):
-                            for Rename in GWAColumn.find('Renames'):
-                                Source = Rename.find('Source').text
-                                Dest   = Rename.find('Dest').text
-
-                                LogString  = '    ++ Renaming \"'+Source+\
-                                             '\" fields to \"'+Dest+\
-                                             '\" for column \"'+GWAColumn.tag+\
-                                             '\" ...'
-                                print LogString
-                                Log.Write(LogString+'\n')
-
-                                GWADCsDict[Key].DataContainers[GWAColumn.tag].RenameFieldsInDataArray(Source,
-                                                                                                      Dest)
-
-                                LogString  = '    -- Done ...'
-                                print LogString
-                                Log.Write(LogString+'\n')
-
-                for Key in GWADCsDict.iterkeys():
-                    SNPIDColumn = XmlProtocol.getroot().find('MtbGWAColumns').find('SNPID').tag
-
-                    LogString  = '    ++ Checking on duplicate SNPIDs ...'
-                    print LogString
-                    Log.Write(LogString+'\n')
-
-                    DuplicateDict = GWADCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
-                    LogString  = '      ** The maximum number of duplicate SNPs is '+\
-                                 str(GWADCsDict[Key].DataContainers[SNPIDColumn].GetMaxNDuplicates())
-                    print LogString
-                    Log.Write(LogString+'\n')
-                    if(len(DuplicateDict)>0):
-                        LogString  = '      ** Found the following duplicate SNPs:\n'
-                        for Key, Value in DuplicateDict.iteritems():
-                            LogString += '         '+Key+' (Occurrence: '+str(Value)+')\n'
-                        print LogString[:-1]
-                        Log.Write(LogString[:-1]+'\n')
-                    else:
-                        LogString  = '      ** No duplicates found!'
-                        print LogString
-                        Log.Write(LogString+'\n')
-
-                    LogString  = '    -- Done ...'
-                    print LogString
-                    Log.Write(LogString+'\n')
+#                for Key in GWADCsDict.iterkeys():
+#                    SNPIDColumn = XmlProtocol.getroot().find('MtbGWAColumns').find('SNPID').tag
+#
+#                    LogString  = '    ++ Checking on duplicate SNPIDs ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#
+#                    DuplicateDict = GWADCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
+#                    LogString  = '      ** The maximum number of duplicate SNPs is '+\
+#                                 str(GWADCsDict[Key].DataContainers[SNPIDColumn].GetMaxNDuplicates())
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#                    if(len(DuplicateDict)>0):
+#                        LogString  = '      ** Found the following duplicate SNPs:\n'
+#                        for Key, Value in DuplicateDict.iteritems():
+#                            LogString += '         '+Key+' (Occurrence: '+str(Value)+')\n'
+#                        print LogString[:-1]
+#                        Log.Write(LogString[:-1]+'\n')
+#                    else:
+#                        LogString  = '      ** No duplicates found!'
+#                        print LogString
+#                        Log.Write(LogString+'\n')
+#
+#                    LogString  = '    -- Done ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
 
                 GWAFormat.CheckFormat(DCsDict=GWADCsDict,
                                       Log=Log,

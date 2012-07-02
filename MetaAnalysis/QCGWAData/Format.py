@@ -257,6 +257,84 @@ class Format:
         LogString = Log.GetStartLogString()
         FmtLog.Write(LogString+'\n')
 
+        for Key in DCsDict.iterkeys():
+            for EIColumn in XmlObj.getroot().find(Tag):
+                if(type(EIColumn)!=lxml.etree._Comment and
+                   eval(EIColumn.find('boSetColumnName').text)):
+                    Source = EIColumn.find('ColumnName').text
+                    Dest   = EIColumn.find('SetColumnName').text
+
+                    LogString  = '      ++ Renaming column \"'+Source+\
+                                     '\" fields to \"'+Dest+'\" ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    FmtLog.Write(LogString+'\n')
+
+                    DCsDict[Key].DataContainers[Dest] = DCsDict[Key].DataContainers[Source]
+                    DCsDict[Key].DataContainers[Dest].RenameColumnOfDataArray(Source,
+                                                                              Dest)
+                    del DCsDict[Key].DataContainers[Source]
+
+                    LogString  = '      -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    FmtLog.Write(LogString+'\n')
+
+        for Key in DCsDict.iterkeys():
+            for EIColumn in XmlObj.getroot().find(Tag):
+                if(EIColumn.find('Renames')!=None):
+                    for Rename in EIColumn.find('Renames'):
+                        Source = Rename.find('Source').text
+                        Dest   = Rename.find('Dest').text
+
+                        LogString  = '      ++ Renaming \"'+Source+\
+                                     '\" fields to \"'+Dest+\
+                                     '\" for column \"'+EIColumn.tag+\
+                                     '\" ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        FmtLog.Write(LogString+'\n')
+
+                        DCsDict[Key].DataContainers[EIColumn.tag].RenameFieldsInDataArray(Source,
+                                                                                          Dest)
+
+                        LogString  = '      -- Done ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        FmtLog.Write(LogString+'\n')
+
+        for Key in DCsDict.iterkeys():
+            SNPIDColumn = XmlObj.getroot().find(Tag).find('SNPID').tag
+
+            LogString  = '    ++ Checking on duplicate SNPIDs ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+            DuplicateDict = DCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
+            LogString  = '      ** The maximum number of duplicate SNPs is '+\
+                         str(DCsDict[Key].DataContainers[SNPIDColumn].GetMaxNDuplicates())
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+            if(len(DuplicateDict)>0):
+                LogString  = '      ** Found the following duplicate SNPs:\n'
+                for Key, Value in DuplicateDict.iteritems():
+                    LogString += '         '+Key+' (Occurrence: '+str(Value)+')\n'
+                print LogString[:-1]
+                Log.Write(LogString[:-1]+'\n')
+                FmtLog.Write(LogString[-1]+'\n')
+            else:
+                LogString  = '      ** No duplicates found!'
+                print LogString
+                Log.Write(LogString+'\n')
+                FmtLog.Write(LogString+'\n')
+
+            LogString  = '    -- Done ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
         self.CheckColumnFormat(DCsDict=DCsDict,
                                Log=Log,
                                FmtLog=FmtLog,
