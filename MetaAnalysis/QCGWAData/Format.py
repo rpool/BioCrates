@@ -116,7 +116,7 @@ class Format:
             NLinesInArray  = FFile.ParseToLineArray()
 
             LogString  = HeadingSpaces
-            LogString += '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+            LogString += '    ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
             print LogString
             Log.Write(LogString+'\n')
 
@@ -159,7 +159,7 @@ class Format:
             if(boRemoveDuplicateLines):
                 NLinesInFile,\
                 NLinesInArray  = EIFile.ParseToLineArray()
-                LogString = '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+                LogString = '      ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
                 print LogString
                 Log.Write(LogString+'\n')
                 DCsDict[EIFile.GetName()] = EIFile.LineArray2DataContainers()
@@ -260,41 +260,41 @@ class Format:
         self.CheckColumnFormat(DCsDict=DCsDict,
                                Log=Log,
                                FmtLog=FmtLog,
-                               HeadingSpaces='    ')
+                               HeadingSpaces='  ')
         CondList = XmlObj.getroot().find(Tag).find('SNPID').find('MandatoryFieldEntries').text
         CondList = CondList.split(',')
         self.CheckSNPIDs(DCsDict=DCsDict,
                          Log=Log,
                          FmtLog=FmtLog,
-                         HeadingSpaces='    ',
+                         HeadingSpaces='  ',
                          ConditionList=CondList)
         CondList = XmlObj.getroot().find(Tag).find('chr').find('MandatoryFieldEntries').text
         CondList = CondList.split(',')
         self.CheckChrs(DCsDict=DCsDict,
                        Log=Log,
                        FmtLog=FmtLog,
-                       HeadingSpaces='    ',
+                       HeadingSpaces='  ',
                        ConditionList=CondList)
         CondList = XmlObj.getroot().find(Tag).find('strand_genome').find('MandatoryFieldEntries').text
         CondList = CondList.split(',')
         self.CheckStrandGenomes(DCsDict=DCsDict,
                                 Log=Log,
                                 FmtLog=FmtLog,
-                                HeadingSpaces='    ',
+                                HeadingSpaces='  ',
                                 ConditionList=CondList)
         CondList = XmlObj.getroot().find(Tag).find('imputed').find('MandatoryFieldEntries').text
         CondList = CondList.split(',')
         self.CheckImputeds(DCsDict=DCsDict,
                            Log=Log,
                            FmtLog=FmtLog,
-                           HeadingSpaces='    ',
+                           HeadingSpaces='  ',
                            ConditionList=CondList)
         CondList = XmlObj.getroot().find(Tag).find('used_for_imp').find('MandatoryFieldEntries').text
         CondList = CondList.split(',')
         self.CheckUsedForImps(DCsDict=DCsDict,
                               Log=Log,
                               FmtLog=FmtLog,
-                              HeadingSpaces='    ',
+                              HeadingSpaces='  ',
                               ConditionList=CondList)
 
         if(Tag=='MtbGWAColumns'):
@@ -303,70 +303,78 @@ class Format:
             self.CheckPositions(DCsDict=DCsDict,
                                 Log=Log,
                                 FmtLog=FmtLog,
-                                HeadingSpaces='    ',
+                                HeadingSpaces='  ',
                                 ConditionList=CondList)
             CondList = XmlObj.getroot().find(Tag).find('coded_all').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckCodedAlls(DCsDict=DCsDict,
                                 Log=Log,
                                 FmtLog=FmtLog,
-                                HeadingSpaces='    ',
+                                HeadingSpaces='  ',
                                 ConditionList=CondList)
             CondList = XmlObj.getroot().find(Tag).find('noncoded_all').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckNonCodedAlls(DCsDict=DCsDict,
                                    Log=Log,
                                    FmtLog=FmtLog,
-                                   HeadingSpaces='    ',
+                                   HeadingSpaces='  ',
                                    ConditionList=CondList)
-            CondList = XmlObj.getroot().find(Tag).find('beta').find('MandatoryFieldEntries').text
-            CondList = CondList.split(',')
+            CondList   = XmlObj.getroot().find(Tag).find('beta').find('MandatoryFieldEntries').text
+            CondList   = CondList.split(',')
+            Precision  = int(XmlObj.getroot().find(Tag).find('beta').find('NumericFieldPrecision').text)
+            APrecision = int(XmlObj.getroot().find(Tag).find('beta').find('AllowedNumericFieldPrecision').text)
             self.CheckBetas(DCsDict=DCsDict,
                             Log=Log,
                             FmtLog=FmtLog,
-                            HeadingSpaces='    ',
-                            ConditionList=CondList)
-            CondList = XmlObj.getroot().find(Tag).find('SE').find('MandatoryFieldEntries').text
-            CondList = CondList.split(',')
+                            HeadingSpaces='  ',
+                            ConditionList=CondList,
+                            Precision=Precision,
+                            AllowedPrecision=APrecision)
+            CondList   = XmlObj.getroot().find(Tag).find('SE').find('MandatoryFieldEntries').text
+            CondList   = CondList.split(',')
+            Precision  = int(XmlObj.getroot().find(Tag).find('SE').find('NumericFieldPrecision').text)
+            APrecision = int(XmlObj.getroot().find(Tag).find('SE').find('AllowedNumericFieldPrecision').text)
             self.CheckSEs(DCsDict=DCsDict,
                           Log=Log,
                           FmtLog=FmtLog,
-                          HeadingSpaces='    ',
-                          ConditionList=CondList)
+                          HeadingSpaces='  ',
+                          ConditionList=CondList,
+                          Precision=Precision,
+                          AllowedPrecision=APrecision)
             CondList = XmlObj.getroot().find(Tag).find('pval').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckPVals(DCsDict=DCsDict,
                             Log=Log,
                             FmtLog=FmtLog,
-                            HeadingSpaces='    ',
+                            HeadingSpaces='  ',
                             ConditionList=CondList)
             CondList = XmlObj.getroot().find(Tag).find('HWE_pval').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckHWEPVals(DCsDict=DCsDict,
                                Log=Log,
                                FmtLog=FmtLog,
-                               HeadingSpaces='    ',
+                               HeadingSpaces='  ',
                                ConditionList=CondList)
             CondList = XmlObj.getroot().find(Tag).find('n_total').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckNTotals(DCsDict=DCsDict,
                               Log=Log,
                               FmtLog=FmtLog,
-                              HeadingSpaces='    ',
+                              HeadingSpaces='  ',
                               ConditionList=CondList)
             CondList = XmlObj.getroot().find(Tag).find('oevar_imp').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckOeVarImps(DCsDict=DCsDict,
                                 Log=Log,
                                 FmtLog=FmtLog,
-                                HeadingSpaces='    ',
+                                HeadingSpaces='  ',
                                 ConditionList=CondList)
             CondList = XmlObj.getroot().find(Tag).find('AF_coded_all').find('MandatoryFieldEntries').text
             CondList = CondList.split(',')
             self.CheckAfCodedAlls(DCsDict=DCsDict,
                                   Log=Log,
                                   FmtLog=FmtLog,
-                                  HeadingSpaces='    ',
+                                  HeadingSpaces='  ',
                                   ConditionList=CondList)
 
         LogString = FmtLog.GetEndLogString()
@@ -377,6 +385,61 @@ class Format:
         LogString += '  -- Done ...'
         print LogString
         Log.Write(LogString+'\n')
+
+        return
+
+    def CheckAfCodedAlls(self,
+                         DCsDict={},
+                         Log=Logger,
+                         FmtLog=Logger,
+                         HeadingSpaces='',
+                         ConditionList=[]):
+
+        for FName, DCs in DCsDict.iteritems():
+            LogString  = HeadingSpaces
+            LogString += '    ++ Checking \"AF_coded_all\" fields format for \"'+FName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                if((ConditionList[i][0]=='[') and
+                   (ConditionList[i][-1]==']')):
+                    RegExp = re.compile(ConditionList[i])
+                    VMatch = scipy.vectorize(lambda x:bool(RegExp.match(x)))
+                    if(i==0):
+                        FilterArray = VMatch(DCs.DataContainers['AF_coded_all'].GetDataArray())
+                    else:
+                        TmpFilterArray = VMatch(DCs.DataContainers['AF_coded_all'].GetDataArray())
+                        FilterArray    = (FilterArray | TmpFilterArray)
+                else:
+                    if(i==0):
+                        FilterArray = (DCs.DataContainers['AF_coded_all'].GetDataArray()==ConditionList[i])
+                    else:
+                        TmpFilterArray = (DCs.DataContainers['AF_coded_all'].GetDataArray()==ConditionList[i])
+                        FilterArray    = (FilterArray | TmpFilterArray)
+
+            LogString  = HeadingSpaces
+            LogString += '      ** Array \"AF_coded_all\" complies with the ENGAGE analysis plan v3.0!'
+            boComplies = True
+            if(len(scipy.compress(FilterArray,DCs.DataContainers['AF_coded_all'].GetDataArray()))!=
+               len(DCs.DataContainers['AF_coded_all'].GetDataArray())):
+                LogString  = HeadingSpaces
+                LogString += '      ** Array \"AF_coded_all\" does not comply with the ENGAGE analysis plan v3.0!'
+                boComplies = False
+            self.SetboFieldFormatOKDict(ColumnID='AF_coded_all',
+                                        Flag=boComplies)
+
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
+
+            LogString  = HeadingSpaces
+            LogString += '    -- Done ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
 
         return
 
@@ -394,19 +457,31 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            FilterArray    = (DCs.DataContainers['oevar_imp'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['oevar_imp'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                if((ConditionList[i][0]=='[') and
+                   (ConditionList[i][-1]==']')):
+                    RegExp = re.compile(ConditionList[i])
+                    VSearch = scipy.vectorize(lambda x:bool(RegExp.search(x)))
+                    if(i==0):
+                        FilterArray = VSearch(DCs.DataContainers['oevar_imp'].GetDataArray())
+                    else:
+                        TmpFilterArray = VSearch(DCs.DataContainers['oevar_imp'].GetDataArray())
+                        FilterArray    = (FilterArray | TmpFilterArray)
+                else:
+                    if(i==0):
+                        FilterArray = (DCs.DataContainers['oevar_imp'].GetDataArray()==ConditionList[i])
+                    else:
+                        TmpFilterArray = (DCs.DataContainers['oevar_imp'].GetDataArray()==ConditionList[i])
+                        FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"oevar_imp\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"oevar_imp\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['oevar_imp'].GetDataArray()))!=
                len(DCs.DataContainers['oevar_imp'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"oevar_imp\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"oevar_imp\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='oevar_imp',
                                         Flag=boComplies)
@@ -437,19 +512,31 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            FilterArray    = (DCs.DataContainers['n_total'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['n_total'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                if((ConditionList[i][0]=='[') and
+                   (ConditionList[i][-1]==']')):
+                    RegExp = re.compile(ConditionList[i])
+                    VMatch = scipy.vectorize(lambda x:bool(RegExp.match(x)))
+                    if(i==0):
+                        FilterArray = VMatch(DCs.DataContainers['n_total'].GetDataArray())
+                    else:
+                        TmpFilterArray = VMatch(DCs.DataContainers['n_total'].GetDataArray())
+                        FilterArray    = (FilterArray | TmpFilterArray)
+                else:
+                    if(i==0):
+                        FilterArray = (DCs.DataContainers['n_total'].GetDataArray()==ConditionList[i])
+                    else:
+                        TmpFilterArray = (DCs.DataContainers['n_total'].GetDataArray()==ConditionList[i])
+                        FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"n_total\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"n_total\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['n_total'].GetDataArray()))!=
                len(DCs.DataContainers['n_total'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"n_total\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"n_total\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='n_total',
                                         Flag=boComplies)
@@ -480,19 +567,23 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            FilterArray    = (DCs.DataContainers['pval'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['pval'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                RegExp  = re.compile(ConditionList[i])
+                VSearch = scipy.vectorize(lambda x:bool(RegExp.search(x)))
+                if(i==0):
+                    FilterArray = VSearch(DCs.DataContainers['pval'].GetDataArray())
+                else:
+                    TmpFilterArray = VSearch(DCs.DataContainers['pval'].GetDataArray())
+                    FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"pval\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"pval\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['pval'].GetDataArray()))!=
                len(DCs.DataContainers['pval'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"pval\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"pval\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='pval',
                                         Flag=boComplies)
@@ -523,19 +614,23 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            FilterArray    = (DCs.DataContainers['HWE_pval'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['HWE_pval'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                RegExp  = re.compile(ConditionList[i])
+                VSearch = scipy.vectorize(lambda x:bool(RegExp.search(x)))
+                if(i==0):
+                    FilterArray = VSearch(DCs.DataContainers['HWE_pval'].GetDataArray())
+                else:
+                    TmpFilterArray = VSearch(DCs.DataContainers['HWE_pval'].GetDataArray())
+                    FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"HWE_pval\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"HWE_pval\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['HWE_pval'].GetDataArray()))!=
                len(DCs.DataContainers['HWE_pval'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"HWE_pval\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"HWE_pval\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='HWE_pval',
                                         Flag=boComplies)
@@ -557,7 +652,9 @@ class Format:
                  Log=Logger,
                  FmtLog=Logger,
                  HeadingSpaces='',
-                 ConditionList=[]):
+                 ConditionList=[],
+                 Precision=int,
+                 AllowedPrecision=int):
 
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
@@ -566,20 +663,49 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            check precision!
-            FilterArray    = (DCs.DataContainers['SE'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['SE'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                RegExp  = re.compile(ConditionList[i])
+                VSearch = scipy.vectorize(lambda x:bool(RegExp.search(x)))
+                if(i==0):
+                    FilterArray = VSearch(DCs.DataContainers['SE'].GetDataArray())
+                else:
+                    TmpFilterArray = VSearch(DCs.DataContainers['SE'].GetDataArray())
+                    FilterArray    = (FilterArray | TmpFilterArray)
+            TmpFilterArray = []
+            boPrecisionOK  = True
+            MinPrecision   = 500
+            for Entry in DCs.DataContainers['SE'].GetDataArray():
+                ESplit = Entry.split('.')[-1]
+                ESplit = ESplit.split('e')[0]
+                ESplit = ESplit.split('E')[0]
+                if(len(ESplit)>=Precision):
+                    TmpFilterArray.append(True)
+                else:
+                    TmpFilterArray.append(False)
+                    boPrecisionOK = False
+                MinPrecision = min(MinPrecision,len(ESplit))
+            if(MinPrecision>AllowedPrecision):
+                TmpFilterArray = scipy.array(TmpFilterArray)
+                FilterArray    = (FilterArray & TmpFilterArray)
+            LogString = HeadingSpaces
+            if(boPrecisionOK):
+                LogString += '      ** Array \"SE\" complies with the precision prerequisite of the ENGAGE analysis plan v3.0!'
+            else:
+                LogString += '      ** Array \"SE\" does not comply with the precision prerequisite of the ENGAGE analysis plan v3.0!'
+            LogString += '\n'
+            LogString += '        ** Minimal precision is: '+str(MinPrecision)+' ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"SE\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"SE\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['SE'].GetDataArray()))!=
                len(DCs.DataContainers['SE'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"SE\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"SE\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='SE',
                                         Flag=boComplies)
@@ -601,7 +727,9 @@ class Format:
                    Log=Logger,
                    FmtLog=Logger,
                    HeadingSpaces='',
-                   ConditionList=[]):
+                   ConditionList=[],
+                   Precision=int,
+                   AllowedPrecision=int):
 
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
@@ -610,20 +738,50 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            check precision!
-            FilterArray    = (DCs.DataContainers['beta'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['beta'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                RegExp  = re.compile(ConditionList[i])
+                VSearch = scipy.vectorize(lambda x:bool(RegExp.search(x)))
+                if(i==0):
+                    FilterArray = VSearch(DCs.DataContainers['beta'].GetDataArray())
+                else:
+                    TmpFilterArray = VSearch(DCs.DataContainers['beta'].GetDataArray())
+                    FilterArray    = (FilterArray | TmpFilterArray)
+
+            TmpFilterArray = []
+            boPrecisionOK  = True
+            MinPrecision   = 500
+            for Entry in DCs.DataContainers['beta'].GetDataArray():
+                ESplit = Entry.split('.')[-1]
+                ESplit = ESplit.split('e')[0]
+                ESplit = ESplit.split('E')[0]
+                if(len(ESplit)>=5):
+                    TmpFilterArray.append(True)
+                else:
+                    TmpFilterArray.append(False)
+                    boPrecisionOK = False
+                MinPrecision = min(MinPrecision,len(ESplit))
+            if(MinPrecision>AllowedPrecision):
+                TmpFilterArray = scipy.array(TmpFilterArray)
+                FilterArray    = (FilterArray & TmpFilterArray)
+            LogString = HeadingSpaces
+            if(boPrecisionOK):
+                LogString += '      ** Array \"beta\" complies with the precision prerequisite of the ENGAGE analysis plan v3.0!'
+            else:
+                LogString += '      ** Array \"beta\" does not comply with the precision prerequisite of the ENGAGE analysis plan v3.0!'
+            LogString += '\n'
+            LogString += '        ** Minimal precision is: '+str(MinPrecision)+' ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FmtLog.Write(LogString+'\n')
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"beta\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"beta\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['beta'].GetDataArray()))!=
                len(DCs.DataContainers['beta'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"beta\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"beta\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='beta',
                                         Flag=boComplies)
@@ -660,12 +818,12 @@ class Format:
                 FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"noncoded_all\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"noncoded_all\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['noncoded_all'].GetDataArray()))!=
                len(DCs.DataContainers['noncoded_all'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"noncoded_all\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"noncoded_all\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='noncoded_all',
                                         Flag=boComplies)
@@ -702,12 +860,12 @@ class Format:
                 FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"coded_all\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"coded_all\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['coded_all'].GetDataArray()))!=
                len(DCs.DataContainers['coded_all'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"coded_all\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"coded_all\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='coded_all',
                                         Flag=boComplies)
@@ -738,19 +896,31 @@ class Format:
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
-            use vmatch!
-            FilterArray    = (DCs.DataContainers['position'].GetDataArray()==ConditionList[0])
-            for i in range(1,len(ConditionList)):
-                TmpFilterArray = (DCs.DataContainers['position'].GetDataArray()==ConditionList[i])
-                FilterArray    = (FilterArray | TmpFilterArray)
+            FilterArray = None
+            for i in range(len(ConditionList)):
+                if((ConditionList[i][0]=='[') and
+                   (ConditionList[i][-1]==']')):
+                    RegExp = re.compile(ConditionList[i])
+                    VMatch = scipy.vectorize(lambda x:bool(RegExp.match(x)))
+                    if(i==0):
+                        FilterArray = VMatch(DCs.DataContainers['position'].GetDataArray())
+                    else:
+                        TmpFilterArray = VMatch(DCs.DataContainers['position'].GetDataArray())
+                        FilterArray    = (FilterArray | TmpFilterArray)
+                else:
+                    if(i==0):
+                        FilterArray = (DCs.DataContainers['position'].GetDataArray()==ConditionList[i])
+                    else:
+                        TmpFilterArray = (DCs.DataContainers['position'].GetDataArray()==ConditionList[i])
+                        FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"position\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"position\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['position'].GetDataArray()))!=
                len(DCs.DataContainers['position'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"position\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"position\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='position',
                                         Flag=boComplies)
@@ -786,12 +956,12 @@ class Format:
                 FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"used_for_imp\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"used_for_imp\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['used_for_imp'].GetDataArray()))!=
                len(DCs.DataContainers['used_for_imp'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"used_for_imp\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"used_for_imp\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='used_for_imp',
                                         Flag=boComplies)
@@ -827,12 +997,12 @@ class Format:
                 FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"imputed\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"imputed\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['imputed'].GetDataArray()))!=
                len(DCs.DataContainers['imputed'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"imputed\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"imputed\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='imputed',
                                         Flag=boComplies)
@@ -868,12 +1038,12 @@ class Format:
                 FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"strand_genome\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"strand_genome\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['strand_genome'].GetDataArray()))!=
                len(DCs.DataContainers['strand_genome'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"strand_genome\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"strand_genome\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='strand_genome',
                                         Flag=boComplies)
@@ -929,12 +1099,12 @@ class Format:
                         FilterArray    = (FilterArray | TmpFilterArray)
 
             LogString  = HeadingSpaces
-            LogString += '    ** Array \"chr\" complies with the ENGAGE analysis plan v3.0!'
+            LogString += '      ** Array \"chr\" complies with the ENGAGE analysis plan v3.0!'
             boComplies = True
             if(len(scipy.compress(FilterArray,DCs.DataContainers['chr'].GetDataArray()))!=
                len(DCs.DataContainers['chr'].GetDataArray())):
                 LogString  = HeadingSpaces
-                LogString += '    ** Array \"chr\" does not comply with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"chr\" does not comply with the ENGAGE analysis plan v3.0!'
                 boComplies = False
             self.SetboFieldFormatOKDict(ColumnID='chr',
                                         Flag=boComplies)
@@ -969,14 +1139,14 @@ class Format:
                 for i in range(1,len(ConditionList)):
                     boConditionHolds = (boConditionHolds or bool(re.search(ConditionList[i],Entry)))
                 if(not boConditionHolds):
-                    LogString += '    ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
+                    LogString += '      ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
                     boComplies = False
                     break
 
             self.SetboFieldFormatOKDict(ColumnID='SNPID',
                                         Flag=boComplies)
             if(boComplies):
-                LogString += '    ** Array \"SNPID\" complies with the ENGAGE analysis plan v3.0!'
+                LogString += '      ** Array \"SNPID\" complies with the ENGAGE analysis plan v3.0!'
 
             print LogString
             Log.Write(LogString+'\n')
@@ -1002,7 +1172,7 @@ class Format:
             FmtLog.Write(LogString+'\n')
             for Key in DCs.DataContainers.iterkeys():
                 LogString  = HeadingSpaces
-                LogString += '    ** Column name \"'+Key+'\" '
+                LogString += '      ** Column name \"'+Key+'\" '
                 if((Key in self.GetColumnFormat()) and
                    (DCs.DataContainers[Key].GetDataName() in self.GetColumnFormat())):
                     LogString += 'complies with the ENGAGE analysis plan v3.0!'
@@ -1035,24 +1205,24 @@ class Format:
                 FName = os.path.join(F.find('Path').text,F.find('Name').text)
                 if(os.path.exists(FName)):
                     LogString  = HeadingSpaces
-                    LogString += '  ** Path \"'+FName+'\" exists ...'
+                    LogString += '    ** Path \"'+FName+'\" exists ...'
                     print LogString
                     Log.Write(LogString+'\n')
                 else:
                     LogString  = HeadingSpaces
-                    LogString += '  ** Path \"'+FName+'\" does not exist ...\n'
+                    LogString += '    ** Path \"'+FName+'\" does not exist ...\n'
                     LogString += '!!! EXITING !!!'
                     print LogString
                     Log.Write(LogString+'\n')
                     sys.exit(1)
                 if(os.path.isfile(FName)):
                     LogString  = HeadingSpaces
-                    LogString += '  ** Path \"'+FName+'\" is a regular file ...'
+                    LogString += '    ** Path \"'+FName+'\" is a regular file ...'
                     print LogString
                     Log.Write(LogString+'\n')
                 else:
                     LogString  = HeadingSpaces
-                    LogString += '  ** Path \"'+FName+'\" is not a regular file ...\n'
+                    LogString += '    ** Path \"'+FName+'\" is not a regular file ...\n'
                     LogString += '!!! EXITING !!!'
                     print LogString
                     Log.Write(LogString+'\n')

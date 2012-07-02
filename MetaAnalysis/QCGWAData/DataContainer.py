@@ -18,7 +18,11 @@ class DataContainer:
         self.DataArray          = None
         self.DuplicateDict      = None
         self.DuplicateIndexDict = None
+        self.MaxNDuplicates     = None
         return
+
+    def GetMaxNDuplicates(self):
+        return self.MaxNDuplicates
 
     def SetDataName(self,
                     Name=str):
@@ -68,10 +72,12 @@ class DataContainer:
             DuplicateIndexDict[Entry].append(i)
         self.DuplicateDict      = {}
         self.DuplicateIndexDict = {}
+        self.MaxNDuplicates     = 0
         for Key, Value in self.CounterDict.iteritems():
             if(Value>1):
                 self.DuplicateDict[Key]      = Value
                 self.DuplicateIndexDict[Key] = DuplicateIndexDict[Key]
+                self.MaxNDuplicates          = max(self.MaxNDuplicates,Value-1)
         return self.DuplicateDict
 
     def GetDuplicateIndexDict(self):

@@ -2,12 +2,12 @@
 <Protocol>
     <!-- The directory containing the GWA output files -->
     <GWAOutputPath>
-        /home/rpool/Work/TestQCGWA/Data
+        /home/r.pool/Work/TestQCGWA/Data
     </GWAOutputPath>
 
     <!-- Your working directory -->
     <WorkingPath>
-        /home/rpool/Work/TestQCGWA
+        /home/r.pool/Work/TestQCGWA
     </WorkingPath>
 
     <!-- Format specifiers of GWA output and GWA extra files -->
@@ -23,7 +23,7 @@
     <ExtraInfoFiles>
         <ExtraInfoFile1>
             <boUse>True</boUse>
-            <Path>/home/rpool/Work/TestQCGWA/Data</Path>
+            <Path>/home/r.pool/Work/TestQCGWA/Data</Path>
             <Name>SNP_INFO_NTRMRG3_FOR_ENGAGE.txt.gz</Name>
         </ExtraInfoFile1>    
     </ExtraInfoFiles>
@@ -67,21 +67,21 @@
     <!-- Details on the ExcludedMetabolites file -->
     <ExcludedMtbFile>
         <boUse>True</boUse>
-        <Path>/home/rpool/Work/TestQCGWA/Data</Path>
+        <Path>/home/r.pool/Work/TestQCGWA/Data</Path>
         <Name>NTR_BIOC_ExcludedMetabolites_01JUN2012_RPL.txt.gz</Name>
     </ExcludedMtbFile>
 
     <!-- Details on the PositiveControl file -->
     <PositiveControlFile>
         <boUse>False</boUse>
-        <Path>/home/rpool/Work/TestQCGWA/Data</Path>
+        <Path>/home/r.pool/Work/TestQCGWA/Data</Path>
         <Name>NTR_BIOC_PC.aa.C36.3OverPC.aa.C36.4_POSITIVECONTROL_01JUN2012_RPL.txt.gz</Name>
     </PositiveControlFile>
     
     <!-- File containing the list of metabolite names you want to QC -->
     <MtbNameFile>
         <boUse>True</boUse>
-        <Path>/home/rpool/Work/TestQCGWA</Path>
+        <Path>/home/r.pool/Work/TestQCGWA</Path>
         <Name>MtbNames.txt</Name>
     </MtbNameFile>
     <MtbGWAColumns>
@@ -94,9 +94,9 @@
         <!-- Filters:               What filters can be applied? -->
         <!-- NumericFieldPrecision: Precision specifier required for some columns -->
          <SNPID>
-            <ColumnName>SNPID</ColumnName>    
-            <boSetColumnName>False</boSetColumnName>
-            <SetColumnName>None</SetColumnName>
+            <ColumnName>SSNPID</ColumnName>    
+            <boSetColumnName>True</boSetColumnName>
+            <SetColumnName>SNPID</SetColumnName>
             <MandatoryFieldEntries>NA,rs,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>str</NonNAFieldType>
             <Filters>NE_NA,IS_UNIQUE</Filters>
@@ -109,6 +109,12 @@
             <NonNAFieldType>int</NonNAFieldType>
             <Filters>NE_NA,IN_1To22</Filters>
             <GetFromExtraInfoFile>True</GetFromExtraInfoFile>
+            <Renames>
+                <Rename1>
+                    <Source>nA</Source>
+                    <Dest>NA</Dest>
+                </Rename1>
+            </Renames>
         </chr>
         <position>
             <ColumnName>position</ColumnName>    
@@ -147,8 +153,9 @@
             <ColumnName>beta</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,+,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
             <NumericFieldPrecision>5</NumericFieldPrecision>
+            <AllowedNumericFieldPrecision>1</AllowedNumericFieldPrecision>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA</Filters>
         </beta>
@@ -156,8 +163,9 @@
             <ColumnName>SE</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,+,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
             <NumericFieldPrecision>5</NumericFieldPrecision>
+            <AllowedNumericFieldPrecision>1</AllowedNumericFieldPrecision>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LT_10000</Filters>
         </SE>
@@ -165,7 +173,7 @@
             <ColumnName>pval</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,+,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LE_1</Filters>
         </pval>
@@ -181,7 +189,7 @@
             <ColumnName>HWE_pval</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,+,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_1EMinus6,LE_1,EQ_NA</Filters>
         </HWE_pval>
