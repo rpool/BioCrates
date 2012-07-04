@@ -57,7 +57,7 @@ class Format:
 
     def GetExtraInfoFiles(self):
         if(self.ExtraInfoFiles==None):
-            self.ExtraInfoFiles = []
+            self.SetExtraInfoFiles()
         return self.ExtraInfoFiles
 
     def AppendFilesToExtraInfoFiles(self,
@@ -258,14 +258,14 @@ class Format:
         FmtLog.Write(LogString+'\n')
 
         for Key in DCsDict.iterkeys():
-            for EIColumn in XmlObj.getroot().find(Tag):
-                if(type(EIColumn)!=lxml.etree._Comment and
-                   eval(EIColumn.find('boSetColumnName').text)):
-                    Source = EIColumn.find('ColumnName').text
-                    Dest   = EIColumn.find('SetColumnName').text
+            for Column in XmlObj.getroot().find(Tag):
+                if(type(Column)!=lxml.etree._Comment and
+                   eval(Column.find('boSetColumnName').text)):
+                    Source = Column.find('ColumnName').text
+                    Dest   = Column.find('SetColumnName').text
 
                     LogString  = '      ++ Renaming column \"'+Source+\
-                                     '\" fields to \"'+Dest+'\" ...'
+                                     '\" to \"'+Dest+'\" ...'
                     print LogString
                     Log.Write(LogString+'\n')
                     FmtLog.Write(LogString+'\n')
@@ -281,22 +281,22 @@ class Format:
                     FmtLog.Write(LogString+'\n')
 
         for Key in DCsDict.iterkeys():
-            for EIColumn in XmlObj.getroot().find(Tag):
-                if(EIColumn.find('Renames')!=None):
-                    for Rename in EIColumn.find('Renames'):
+            for Column in XmlObj.getroot().find(Tag):
+                if(Column.find('Renames')!=None):
+                    for Rename in Column.find('Renames'):
                         Source = Rename.find('Source').text
                         Dest   = Rename.find('Dest').text
 
                         LogString  = '      ++ Renaming \"'+Source+\
                                      '\" fields to \"'+Dest+\
-                                     '\" for column \"'+EIColumn.tag+\
+                                     '\" for column \"'+Column.tag+\
                                      '\" ...'
                         print LogString
                         Log.Write(LogString+'\n')
                         FmtLog.Write(LogString+'\n')
 
-                        DCsDict[Key].DataContainers[EIColumn.tag].RenameFieldsInDataArray(Source,
-                                                                                          Dest)
+                        DCsDict[Key].DataContainers[Column.tag].RenameFieldsInDataArray(Source,
+                                                                                        Dest)
 
                         LogString  = '      -- Done ...'
                         print LogString
@@ -306,31 +306,32 @@ class Format:
         for Key in DCsDict.iterkeys():
             SNPIDColumn = XmlObj.getroot().find(Tag).find('SNPID').tag
 
-            LogString  = '    ++ Checking on duplicate SNPIDs ...'
+            LogString  = '      ++ Checking on duplicate SNPIDs ...'
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
 
             DuplicateDict = DCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
-            LogString  = '      ** The maximum number of duplicate SNPs is '+\
+
+            LogString  = '        ** The maximum number of duplicate SNPs is '+\
                          str(DCsDict[Key].DataContainers[SNPIDColumn].GetMaxNDuplicates())
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
             if(len(DuplicateDict)>0):
-                LogString  = '      ** Found the following duplicate SNPs:\n'
+                LogString  = '        ** Found the following duplicate SNPs:\n'
                 for Key, Value in DuplicateDict.iteritems():
-                    LogString += '         '+Key+' (Occurrence: '+str(Value)+')\n'
+                    LogString += '           '+Key+' (Occurrence: '+str(Value)+')\n'
                 print LogString[:-1]
                 Log.Write(LogString[:-1]+'\n')
                 FmtLog.Write(LogString[-1]+'\n')
             else:
-                LogString  = '      ** No duplicates found!'
+                LogString  = '        ** No duplicates found!'
                 print LogString
                 Log.Write(LogString+'\n')
                 FmtLog.Write(LogString+'\n')
 
-            LogString  = '    -- Done ...'
+            LogString  = '      -- Done ...'
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
@@ -772,7 +773,8 @@ class Format:
             else:
                 LogString += '      ** Array \"SE\" does not comply with the precision prerequisite of the ENGAGE analysis plan v3.0!'
             LogString += '\n'
-            LogString += '        ** Minimal precision is: '+str(MinPrecision)+' ...'
+            LogString += '        ** Minimal precision is: '+str(MinPrecision)+' ...\n'
+            LogString += '        ** Precision override value is: '+str(AllowedPrecision)+' ...'
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
@@ -848,7 +850,8 @@ class Format:
             else:
                 LogString += '      ** Array \"beta\" does not comply with the precision prerequisite of the ENGAGE analysis plan v3.0!'
             LogString += '\n'
-            LogString += '        ** Minimal precision is: '+str(MinPrecision)+' ...'
+            LogString += '        ** Minimal precision is: '+str(MinPrecision)+' ...\n'
+            LogString += '        ** Precision override value is: '+str(AllowedPrecision)+' ...'
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
@@ -1217,7 +1220,8 @@ class Format:
                 for i in range(1,len(ConditionList)):
                     boConditionHolds = (boConditionHolds or bool(re.search(ConditionList[i],Entry)))
                 if(not boConditionHolds):
-                    LogString += '      ** SNPID does not comply with the ENGAGE analysis plan v3.0!\n'
+                    LogString += '      ** SNPID does not comply with the ENGAGE analysis plan v3.0!'
+                    print Entry
                     boComplies = False
                     break
 

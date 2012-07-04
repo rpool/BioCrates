@@ -9,6 +9,7 @@ import Logger
 import ArgumentParser
 import File
 import Format
+import Merge
 
 def main(ExecutableName):
 
@@ -113,7 +114,6 @@ def main(ExecutableName):
 #                        LogString  = '    -- Done ...'
 #                        print LogString
 #                        Log.Write(LogString+'\n')
-
     ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
                                 Log=Log,
                                 Path=CommentsPath,
@@ -121,6 +121,8 @@ def main(ExecutableName):
                                 FileType='extra info files',
                                 XmlObj=XmlProtocol,
                                 Tag='ExtraInfoColumns')
+    for Key in ExtraInfoDCsDict.iterkeys():
+        ExtraInfoDCsDict[Key].DataContainers['SNPID'].SetEntry2IndexDict()
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')
@@ -306,6 +308,20 @@ def main(ExecutableName):
                     print LogString
                     Log.Write(LogString+'\n')
                     sys.exit(1)
+
+                if(len(ExtraInfoFormat.GetExtraInfoFiles())>0):
+                    LogString = '    ++ Merging ExtraInfo columns to GWA data file ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict = Merge.Merge(XmlObj=XmlProtocol,
+                                             SourceDCsDict=ExtraInfoDCsDict,
+                                             DestDCsDict=GWADCsDict)
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
 
                 LogString = '  -- Done ...'
                 print LogString

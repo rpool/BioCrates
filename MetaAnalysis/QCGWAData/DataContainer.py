@@ -19,6 +19,7 @@ class DataContainer:
         self.DuplicateDict      = None
         self.DuplicateIndexDict = None
         self.MaxNDuplicates     = None
+        self.Entry2IndexDict    = None
         return
 
     def GetMaxNDuplicates(self):
