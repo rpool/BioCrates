@@ -37,6 +37,11 @@ class DataContainer:
         self.DataArray = []
         return
 
+    def ReplaceDataArray(self,
+                         DataArray=scipy.array):
+        self.DataArray = DataArray
+        return
+
     def AppendToArray(self,
                       Entry=str):
         self.DataArray.append(Entry)
