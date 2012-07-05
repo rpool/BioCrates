@@ -107,7 +107,8 @@
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,RANGE[1-22]</MandatoryFieldEntries>
             <NonNAFieldType>int</NonNAFieldType>
-            <Filters>NE_NA,IN_1To22</Filters>
+            <Filters>NE_NA</Filters>
+            <Check>IN_1To22</Check>
             <GetFromExtraInfoFile>True</GetFromExtraInfoFile>
             <Renames>
                 <Rename1>
@@ -228,6 +229,15 @@
         </oevar_imp>
     </MtbGWAColumns>
 
+    <QCChecks>
+        <!-- IN: value present in list -->
+        <IN_1To22>
+            <Operator>IN</Operator>
+            <Compare>[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]</Compare>
+            <CompareType>str</CompareType>
+        </IN_1To22>
+    </QCChecks>
+
     <QCFilters>
         <!-- Filter specifiers -->
         <!-- NE: != -->
@@ -236,7 +246,6 @@
         <!-- LE: <= -->
         <!-- GT: > -->
         <!-- GE: >= -->
-        <!-- IN: value present in list -->
         <NE_NA>
             <Operator>NE</Operator>
             <Compare>NA</Compare>
@@ -297,11 +306,6 @@
             <Compare>+</Compare>
             <CompareType>str</CompareType>
         </EQ_POS>
-        <IN_1To22>
-            <Operator>IN</Operator>
-            <Compare>[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]</Compare>
-            <CompareType>int</CompareType>
-        </IN_1To22>
         <LT_1_1>
             <Operator>LT</Operator>
             <Compare>1.1</Compare>

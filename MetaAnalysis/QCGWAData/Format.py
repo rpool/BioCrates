@@ -235,6 +235,7 @@ class Format:
 
     def CheckFormat(self,
                     DCsDict={},
+                    ChecksDict={},
                     Log=Logger,
                     HeadingSpaces='',
                     Path=str,
@@ -263,6 +264,7 @@ class Format:
                    eval(Column.find('boSetColumnName').text)):
                     Source = Column.find('ColumnName').text
                     Dest   = Column.find('SetColumnName').text
+                    ChecksDict[Key].SetFormattingOK(0)
 
                     LogString  = '      ++ Renaming column \"'+Source+\
                                      '\" to \"'+Dest+'\" ...'
@@ -279,6 +281,8 @@ class Format:
                     print LogString
                     Log.Write(LogString+'\n')
                     FmtLog.Write(LogString+'\n')
+                else:
+                    ChecksDict[Key].SetFormattingOK(1)
 
         for Key in DCsDict.iterkeys():
             for Column in XmlObj.getroot().find(Tag):
@@ -286,6 +290,7 @@ class Format:
                     for Rename in Column.find('Renames'):
                         Source = Rename.find('Source').text
                         Dest   = Rename.find('Dest').text
+                        ChecksDict[Key].SetFormattingOK(0)
 
                         LogString  = '      ++ Renaming \"'+Source+\
                                      '\" fields to \"'+Dest+\
@@ -302,6 +307,8 @@ class Format:
                         print LogString
                         Log.Write(LogString+'\n')
                         FmtLog.Write(LogString+'\n')
+                    else:
+                        ChecksDict[Key].SetFormattingOK(1)
 
         for Key in DCsDict.iterkeys():
             SNPIDColumn = XmlObj.getroot().find(Tag).find('SNPID').tag
@@ -313,6 +320,7 @@ class Format:
 
             DuplicateDict = DCsDict[Key].DataContainers[SNPIDColumn].FindDuplicates()
 
+            ChecksDict[Key].SetMaxNDuplicateSNPs(DCsDict[Key].DataContainers[SNPIDColumn].GetMaxNDuplicates())
             LogString  = '        ** The maximum number of duplicate SNPs is '+\
                          str(DCsDict[Key].DataContainers[SNPIDColumn].GetMaxNDuplicates())
             print LogString

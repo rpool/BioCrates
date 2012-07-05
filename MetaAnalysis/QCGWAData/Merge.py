@@ -1,10 +1,10 @@
 import lxml.etree
 import scipy
 
-def Merge(XmlObj=lxml.etree._ElementTree,
-          SourceDCsDict={},
-          DestDCsDict={},
-          SourceColumnTag=str):
+def MergeWithExtraInfo(XmlObj=lxml.etree._ElementTree,
+                       SourceDCsDict={},
+                       DestDCsDict={},
+                       SourceColumnTag=str):
 
     Entry2IndexDictDict = {}
     for Key in SourceDCsDict.iterkeys():

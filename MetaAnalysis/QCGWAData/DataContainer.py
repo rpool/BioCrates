@@ -92,6 +92,7 @@ class DataContainer:
     def RemoveDuplicates(self,
                          DuplicateIndexDict={}):
         DataArray = self.GetDataArray()
+        NRemoved  = len(DataArray)
         DelList   = []
         for Key in DuplicateIndexDict.iterkeys():
             for i in range(1,len(DuplicateIndexDict[Key])):
@@ -102,7 +103,8 @@ class DataContainer:
         DataArray = scipy.delete(DataArray,tuple(DelList))
 
         self.DataArray = DataArray
-        return
+        NRemoved      -= len(DataArray)
+        return NRemoved
 
     def InitEntry2IndexDict(self):
         self.Entry2IndexDict = {}

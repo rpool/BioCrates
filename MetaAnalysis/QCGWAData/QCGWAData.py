@@ -10,6 +10,8 @@ import ArgumentParser
 import File
 import Format
 import Merge
+import Checks
+import Filters
 
 def main(ExecutableName):
 
@@ -73,7 +75,12 @@ def main(ExecutableName):
     boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
     ExtraInfoDCsDict       = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log,
                                                                  boRemoveDuplicateLines=boRemoveDuplicateLines)
+    ExtraInfoChecksDict = {}
+    for Key in ExtraInfoDCsDict.iterkeys():
+        ExtraInfoChecksDict[Key] = Checks.Checks()
+
     ExtraInfoFormat.CheckFormat(DCsDict=ExtraInfoDCsDict,
+                                ChecksDict=ExtraInfoChecksDict,
                                 Log=Log,
                                 Path=CommentsPath,
                                 FilePreExtName='CheckFormatExtraInfoFiles',
@@ -135,13 +142,17 @@ def main(ExecutableName):
             if(Index!=None):
                 del GWADataListDir[Index]
 
+            GWAChecksDict  = {}
+            GWAFiltersDict = {}
             if(GWADataFile==None):
                 LogString  = '  ** Did not find a GWA output file for metabolite \"'+\
                              N+\
                              '\"!\n'
-                LogString += '  ** Setting all QC properties to \"False\" or \"Unknown\" for this metabolite!'
+                LogString += '  ** Setting all QC check outcomes to \"False\" or \"Unknown\" for this metabolite!'
                 print LogString
                 Log.Write(LogString+'\n')
+                GWAChecksDict['GWADataFile']  = Checks.Checks()
+                GWAFiltersDict['GWADataFile'] = Filters.Filters()
             else:
                 LogString  = '  ** Found the GWA output file for metabolite \"'+\
                              N+\
@@ -171,7 +182,12 @@ def main(ExecutableName):
                                                         HeadingSpaces='  ',
                                                         boRemoveDuplicateLines=boRemoveDuplicateLines)
 
+                for Key in GWADCsDict.iterkeys():
+                    GWAChecksDict[Key]  = Checks.Checks()
+                    GWAFiltersDict[Key] = Filters.Filters()
+
                 GWAFormat.CheckFormat(DCsDict=GWADCsDict,
+                                      ChecksDict=GWAChecksDict,
                                       Log=Log,
                                       HeadingSpaces='  ',
                                       Path=CommentsPath,
@@ -179,6 +195,8 @@ def main(ExecutableName):
                                       FileType='GWA data file',
                                       XmlObj=XmlProtocol,
                                       Tag='MtbGWAColumns')
+                GWAFiltersDict[Key].SetMaxNDuplicateSNPs(GWAChecksDict[Key].GetMaxNDuplicateSNPs())
+
                 if(not GWAFormat.GetboColumnFormatOK()):
                     LogString  = '      ** Something is wrong in the column naming!\n'
                     LogString += '      ** Set the proper renaming rules in \"'+Arguments.ProtocolFile+'\"!\n'
@@ -205,14 +223,53 @@ def main(ExecutableName):
                     print LogString
                     Log.Write(LogString+'\n')
 
-                    GWADCsDict = Merge.Merge(XmlObj=XmlProtocol,
-                                             SourceDCsDict=ExtraInfoDCsDict,
-                                             DestDCsDict=GWADCsDict,
-                                             SourceColumnTag='SNPID')
+                    GWADCsDict = Merge.MergeWithExtraInfo(XmlObj=XmlProtocol,
+                                                          SourceDCsDict=ExtraInfoDCsDict,
+                                                          DestDCsDict=GWADCsDict,
+                                                          SourceColumnTag='SNPID')
 
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
+
+
+                for Key in GWADCsDict.iterkeys():
+                    MasterFilterArray = None
+                    GWAFiltersDict[Key].SetInitialArrayLength(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray()))
+
+                    LogString = '    ++ QCing column \"chr\" (CHECK) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    if(not GWAChecksDict[Key].CheckChromosomesOK(XmlObj=XmlProtocol,
+                                                                 DataArray=GWADCsDict[Key].DataContainers['chr'].GetDataArray(),
+                                                                 ColumnTag='chr')):
+                        LogString = '      ** Something is wrong in column \"chr\"!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Column \"chr\" is OK!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing all columns: removing rows containing duplicate SNPs (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    if(GWAFiltersDict[Key].GetMaxNDuplicateSNPs()>0):
+                        GWADCsDict = GWAFiltersDict[Key].RemoveDuplicateSNPs(DCsDict=GWADCsDict)
+                        LogString = '      ** Removed '+str(GWAFiltersDict[Key].GetNDeletedDuplicateSNPs())+\
+                                    ' row(s) containing duplicate SNPs!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Removed 0 rows containing duplicate SNPs!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
 
                 LogString = '  -- Done ...'
                 print LogString
