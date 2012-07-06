@@ -52,7 +52,7 @@ class Checks:
                            XmlObj=lxml.etree._ElementTree,
                            DataArray=scipy.array,
                            ColumnTag=str):
-        CheckTag    = XmlObj.getroot().find('MtbGWAColumns').find('chr').find('Check').text
+        CheckTag    = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find('Check').text
         CompareList = XmlObj.getroot().find('QCChecks').find(CheckTag).find('Compare').text
         CompareList = re.sub('\[','',CompareList)
         CompareList = re.sub('\]','',CompareList)

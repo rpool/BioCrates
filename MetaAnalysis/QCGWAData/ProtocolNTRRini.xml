@@ -107,7 +107,7 @@
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,RANGE[1-22]</MandatoryFieldEntries>
             <NonNAFieldType>int</NonNAFieldType>
-            <Filters>NE_NA</Filters>
+            <Filters>NE_NA,IN_1To22</Filters>
             <Check>IN_1To22</Check>
             <GetFromExtraInfoFile>True</GetFromExtraInfoFile>
             <Renames>
@@ -184,7 +184,7 @@
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
-            <Filters>NE_NA,GT_0_01,LT_0_99</Filters>
+            <Filters>NE_NA</Filters>
         </AF_coded_all>
         <HWE_pval>
             <ColumnName>HWE_pval</ColumnName>    
@@ -200,6 +200,7 @@
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>int</NonNAFieldType>
+            <Filters>NE_NA</Filters>
         </n_total>
         <imputed>
             <ColumnName>imputed</ColumnName>    
@@ -225,8 +226,22 @@
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
-            <Filters>NE_NA,GE_0,GT_0_4,LT_1_1</Filters>
+            <Filters>NE_NA</Filters>
+            <Renames>
+                <Rename1>
+                    <Source>NA</Source>
+                    <Dest>1.0</Dest>
+                </Rename1>
+            </Renames>
         </oevar_imp>
+        <EMAC>
+            <ColumnName>n_total</ColumnName>    
+            <boSetColumnName>False</boSetColumnName>
+            <SetColumnName>None</SetColumnName>
+            <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
+            <NonNAFieldType>int</NonNAFieldType>
+            <Filters>NE_NA,GE_0_25</Filters>
+        </EMAC>
     </MtbGWAColumns>
 
     <QCChecks>
@@ -322,5 +337,16 @@
             <Compare>1</Compare>
             <CompareType>int</CompareType>
         </IS_UNIQUE>
+        <!-- IN: value present in list -->
+        <IN_1To22>
+            <Operator>EQ</Operator>
+            <Compare>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22</Compare>
+            <CompareType>str</CompareType>
+        </IN_1To22>
+        <GE_0_25>
+            <Operator>GE</Operator>
+            <Compare>0.25</Compare>
+            <CompareType>float</CompareType>
+        </GE_0_25>
     </QCFilters>
 </Protocol>

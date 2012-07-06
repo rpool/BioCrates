@@ -715,8 +715,8 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
         Chi2ObsArray = scipy.real(scipy.power((BetaArray/SEArray),2.0)).astype(float)
         FilterArray  = (Chi2ObsArray>=0.0)
         Chi2ObsArray = scipy.compress(FilterArray,Chi2ObsArray)
-        PValObsArray  = scipy.stats.chi2.sf(Chi2ObsArray,\
-                                            1) # df=1
+        PValObsArray = scipy.stats.chi2.sf(Chi2ObsArray,\
+                                           1) # df=1
 
 #       Convert AF to MAF
         CondArray    = [AFArray<=0.5]

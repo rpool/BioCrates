@@ -3,6 +3,9 @@
 import os
 import sys
 import lxml.etree
+import re
+import scipy
+import scipy.stats
 
 # Homebrew modules
 import Logger
@@ -12,6 +15,7 @@ import Format
 import Merge
 import Checks
 import Filters
+import DataContainer
 
 def main(ExecutableName):
 
@@ -256,7 +260,8 @@ def main(ExecutableName):
                     Log.Write(LogString+'\n')
 
                     if(GWAFiltersDict[Key].GetMaxNDuplicateSNPs()>0):
-                        GWADCsDict = GWAFiltersDict[Key].RemoveDuplicateSNPs(DCsDict=GWADCsDict)
+                        GWADCsDict[Key] = GWAFiltersDict[Key].RemoveDuplicateSNPs(DCs=GWADCsDict[Key])
+
                         LogString = '      ** Removed '+str(GWAFiltersDict[Key].GetNDeletedDuplicateSNPs())+\
                                     ' row(s) containing duplicate SNPs!'
                         print LogString
@@ -265,11 +270,224 @@ def main(ExecutableName):
                         LogString = '      ** Removed 0 rows containing duplicate SNPs!'
                         print LogString
                         Log.Write(LogString+'\n')
+                    GWAFiltersDict[Key].SetboDuplicateSNPWarning()
 
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
 
+                    LogString = '    ++ QCing column \"SE\" (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key],\
+                    FilterTags        = GWAFiltersDict[Key].FilterSEs(XmlObj=XmlProtocol,
+                                                                      DCs=GWADCsDict[Key],
+                                                                      ColumnTag='SE')
+
+                    for i in range(len(FilterTags)):
+                        FilterTag = FilterTags[i]
+                        LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['SE'][FilterTag]
+                        LogString = re.sub('\n','\n      **',LogString)
+                        if(i<(len(FilterTags)-1)):
+                            LogString += '\n'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"beta\" (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key],\
+                    FilterTags        = GWAFiltersDict[Key].FilterBetas(XmlObj=XmlProtocol,
+                                                                        DCs=GWADCsDict[Key],
+                                                                        ColumnTag='beta')
+
+                    for i in range(len(FilterTags)):
+                        FilterTag = FilterTags[i]
+                        LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['beta'][FilterTag]
+                        LogString = re.sub('\n','\n      **',LogString)
+                        if(i<(len(FilterTags)-1)):
+                            LogString += '\n'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"n_total\" (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key],\
+                    FilterTags        = GWAFiltersDict[Key].FilterNTotals(XmlObj=XmlProtocol,
+                                                                          DCs=GWADCsDict[Key],
+                                                                          ColumnTag='n_total')
+
+                    for i in range(len(FilterTags)):
+                        FilterTag = FilterTags[i]
+                        LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['n_total'][FilterTag]
+                        LogString = re.sub('\n','\n      **',LogString)
+                        if(i<(len(FilterTags)-1)):
+                            LogString += '\n'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ Adding column \"PValTTest\" to DataContainers ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key].DataContainers['PValTTest'] = DataContainer.DataContainer()
+                    GWADCsDict[Key].DataContainers['PValTTest'].SetDataName('PValTtest')
+                    DataArray  = scipy.copy(GWADCsDict[Key].DataContainers['beta'].GetDataArray()).astype(float)
+                    DataArray /= GWADCsDict[Key].DataContainers['SE'].GetDataArray().astype(float)
+                    NTotArray  = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray()).astype(int)
+
+                    PValArray = []
+                    for i in range(len(DataArray)):
+                        T  = DataArray[i]
+                        Df = NTotArray[i]
+                        PValArray.append(scipy.stats.t.sf(T,\
+                                                          Df))
+                    PValArray = scipy.array(PValArray)
+
+                    GWADCsDict[Key].DataContainers['PValTTest'].ReplaceDataArray(PValArray.astype(str))
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ Adding column \"PValWald\" to DataContainers ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key].DataContainers['PValWald'] = DataContainer.DataContainer()
+                    GWADCsDict[Key].DataContainers['PValWald'].SetDataName('PValWald')
+                    DataArray  = scipy.power(DataArray,2.0)
+                    PValArray  = scipy.stats.chi2.sf(DataArray,\
+                                                     1) # df=1
+
+                    GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray.astype(str))
+                    del PValArray
+                    del DataArray
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"chr\" (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key],\
+                    FilterTags        = GWAFiltersDict[Key].FilterChrs(XmlObj=XmlProtocol,
+                                                                       DCs=GWADCsDict[Key],
+                                                                       ColumnTag='chr')
+
+                    for i in range(len(FilterTags)):
+                        FilterTag = FilterTags[i]
+                        LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['chr'][FilterTag]
+                        LogString = re.sub('\n','\n      **',LogString)
+                        if(i<(len(FilterTags)-1)):
+                            LogString += '\n'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"AF_coded_all\" (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key],\
+                    FilterTags        = GWAFiltersDict[Key].FilterAFCodedAlls(XmlObj=XmlProtocol,
+                                                                              DCs=GWADCsDict[Key],
+                                                                              ColumnTag='AF_coded_all')
+
+                    for i in range(len(FilterTags)):
+                        FilterTag = FilterTags[i]
+                        LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['AF_coded_all'][FilterTag]
+                        LogString = re.sub('\n','\n      **',LogString)
+                        if(i<(len(FilterTags)-1)):
+                            LogString += '\n'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ Adding column \"MAF\" to DataContainers ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key].DataContainers['MAF'] = DataContainer.DataContainer()
+                    GWADCsDict[Key].DataContainers['MAF'].SetDataName('MAF')
+                    DataArray   = scipy.copy(GWADCsDict[Key].DataContainers['AF_coded_all'].GetDataArray())
+                    DataArray   = DataArray.astype(float)
+                    FilterArray = DataArray > 0.5
+                    DataArray2  = scipy.compress(FilterArray,
+                                                 DataArray)
+                    DataArray2 -= 0.5
+                    scipy.place(DataArray,DataArray>0.5,DataArray2)
+                    GWADCsDict[Key].DataContainers['MAF'].ReplaceDataArray(DataArray.astype(str))
+                    del DataArray
+                    del DataArray2
+                    del FilterArray
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ Adding column \"EMAC\" to DataContainers ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key].DataContainers['EMAC'] = DataContainer.DataContainer()
+                    GWADCsDict[Key].DataContainers['EMAC'].SetDataName('EMAC')
+                    DataArray   = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray()).astype(float)
+                    DataArray  *= GWADCsDict[Key].DataContainers['MAF'].GetDataArray().astype(float)
+                    DataArray  *= GWADCsDict[Key].DataContainers['oevar_imp'].GetDataArray().astype(float)
+                    DataArray  *= 2.0
+                    GWADCsDict[Key].DataContainers['EMAC'].ReplaceDataArray(DataArray.astype(str))
+                    del DataArray
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"EMAC\" (FILTER) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key],\
+                    FilterTags        = GWAFiltersDict[Key].FilterEMACs(XmlObj=XmlProtocol,
+                                                                        DCs=GWADCsDict[Key],
+                                                                        ColumnTag='EMAC')
+
+                    for i in range(len(FilterTags)):
+                        FilterTag = FilterTags[i]
+                        LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['EMAC'][FilterTag]
+                        LogString = re.sub('\n','\n      **',LogString)
+                        if(i<(len(FilterTags)-1)):
+                            LogString += '\n'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
 
                 LogString = '  -- Done ...'
                 print LogString
