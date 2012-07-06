@@ -352,6 +352,9 @@ def main(ExecutableName):
                     DataArray /= GWADCsDict[Key].DataContainers['SE'].GetDataArray().astype(float)
                     NTotArray  = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray()).astype(int)
 
+#                    PValArray = scipy.stats.t.sf(DataArray,df=NTotArray) does not work!
+
+                    # THIS IS SLOW! MAYBE DO THIS DURING PARSING
                     PValArray = []
                     for i in range(len(DataArray)):
                         T  = DataArray[i]
@@ -372,7 +375,7 @@ def main(ExecutableName):
 
                     GWADCsDict[Key].DataContainers['PValWald'] = DataContainer.DataContainer()
                     GWADCsDict[Key].DataContainers['PValWald'].SetDataName('PValWald')
-                    DataArray  = scipy.power(DataArray,2.0)
+                    DataArray  = scipy.real(scipy.power(DataArray,2.0))
                     PValArray  = scipy.stats.chi2.sf(DataArray,\
                                                      1) # df=1
 
@@ -460,7 +463,7 @@ def main(ExecutableName):
                     DataArray  *= GWADCsDict[Key].DataContainers['MAF'].GetDataArray().astype(float)
                     DataArray  *= GWADCsDict[Key].DataContainers['oevar_imp'].GetDataArray().astype(float)
                     DataArray  *= 2.0
-                    GWADCsDict[Key].DataContainers['EMAC'].ReplaceDataArray(DataArray.astype(str))
+                    GWADCsDict[Key].DataContainers['EMAC'].ReplaceDataArray(DataArray)
                     del DataArray
 
                     LogString = '    -- Done ...'
