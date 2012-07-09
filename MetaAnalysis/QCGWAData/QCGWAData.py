@@ -236,7 +236,6 @@ def main(ExecutableName):
                     print LogString
                     Log.Write(LogString+'\n')
 
-
                 for Key in GWADCsDict.iterkeys():
                     MasterFilterArray = None
                     GWAFiltersDict[Key].SetInitialArrayLength(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray()))
@@ -254,6 +253,9 @@ def main(ExecutableName):
                         LogString = '      ** Column \"chr\" is OK!'
                         print LogString
                         Log.Write(LogString+'\n')
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
 
                     LogString = '    ++ QCing all columns: removing rows containing duplicate SNPs (FILTER) ...'
                     print LogString
@@ -342,32 +344,47 @@ def main(ExecutableName):
                     print LogString
                     Log.Write(LogString+'\n')
 
-                    LogString = '    ++ Adding column \"PValTTest\" to DataContainers ...'
-                    print LogString
-                    Log.Write(LogString+'\n')
-
-                    GWADCsDict[Key].DataContainers['PValTTest'] = DataContainer.DataContainer()
-                    GWADCsDict[Key].DataContainers['PValTTest'].SetDataName('PValTtest')
+#                    LogString = '    ++ Adding column \"PValTTest\" to DataContainers ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#
+#                    GWADCsDict[Key].DataContainers['PValTTest'] = DataContainer.DataContainer()
+#                    GWADCsDict[Key].DataContainers['PValTTest'].SetDataName('PValTtest')
                     DataArray  = scipy.copy(GWADCsDict[Key].DataContainers['beta'].GetDataArray()).astype(float)
                     DataArray /= GWADCsDict[Key].DataContainers['SE'].GetDataArray().astype(float)
-                    NTotArray  = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray()).astype(int)
-
-#                    PValArray = scipy.stats.t.sf(DataArray,df=NTotArray) does not work!
-
-                    # THIS IS SLOW! MAYBE DO THIS DURING PARSING
-                    PValArray = []
-                    for i in range(len(DataArray)):
-                        T  = DataArray[i]
-                        Df = NTotArray[i]
-                        PValArray.append(scipy.stats.t.sf(T,\
-                                                          Df))
-                    PValArray = scipy.array(PValArray)
-
-                    GWADCsDict[Key].DataContainers['PValTTest'].ReplaceDataArray(PValArray.astype(str))
-
-                    LogString = '    -- Done ...'
-                    print LogString
-                    Log.Write(LogString+'\n')
+#                    NTotArray  = GWADCsDict[Key].DataContainers['n_total'].GetDataArray().astype(int)
+#
+#                    PValArray = map(scipy.stats.t.sf,
+#                                    scipy.absolute(DataArray).tolist(),
+#                                    NTotArray.tolist())
+#                    PValArray = scipy.array(PValArray)
+#                    GWADCsDict[Key].DataContainers['PValTTest'].ReplaceDataArray(2.0*PValArray)
+#
+#                    LogString = '    -- Done ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#
+#                    LogString = '    ++ QCing column \"PValTTest\" against reported column \"pval\" (CHECK) ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
+#
+#                    if(not GWAChecksDict[Key].CheckTTestOK(XmlObj=XmlProtocol,
+#                                                           DataArray=GWADCsDict[Key].DataContainers['pval'].GetDataArray(),
+#                                                           CheckDataArray=GWADCsDict[Key].DataContainers['PValTTest'].GetDataArray(),
+#                                                           ColumnTag='pval',
+#                                                           boPlot=False,
+##                                                           boPlot=True,
+#                                                           MtbName=N)):
+#                        LogString = '      ** Something is wrong in column \"pval\"!'
+#                        print LogString
+#                        Log.Write(LogString+'\n')
+#                    else:
+#                        LogString = '      ** Column \"pval\" is OK!'
+#                        print LogString
+#                        Log.Write(LogString+'\n')
+#                    LogString = '    -- Done ...'
+#                    print LogString
+#                    Log.Write(LogString+'\n')
 
                     LogString = '    ++ Adding column \"PValWald\" to DataContainers ...'
                     print LogString
@@ -379,10 +396,32 @@ def main(ExecutableName):
                     PValArray  = scipy.stats.chi2.sf(DataArray,\
                                                      1) # df=1
 
-                    GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray.astype(str))
+                    GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray)
                     del PValArray
                     del DataArray
 
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"PValWald\" against reported column \"pval\" (CHECK) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    if(not GWAChecksDict[Key].CheckNTotalOK(XmlObj=XmlProtocol,
+                                                            DataArray=GWADCsDict[Key].DataContainers['pval'].GetDataArray(),
+                                                            CheckDataArray=GWADCsDict[Key].DataContainers['PValWald'].GetDataArray(),
+                                                            ColumnTag='pval',
+                                                            boPlot=False,
+#                                                            boPlot=True,
+                                                            MtbName=N)):
+                        LogString = '      ** Something is wrong in column \"pval\"!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Column \"pval\" is OK!'
+                        print LogString
+                        Log.Write(LogString+'\n')
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -405,6 +444,44 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"oevar_imp\" against column \"imputed\" (CHECK) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    if(not GWAChecksDict[Key].CheckImpQualOK(XmlObj=XmlProtocol,
+                                                             ImpQArray=GWADCsDict[Key].DataContainers['oevar_imp'].GetDataArray(),
+                                                             ImputedArray=GWADCsDict[Key].DataContainers['imputed'].GetDataArray(),
+                                                             ImpQColumnTag='oevar_imp',
+                                                             ImputedColumnTag='imputed')):
+                        LogString = '      ** Something is wrong in columns \"oevar_imp\" and \"imputed\" !'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Columns \"oevar_imp\" and \"imputed\" are OK!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"n_total\" against column \"imputed\" (CHECK) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    if(not GWAChecksDict[Key].CheckNTotImpOK(XmlObj=XmlProtocol,
+                                                             NTotalArray=GWADCsDict[Key].DataContainers['n_total'].GetDataArray(),
+                                                             ImputedArray=GWADCsDict[Key].DataContainers['imputed'].GetDataArray(),
+                                                             NTotalColumnTag='n_total',
+                                                             ImputedColumnTag='imputed')):
+                        LogString = '      ** Something is wrong in columns \"n_total\" and \"imputed\" !'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Columns \"n_total\" and \"imputed\" are OK!'
+                        print LogString
+                        Log.Write(LogString+'\n')
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -444,7 +521,7 @@ def main(ExecutableName):
                                                  DataArray)
                     DataArray2 -= 0.5
                     scipy.place(DataArray,DataArray>0.5,DataArray2)
-                    GWADCsDict[Key].DataContainers['MAF'].ReplaceDataArray(DataArray.astype(str))
+                    GWADCsDict[Key].DataContainers['MAF'].ReplaceDataArray(DataArray)
                     del DataArray
                     del DataArray2
                     del FilterArray
@@ -488,6 +565,41 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"PValWald\" for inflation (CHECK) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    MaxNTotal = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray())
+                    MaxNTotal = MaxNTotal.astype(int)
+                    MaxNTotal = MaxNTotal.max()
+                    boOK,\
+                    LambdaEst,\
+                    SELambdaEst = GWAChecksDict[Key].CheckLambdaOK(XmlObj=XmlProtocol,
+                                                                   DataArray=GWADCsDict[Key].DataContainers['PValWald'].GetDataArray(),
+                                                                   EMACArray=GWADCsDict[Key].DataContainers['EMAC'].GetDataArray(),
+                                                                   MaxNTotal=MaxNTotal,
+                                                                   ColumnTag='PValWald',
+                                                                   boPlot=True,
+                                                                   MtbName=N)
+                    if(not boOK):
+                        LogString = '      ** Something is wrong in column \"PValWald\"!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Column \"pval\" is OK!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    LogString = '      ** Genomic inflation factor Lambda (SE) = '+\
+                                str(round(LambdaEst,5))+\
+                                ' ('+\
+                                str(round(SELambdaEst,5))+\
+                                ')'
+                    print LogString
+                    Log.Write(LogString+'\n')
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')

@@ -177,7 +177,17 @@
             <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LE_1</Filters>
+            <Check>CORRCOEF_GE_0_999</Check>
         </pval>
+        <PValWald>
+            <ColumnName>PValWald</ColumnName>    
+            <boSetColumnName>False</boSetColumnName>
+            <SetColumnName>None</SetColumnName>
+            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <NonNAFieldType>float</NonNAFieldType>
+            <Filters>NE_NA,GT_0,LE_1</Filters>
+            <Check>LAMBDA_LT_1_1</Check>
+        </PValWald>
         <AF_coded_all>
             <ColumnName>AF_coded_all</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
@@ -210,6 +220,8 @@
             <NonNAFieldType>int</NonNAFieldType>
             <Filters>NE_NA,EQ_0</Filters>
             <GetFromExtraInfoFile>True</GetFromExtraInfoFile>
+            <CheckImpQualOK>EQ_0</CheckImpQualOK>
+            <CheckNTotImpOK>EQ_1</CheckNTotImpOK>
         </imputed>
         <used_for_imp>
             <ColumnName>used_for_imp</ColumnName>    
@@ -233,6 +245,7 @@
                     <Dest>1.0</Dest>
                 </Rename1>
             </Renames>
+            <Check>EQ_1_0</Check>
         </oevar_imp>
         <EMAC>
             <ColumnName>n_total</ColumnName>    
@@ -240,7 +253,7 @@
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>int</NonNAFieldType>
-            <Filters>NE_NA,GE_0_25</Filters>
+            <Filters>NE_NA,GE_25</Filters>
         </EMAC>
     </MtbGWAColumns>
 
@@ -251,6 +264,31 @@
             <Compare>[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]</Compare>
             <CompareType>str</CompareType>
         </IN_1To22>
+        <CORRCOEF_GE_0_999>
+            <Operator>GE</Operator>
+            <Compare>0.99</Compare>
+            <CompareType>float</CompareType>
+        </CORRCOEF_GE_0_999>
+        <LAMBDA_LT_1_1>
+            <Operator>LT</Operator>
+            <Compare>1.1</Compare>
+            <CompareType>float</CompareType>
+        </LAMBDA_LT_1_1>
+        <EQ_1_0>
+            <Operator>EQ</Operator>
+            <Compare>1.0</Compare>
+            <CompareType>str</CompareType>
+        </EQ_1_0>
+        <EQ_0>
+            <Operator>EQ</Operator>
+            <Compare>0</Compare>
+            <CompareType>str</CompareType>
+        </EQ_0>
+        <EQ_1>
+            <Operator>EQ</Operator>
+            <Compare>1</Compare>
+            <CompareType>str</CompareType>
+        </EQ_1>
     </QCChecks>
 
     <QCFilters>
@@ -348,5 +386,14 @@
             <Compare>0.25</Compare>
             <CompareType>float</CompareType>
         </GE_0_25>
+        <GE_25>
+            <Operator>GE</Operator>
+            <Compare>25</Compare>
+            <CompareType>float</CompareType>
+        </GE_25>
     </QCFilters>
+    <EMAC>
+        <Strata>25,50,100,MAX</Strata>
+        <Colors>black,red,green,blue</Colors>
+    </EMAC>
 </Protocol>
