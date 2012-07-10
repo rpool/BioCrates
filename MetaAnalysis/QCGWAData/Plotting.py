@@ -208,7 +208,7 @@ def PlotQQFilteredOnScore(MtbName=str,
                       s=Size,
                       linewidths=LineWidth,
                       facecolor='None',
-                      label=r'${\rm ~all~SNPs}$'+r'$~(\lambda='+str(round(LambdaEst,2))+r')$')
+                      label=r'${\rm ~all~SNPs}'+r'~(\lambda='+str(round(LambdaEst,2))+r')$')
     for i in range(1,len(EMACLevels)):
 #       Plot the Score filtered QQ plots
         Color       = Colors[i]
