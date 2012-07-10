@@ -19,6 +19,18 @@
         <boRemoveDuplicateLines>True</boRemoveDuplicateLines>
     </Format>
 
+    <HapMap>
+        <SummaryPath>/home/r.pool/Work/TestQCGWA/Data</SummaryPath>
+        <SummaryFile>HapMapB36R22.txt.gz</SummaryFile>
+        <SourceBuild>36</SourceBuild>
+        <SourceRelease>24</SourceRelease>
+        <SourceRefPanel>CEU</SourceRefPanel>
+        <DestBuild>36</DestBuild>
+        <DestRelease>22</DestRelease>
+        <DestRefPanel>CEU</DestRefPanel>
+        <Delimiter>,</Delimiter>
+    </HapMap>
+
     <!-- File containing extra info associated with the GWA output files -->
     <ExtraInfoFiles>
         <ExtraInfoFile1>

@@ -42,6 +42,12 @@ class DataContainer:
         self.DataArray = DataArray
         return
 
+    def ReplaceDataArrayEntryAtIndex(self,
+                                     Index=int,
+                                     Value=str):
+        self.DataArray[Index] = Value
+        return
+
     def AppendToArray(self,
                       Entry=str):
         self.DataArray.append(Entry)

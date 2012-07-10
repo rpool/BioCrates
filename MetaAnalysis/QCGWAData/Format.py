@@ -13,7 +13,7 @@ class Format:
         self.ExtraInfoFiles      = None
         self.ColumnFormat        = None
         self.Delimiter           = None
-        self.Split               = None
+        self.Splitter            = None
         self.GWADataFileName     = None
         self.boColumnFormatOK    = None
         self.boFieldFormatOKDict = None

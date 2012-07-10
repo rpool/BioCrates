@@ -132,6 +132,7 @@ def Scatter(X=scipy.array,
     PylabParameters,\
     Rectangle         = PylabGetParams()
     Size              = 1.5
+    LineWidth         = 0.5
     pylab.rcParams.update(PylabParameters)
     PylabFigure = pylab.figure()
     PylabFigure.clf()
@@ -145,12 +146,14 @@ def Scatter(X=scipy.array,
                       Y,
                       color='blue',
                       s=Size,
+                      linewidths=LineWidth,
+                      facecolor='None',
                       label=Legend)
     PylabAxis.plot([Min,Max],
                    [Min,Max],
                    color='black',
                    linestyle='--',
-                   linewidth=0.5,
+                   linewidth=LineWidth,
                    label=r'$y=x$')
     PylabAxis.set_ylim([Min,Max])
     PylabAxis.set_xlim([Min,Max])
@@ -180,7 +183,8 @@ def PlotQQFilteredOnScore(MtbName=str,
                           Colors=[]):
     PylabParameters,\
     Rectangle         = PylabGetParams()
-    Size              = 2.5
+    Size              = 1.5
+    LineWidth         = 0.5
     pylab.rcParams.update(PylabParameters)
     PylabFigure = pylab.figure()
     PylabFigure.clf()
@@ -202,6 +206,7 @@ def PlotQQFilteredOnScore(MtbName=str,
                       scipy.sort(LPValObsArray),
                       color=Colors[0],
                       s=Size,
+                      linewidths=LineWidth,
                       facecolor='None',
                       label=r'${\rm ~all~SNPs}$'+r'$~(\lambda='+str(round(LambdaEst,2))+r')$')
     for i in range(1,len(EMACLevels)):
@@ -226,6 +231,7 @@ def PlotQQFilteredOnScore(MtbName=str,
                           ObsLP,
                           color=Color,
                           s=Size,
+                          linewidths=LineWidth,
                           facecolor='None',
                           label=r'${\rm ~'+LabelString+'}$')
     MaxLPVal    = LPValObsArray.max()
@@ -235,7 +241,7 @@ def PlotQQFilteredOnScore(MtbName=str,
                    [0.0,Max],
                    color='black',
                    linestyle='--',
-                   linewidth=0.5)
+                   linewidth=LineWidth)
     PylabAxis.set_ylim([0.0,Max])
     PylabAxis.set_xlim([0.0,Max])
     PylabAxis.set_xlabel(r'$-\log_{10}{(p-{\rm value})} {\rm ~(expected)~[-]}$')

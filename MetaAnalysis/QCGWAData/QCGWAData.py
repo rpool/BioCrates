@@ -11,6 +11,7 @@ import scipy.stats
 import Logger
 import ArgumentParser
 import File
+import HapMap
 import Format
 import Merge
 import Checks
@@ -62,6 +63,24 @@ def main(ExecutableName):
         os.mkdir(CommentsPath)
 
 
+    # HapMap stuff
+    LogString = '++ Setting up \"HapMap\" data structure ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    HM = HapMap.HapMap()
+    HM.ProcessXml(XmlObj=XmlProtocol,
+                  Tag='HapMap',
+                  Log=Log)
+    HM.CheckIfFileExists(Log=Log,
+                         HeadingSpaces='')
+    HM.ParseDestFile(Log=Log,
+                     HeadingSpaces='')
+    HM.ProcessLineArray()
+
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
     # Perform file format check on extra info file
     LogString = '++ Running file format check on extra info files ...'
@@ -324,6 +343,34 @@ def main(ExecutableName):
                     print LogString
                     Log.Write(LogString+'\n')
 
+                    LogString = '    ++ Mapping GWA data to HapMap build '+\
+                                HM.GetDestBuild()+\
+                                ' (release '+\
+                                HM.GetDestRelease()+\
+                                '; '+HM.GetDestRefPanel()+\
+                                ') ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key] = HM.Map(GWADCsDict[Key])
+
+                    RprtName = 'MapHM_'+N+'.txt'
+                    LogString = '      ++ Generating report '+RprtName+' in directory \"HapMap\" ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    HM.Report(ReportName=RprtName,
+                              SNPIDArray=GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())
+
+                    LogString = '      -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    HM.Clean()
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
                     LogString = '    ++ QCing column \"n_total\" (FILTER) ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -374,8 +421,8 @@ def main(ExecutableName):
 #                                                           DataArray=GWADCsDict[Key].DataContainers['pval'].GetDataArray(),
 #                                                           CheckDataArray=GWADCsDict[Key].DataContainers['PValTTest'].GetDataArray(),
 #                                                           ColumnTag='pval',
-#                                                           boPlot=False,
-##                                                           boPlot=True,
+##                                                           boPlot=False,
+#                                                           boPlot=True,
 #                                                           MtbName=N)):
 #                        LogString = '      ** Something is wrong in column \"pval\"!'
 #                        print LogString
@@ -414,8 +461,8 @@ def main(ExecutableName):
                                                             DataArray=GWADCsDict[Key].DataContainers['pval'].GetDataArray(),
                                                             CheckDataArray=GWADCsDict[Key].DataContainers['PValWald'].GetDataArray(),
                                                             ColumnTag='pval',
-                                                            boPlot=False,
-#                                                            boPlot=True,
+#                                                            boPlot=False,
+                                                            boPlot=True,
                                                             MtbName=N)):
                         LogString = '      ** Something is wrong in column \"pval\"!'
                         print LogString
