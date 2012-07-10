@@ -106,8 +106,8 @@
         <!-- Filters:               What filters can be applied? -->
         <!-- NumericFieldPrecision: Precision specifier required for some columns -->
          <SNPID>
-            <ColumnName>SSNPID</ColumnName>    
-            <boSetColumnName>True</boSetColumnName>
+            <ColumnName>SNPID</ColumnName>    
+            <boSetColumnName>False</boSetColumnName>
             <SetColumnName>SNPID</SetColumnName>
             <MandatoryFieldEntries>NA,rs,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>str</NonNAFieldType>

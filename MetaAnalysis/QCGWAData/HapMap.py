@@ -138,18 +138,24 @@ class HapMap:
         LogString = Report.GetStartLogString()
         Report.Write(LogString+'\n')
 
-        LogString = 'Belows follows the report of the HapMap mapping procedure from build/release/panel='+\
+        LogString = 'Belows follows the report of the HapMap mapping procedure from build_release_panel='+\
                     self.GetSourceBuild()+\
-                    '/'+\
+                    '_'+\
                     self.GetSourceRelease()+\
-                    '/'+\
+                    '_'+\
                     self.GetSourceRefPanel()+\
-                    ' to build/release/panel='+\
+                    ' to build_release_panel='+\
                     self.GetDestBuild()+\
-                    '/'+\
+                    '_'+\
                     self.GetDestRelease()+\
-                    '/'+\
-                    self.GetDestRefPanel()
+                    '_'+\
+                    self.GetDestRefPanel()+\
+                    '.'
+        Report.Write(LogString+'\n')
+        Report.Write('\n')
+        LogString  = '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'
+        LogString += '! Each SNP reported in this file has NOT been mapped to the destination HapMap build_release_panel !\n'
+        LogString += '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         Report.Write(LogString+'\n')
         Report.Write('\n')
 
