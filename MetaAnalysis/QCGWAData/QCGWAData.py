@@ -61,6 +61,8 @@ def main(ExecutableName):
     if(not os.path.isdir(CommentsPath)):
         os.mkdir(CommentsPath)
 
+
+
     # Perform file format check on extra info file
     LogString = '++ Running file format check on extra info files ...'
     print LogString

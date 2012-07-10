@@ -252,7 +252,7 @@
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
             <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
-            <NonNAFieldType>int</NonNAFieldType>
+            <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GE_25</Filters>
         </EMAC>
     </MtbGWAColumns>
