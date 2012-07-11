@@ -200,6 +200,15 @@
             <Filters>NE_NA,GT_0,LE_1</Filters>
             <Check>LAMBDA_LT_1_1</Check>
         </PValWald>
+        <HapMapMAF>
+            <ColumnName>HapMapMAF</ColumnName>    
+            <boSetColumnName>False</boSetColumnName>
+            <SetColumnName>None</SetColumnName>
+            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <NonNAFieldType>float</NonNAFieldType>
+            <Filters>NE_NA,GT_0,LE_1</Filters>
+            <Check>R_GT_0_9</Check>
+        </HapMapMAF>
         <AF_coded_all>
             <ColumnName>AF_coded_all</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
@@ -301,6 +310,11 @@
             <Compare>1</Compare>
             <CompareType>str</CompareType>
         </EQ_1>
+        <R_GT_0_9>
+            <Operator>GT</Operator>
+            <Compare>0.9</Compare>
+            <CompareType>float</CompareType>
+        </R_GT_0_9>
     </QCChecks>
 
     <QCFilters>
