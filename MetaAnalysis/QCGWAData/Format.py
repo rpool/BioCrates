@@ -419,7 +419,6 @@ class Format:
                             AllowedPrecision=APrecision)
             CondList   = XmlObj.getroot().find(Tag).find('SE').find('MandatoryFieldEntries').text
             CondList   = CondList.split(',')
-            print CondList
             Precision  = int(XmlObj.getroot().find(Tag).find('SE').find('NumericFieldPrecision').text)
             APrecision = int(XmlObj.getroot().find(Tag).find('SE').find('AllowedNumericFieldPrecision').text)
             self.CheckSEs(DCsDict=DCsDict,
@@ -743,7 +742,6 @@ class Format:
                  ConditionList=[],
                  Precision=int,
                  AllowedPrecision=int):
-        print ConditionList
 
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
