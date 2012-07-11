@@ -675,8 +675,6 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
-                    print LogString
-                    Log.Write(LogString+'\n')
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')

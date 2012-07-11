@@ -419,6 +419,7 @@ class Format:
                             AllowedPrecision=APrecision)
             CondList   = XmlObj.getroot().find(Tag).find('SE').find('MandatoryFieldEntries').text
             CondList   = CondList.split(',')
+            print CondList
             Precision  = int(XmlObj.getroot().find(Tag).find('SE').find('NumericFieldPrecision').text)
             APrecision = int(XmlObj.getroot().find(Tag).find('SE').find('AllowedNumericFieldPrecision').text)
             self.CheckSEs(DCsDict=DCsDict,
@@ -742,6 +743,7 @@ class Format:
                  ConditionList=[],
                  Precision=int,
                  AllowedPrecision=int):
+        print ConditionList
 
         for FName, DCs in DCsDict.iteritems():
             LogString  = HeadingSpaces
@@ -772,7 +774,7 @@ class Format:
                     TmpFilterArray.append(False)
                     boPrecisionOK = False
                 MinPrecision = min(MinPrecision,len(ESplit))
-            if(MinPrecision>AllowedPrecision):
+            if(MinPrecision<AllowedPrecision):
                 TmpFilterArray = scipy.array(TmpFilterArray)
                 FilterArray    = (FilterArray & TmpFilterArray)
             LogString = HeadingSpaces
@@ -843,13 +845,13 @@ class Format:
                 ESplit = Entry.split('.')[-1]
                 ESplit = ESplit.split('e')[0]
                 ESplit = ESplit.split('E')[0]
-                if(len(ESplit)>=5):
+                if(len(ESplit)>=Precision):
                     TmpFilterArray.append(True)
                 else:
                     TmpFilterArray.append(False)
                     boPrecisionOK = False
                 MinPrecision = min(MinPrecision,len(ESplit))
-            if(MinPrecision>AllowedPrecision):
+            if(MinPrecision<AllowedPrecision):
                 TmpFilterArray = scipy.array(TmpFilterArray)
                 FilterArray    = (FilterArray & TmpFilterArray)
             LogString = HeadingSpaces
