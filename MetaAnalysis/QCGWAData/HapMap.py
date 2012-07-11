@@ -253,6 +253,10 @@ class HapMap:
         self.SetHapMapFalseImputedTrueList(List=HapMapFalseImputedTrueList)
         self.SetHapMapTrueImputedFalseList(List=HapMapTrueImputedFalseList)
 
+        DCs.DataContainers['HapMapMAF'] = DataContainer.DataContainer()
+        DCs.DataContainers['HapMapMAF'].SetDataName('HapMapMAF')
+        DCs.DataContainers['HapMapMAF'].ReplaceDataArray(HapMapMAFDataArray)
+
         return DCs
 
     def ProcessLineArray(self):
@@ -279,6 +283,8 @@ class HapMap:
             self.AllDict[SNPID]    = Alls
             self.StrandDict[SNPID] = Strand
             self.MAFDict[SNPID]    = MAF
+
+        self.ResetLineArray()
 
         return
 
@@ -335,6 +341,11 @@ class HapMap:
     def SetLineArray(self,
                      Array=scipy.array):
         self.LineArray = Array
+        return
+
+    def ResetLineArray(self):
+        del self.LineArray
+        self.LineArray = None
         return
 
     def GetLineArray(self):

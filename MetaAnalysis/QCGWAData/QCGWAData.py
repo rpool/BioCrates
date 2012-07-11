@@ -639,7 +639,7 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
                     else:
-                        LogString = '      ** Column \"pval\" is OK!'
+                        LogString = '      ** Column \"PValWald\" is OK!'
                         print LogString
                         Log.Write(LogString+'\n')
                     LogString = '      ** Genomic inflation factor Lambda (SE) = '+\
@@ -647,6 +647,34 @@ def main(ExecutableName):
                                 ' ('+\
                                 str(round(SELambdaEst,5))+\
                                 ')'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    LogString = '    ++ QCing column \"HapMapMAF\" against column \"MAF\" (CHECK) ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    MaxNTotal = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray())
+                    MaxNTotal = MaxNTotal.astype(int)
+                    MaxNTotal = MaxNTotal.max()
+
+                    if(not GWAChecksDict[Key].CheckScatterFreqsOK(XmlObj=XmlProtocol,
+                                                                  HapMapMAFDataArray=GWADCsDict[Key].DataContainers['HapMapMAF'].GetDataArray(),
+                                                                  MAFDataArray=GWADCsDict[Key].DataContainers['MAF'].GetDataArray(),
+                                                                  ColumnTag='HapMapMAF',
+                                                                  boPlot=True,
+                                                                  MtbName=N)):
+                        LogString = '      ** Something is wrong in columns \"HapMapMAF\" and \"MAF\"!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                    else:
+                        LogString = '      ** Columns \"HapMapMAF\" and \"MAF\" are OK!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
                     print LogString
                     Log.Write(LogString+'\n')
                     LogString = '    -- Done ...'

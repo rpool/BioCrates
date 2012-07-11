@@ -172,6 +172,10 @@ def Scatter(X=scipy.array,
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 
+    pylab.close(PylabFigure)
+    del PylabAxis
+    del PylabFigure
+
     return
 
 def PlotQQFilteredOnScore(MtbName=str,
@@ -258,6 +262,10 @@ def PlotQQFilteredOnScore(MtbName=str,
                      loc='lower right')
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
+
+    pylab.close(PylabFigure)
+    del PylabAxis
+    del PylabFigure
 
     return Lambdas[0],\
            SEsLambda[0]

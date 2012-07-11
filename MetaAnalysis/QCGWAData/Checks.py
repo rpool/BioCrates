@@ -363,5 +363,51 @@ class Checks:
         self.ScatterFreqsOK = Value
         return
 
+    def CheckScatterFreqsOK(self,
+                            XmlObj=lxml.etree._ElementTree,
+                            HapMapMAFDataArray=scipy.array,
+                            MAFDataArray=scipy.array,
+                            ColumnTag=str,
+                            boPlot=False,
+                            MtbName=str):
+        CheckTag     = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find('Check').text
+        CompareValue = XmlObj.getroot().find('QCChecks').find(CheckTag).find('Compare').text
+        CompareType  = XmlObj.getroot().find('QCChecks').find(CheckTag).find('CompareType').text
+
+        boOk = True
+
+        FilterArray        = (HapMapMAFDataArray!='NA')
+        FilterArray       *= (MAFDataArray!='NA')
+        HapMapMAFDataArray = scipy.compress(FilterArray,HapMapMAFDataArray).astype(float)
+        MAFDataArray       = scipy.compress(FilterArray,MAFDataArray).astype(float)
+
+        CorrCoeff = scipy.corrcoef(MAFDataArray,
+                                   HapMapMAFDataArray)
+        if(CorrCoeff[0][1]<=float(CompareValue)):
+            boOk = False
+
+        if(boPlot):
+            Minimum  = 0.0
+            Minimum  = min(Minimum,HapMapMAFDataArray.min())
+            Minimum  = min(Minimum,MAFDataArray.min())
+            Maximum  = 0.5
+            Maximum  = max(Maximum,HapMapMAFDataArray.max())
+            Maximum  = max(Maximum,MAFDataArray.max())
+            Maximum += 0.05
+            Plotting.Scatter(X=HapMapMAFDataArray,
+                             Y=MAFDataArray,
+                             Min=Minimum,
+                             Max=Maximum,
+                             Legend=r'$r='+str(round(CorrCoeff[0][1],5))+'$',
+                             Name='ScatterGWAVsHapMapMAF_'+MtbName+'.png',
+                             XLabel=r'${\rm MAF} {~\rm (HapMap)} {~\rm [-]}$',
+                             YLabel=r'${\rm MAF} {~\rm (GWA)} {~\rm [-]}$',
+                             boDrawY_EQ_X=True)
+
+        if(boOk):
+            self.SetScatterFreqsOK(1)
+
+        return
+
     def GetScatterFreqsOK(self):
         return self.ScatterFreqsOK
