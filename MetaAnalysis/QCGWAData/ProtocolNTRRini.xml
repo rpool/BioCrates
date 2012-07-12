@@ -166,7 +166,7 @@
             <ColumnName>beta</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E</MandatoryFieldEntries>
             <NumericFieldPrecision>5</NumericFieldPrecision>
             <AllowedNumericFieldPrecision>1</AllowedNumericFieldPrecision>
             <NonNAFieldType>float</NonNAFieldType>
@@ -176,7 +176,7 @@
             <ColumnName>SE</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E</MandatoryFieldEntries>
             <NumericFieldPrecision>5</NumericFieldPrecision>
             <AllowedNumericFieldPrecision>1</AllowedNumericFieldPrecision>
             <NonNAFieldType>float</NonNAFieldType>
@@ -186,7 +186,7 @@
             <ColumnName>pval</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LE_1</Filters>
             <Check>CORRCOEF_GE_0_999</Check>
@@ -195,7 +195,7 @@
             <ColumnName>PValWald</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LE_1</Filters>
             <Check>LAMBDA_LT_1_1</Check>
@@ -204,10 +204,10 @@
             <ColumnName>HapMapMAF</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LE_1</Filters>
-            <Check>R_GT_0_9</Check>
+            <Check>R_GT_0_95</Check>
         </HapMapMAF>
         <AF_coded_all>
             <ColumnName>AF_coded_all</ColumnName>    
@@ -221,7 +221,7 @@
             <ColumnName>HWE_pval</ColumnName>    
             <boSetColumnName>False</boSetColumnName>
             <SetColumnName>None</SetColumnName>
-            <MandatoryFieldEntries>NA,[0-9],e,E,-</MandatoryFieldEntries>
+            <MandatoryFieldEntries>NA,[0-9],e,E</MandatoryFieldEntries>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_1EMinus6,LE_1,EQ_NA</Filters>
         </HWE_pval>
@@ -315,6 +315,11 @@
             <Compare>0.9</Compare>
             <CompareType>float</CompareType>
         </R_GT_0_9>
+        <R_GT_0_95>
+            <Operator>GT</Operator>
+            <Compare>0.95</Compare>
+            <CompareType>float</CompareType>
+        </R_GT_0_95>
     </QCChecks>
 
     <QCFilters>

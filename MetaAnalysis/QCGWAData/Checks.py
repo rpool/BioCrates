@@ -407,7 +407,8 @@ class Checks:
         if(boOk):
             self.SetScatterFreqsOK(1)
 
-        return
+        return boOk,\
+               CorrCoeff[0][1]
 
     def GetScatterFreqsOK(self):
         return self.ScatterFreqsOK
