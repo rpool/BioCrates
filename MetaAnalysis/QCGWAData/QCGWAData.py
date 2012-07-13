@@ -2,9 +2,7 @@
 # python modules
 import os
 import sys
-import lxml.etree
 import re
-import scipy
 import scipy.stats
 
 # Homebrew modules
@@ -258,7 +256,6 @@ def main(ExecutableName):
                     Log.Write(LogString+'\n')
 
                 for Key in GWADCsDict.iterkeys():
-                    MasterFilterArray = None
                     GWAFiltersDict[Key].SetInitialArrayLength(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray()))
 
                     LogString = '    ++ QCing column \"chr\" (CHECK) ...'
@@ -295,6 +292,14 @@ def main(ExecutableName):
                         Log.Write(LogString+'\n')
                     GWAFiltersDict[Key].SetboDuplicateSNPWarning()
 
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
+
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -317,6 +322,14 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
+
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -338,6 +351,14 @@ def main(ExecutableName):
                             LogString += '\n'
                         print LogString
                         Log.Write(LogString+'\n')
+
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
 
                     LogString = '    -- Done ...'
                     print LogString
@@ -388,6 +409,14 @@ def main(ExecutableName):
                             LogString += '\n'
                         print LogString
                         Log.Write(LogString+'\n')
+
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
 
                     LogString = '    -- Done ...'
                     print LogString
@@ -493,6 +522,14 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
+
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -553,6 +590,14 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
+
                     LogString = '    -- Done ...'
                     print LogString
                     Log.Write(LogString+'\n')
@@ -612,6 +657,14 @@ def main(ExecutableName):
                             LogString += '\n'
                         print LogString
                         Log.Write(LogString+'\n')
+
+                    if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
+                        LogString  = '      !! Data arrays are empty after filtering!\n'
+                        LogString += '      !! CONTINUING ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+                        write report
+                        continue
 
                     LogString = '    -- Done ...'
                     print LogString
@@ -678,7 +731,6 @@ def main(ExecutableName):
                     LogString = '      **  \"HapMapMAF\" Vs. \"GWAMAF\" correlation coefficient = '+str(round(CorrCoeff,5))
                     print LogString
                     Log.Write(LogString+'\n')
-
 
                     LogString = '    -- Done ...'
                     print LogString
