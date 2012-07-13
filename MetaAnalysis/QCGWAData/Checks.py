@@ -453,17 +453,17 @@ class Checks:
         LambdaEst   = None
         SELambdaEst = None
         if(boPlot):
-            LPValObsArray = -scipy.log10(DataArray.astype(float))
+            LPValObsArray = -scipy.log10(DataArray)
 #           The 1's are for df=1
             PValExpArray  = scipy.stats.chi2.sf(scipy.stats.chi2.rvs(1,\
                                                                       size=len(DataArray)),\
                                                 1,)
-            LPValExpArray = -scipy.log10(PValExpArray.astype(float))
+            LPValExpArray = -scipy.log10(PValExpArray)
             LambdaEst,\
             SELambdaEst   = Plotting.PlotQQFilteredOnScore(MtbName=MtbName,
                                                            LPValExpArray=LPValExpArray,
                                                            LPValObsArray=LPValObsArray,
-                                                           PValObsArray=DataArray.astype(float),
+                                                           PValObsArray=DataArray,
                                                            EMACArray=EMACArray,
                                                            EMACLevels=EMACLevels,
                                                            Colors=Colors)

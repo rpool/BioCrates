@@ -598,12 +598,6 @@ def main(ExecutableName):
                     DataArray  = scipy.real(scipy.power(DataArray,2.0))
                     PValArray  = scipy.stats.chi2.sf(DataArray,\
                                                      1) # df=1
-                    PValArray  = scipy.around(PValArray,5)
-                    TmpArray   = []
-                    for Entry in PValArray:
-                        TmpArray.append(str(Entry))
-                    PValArray = scipy.array(TmpArray)
-
                     GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray)
                     del PValArray
                     del DataArray
@@ -907,6 +901,15 @@ def main(ExecutableName):
                                 '\" ...'
                     print LogString
                     Log.Write(LogString+'\n')
+
+                    PValArray  = GWADCsDict[Key].DataContainers['PValWald'].GetDataArray()
+                    PValArray  = scipy.around(PValArray,5)
+                    TmpArray   = []
+                    for Entry in PValArray:
+                        TmpArray.append(str(Entry))
+                    PValArray = scipy.array(TmpArray)
+
+                    GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray)
 
                     GWADCsDict[Key].WriteBioCratesGWAOutput(FileName=FilteredGWADataFile,
                                                             OutPath=FilteredGWADataPath,
