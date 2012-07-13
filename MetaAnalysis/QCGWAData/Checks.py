@@ -1,7 +1,7 @@
 import lxml.etree
-import scipy
 import scipy.stats
 import re
+import os
 
 import Plotting
 
@@ -20,7 +20,132 @@ class Checks:
         self.LambdaOK          = 0
         self.ScatterFreqsOK    = 3
         self.MaxNDuplicateSNPs = 0
+        self.CsvColumnList     = None
+        self.CsvHeader         = None
+        self.CsvComments       = None
+        self.CsvLine           = None
+        self.CsvPath           = None
+        self.Column2CheckDict  = None
 
+        self.SetCsvColumnList(['Metabolite',
+                               'MtbnameOK',
+                               'FormattingOK',
+                               'ChromosomesOK',
+                               'NtotalOK',
+                               'ImpQualOK',
+                               'NtotImpOK',
+                               'LambdaOK',
+                               'ScatterFreqsOK',
+                               'TTestOK'])
+
+        return
+
+    def SetColumn2CheckDict(self):
+        self.Column2CheckDict = {}
+        self.Column2CheckDict['Metabolite']     = None
+        self.Column2CheckDict['MtbnameOK']      = self.GetMtbnameOK
+        self.Column2CheckDict['FormattingOK']   = self.GetFormattingOK
+        self.Column2CheckDict['ChromosomesOK']  = self.GetChromosomesOK
+        self.Column2CheckDict['NtotalOK']       = self.GetNTotalOK
+        self.Column2CheckDict['ImpQualOK']      = self.GetImpQualOK
+        self.Column2CheckDict['NtotImpOK']      = self.GetNTotImpOK
+        self.Column2CheckDict['LambdaOK']       = self.GetLambdaOK
+        self.Column2CheckDict['ScatterFreqsOK'] = self.GetScatterFreqsOK
+        self.Column2CheckDict['TTestOK']        = self.GetTTestOK
+
+        return
+
+    def GetColumn2CheckDict(self):
+        if(self.Column2CheckDict==None):
+            self.SetColumn2CheckDict()
+        return self.Column2CheckDict
+
+    def SetCsvPath(self,
+                   Value=str):
+        Cwd          = os.getcwd()
+        self.CsvPath = os.path.join(Cwd,Value)
+        if(not os.path.isdir(self.CsvPath)):
+            os.mkdir(self.CsvPath)
+        return
+
+    def GetCsvPath(self):
+        if(self.CsvPath==None):
+            self.SetCsvPath('Csv')
+        return self.CsvPath
+
+    def SetCsvColumnList(self,
+                         List=[]):
+        self.CsvColumnList = []
+        for Entry in List:
+            self.CsvColumnList.append(Entry)
+        return
+
+    def GetCsvColumnList(self):
+        return self.CsvColumnList
+
+    def SetCsvHeader(self):
+        self.CsvHeader = ','.join(self.GetCsvColumnList())
+        return
+
+    def GetCsvHeader(self):
+        return self.CsvHeader
+
+    def WriteCsvHeader(self,
+                       FileName=str):
+        FilePath = os.path.join(self.GetCsvPath(),FileName)
+
+        FH = open(FilePath,'w')
+        FH.write(self.GetCsvHeader()+'\n')
+        FH.close()
+        return
+
+    def SetCsvComments(self,
+                       CommentString=str):
+        List = []
+        for Column in self.GetCsvColumnList():
+            Function = self.GetColumn2CheckDict()[Column]
+            if(Function==None):
+                List.append(CommentString)
+            else:
+                List.append('')
+        self.CsvComments = ','.join(List)
+        return
+
+    def GetCsvComments(self):
+        return self.CsvComments
+
+    def WriteCsvComments(self,
+                         FileName=str):
+        FilePath = os.path.join(self.GetCsvPath(),FileName)
+
+        FH = open(FilePath,'w')
+        FH.write(self.GetCsvComments()+'\n')
+        FH.close()
+        return
+
+    def SetCsvLine(self,
+                   MtbName=str):
+        LineList = []
+        for Column in self.GetCsvColumnList():
+            Function = self.GetColumn2CheckDict()[Column]
+            if(Function==None):
+                LineList.append(MtbName)
+            else:
+                LineList.append(str(Function()))
+        self.CsvLine = ','.join(LineList)
+
+        return
+
+    def GetCsvLine(self):
+        return self.CsvLine
+
+    def WriteCsvLine(self,
+                     FileName=str):
+        FilePath = os.path.join(self.GetCsvPath(),FileName)
+
+        FH = open(FilePath,'w')
+        FH.write(self.GetCsvLine()+'\n')
+        FH.close()
         return
 
     def SetMaxNDuplicateSNPs(self,
@@ -328,17 +453,17 @@ class Checks:
         LambdaEst   = None
         SELambdaEst = None
         if(boPlot):
-            LPValObsArray = -scipy.log10(DataArray)
+            LPValObsArray = -scipy.log10(DataArray.astype(float))
 #           The 1's are for df=1
             PValExpArray  = scipy.stats.chi2.sf(scipy.stats.chi2.rvs(1,\
                                                                       size=len(DataArray)),\
                                                 1,)
-            LPValExpArray = -scipy.log10(PValExpArray)
+            LPValExpArray = -scipy.log10(PValExpArray.astype(float))
             LambdaEst,\
             SELambdaEst   = Plotting.PlotQQFilteredOnScore(MtbName=MtbName,
                                                            LPValExpArray=LPValExpArray,
                                                            LPValObsArray=LPValObsArray,
-                                                           PValObsArray=DataArray,
+                                                           PValObsArray=DataArray.astype(float),
                                                            EMACArray=EMACArray,
                                                            EMACLevels=EMACLevels,
                                                            Colors=Colors)

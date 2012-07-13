@@ -1,5 +1,8 @@
 import lxml.etree
 import scipy
+import os
+import re
+import collections
 
 import FilterFunction
 import DataContainer
@@ -12,6 +15,7 @@ class Filters:
         self.boDuplicateSNPWarning = False
         self.FilterFunctionDict    = None
         self.FilterReportDict      = None
+        self.FilterReportPath      = None
 
         self.InitFilterReportDict()
         return
@@ -22,6 +26,42 @@ class Filters:
 
     def GetFilterReportDictDict(self):
         return self.FilterReportDict
+
+    def SetFilterReportPath(self,
+                            Value=str):
+        Cwd                   = os.getcwd()
+        self.FilterReportPath = os.path.join(Cwd,Value)
+        if(not os.path.isdir(self.FilterReportPath)):
+            os.mkdir(self.FilterReportPath)
+        return
+
+    def GetFilterReportPath(self):
+        if(self.FilterReportPath==None):
+            self.SetFilterReportPath('Filters')
+        return self.FilterReportPath
+
+    def WriteFilterReport(self,
+                          FileName=str,
+                          Tag=str):
+        FilePath = os.path.join(self.GetFilterReportPath(),FileName)
+
+        FH = open(FilePath,'w')
+        for Key in self.GetFilterReportDictDict()[Tag].iterkeys():
+            String = '**'+self.GetFilterReportDictDict()[Tag][Key]
+            String = re.sub('\n','\n**',String)
+            FH.write(String+'\n')
+        FH.close()
+        return
+
+    def WriteCustomFilterReport(self,
+                                FileName=str,
+                                String=str):
+        FilePath = os.path.join(self.GetFilterReportPath(),FileName)
+
+        FH = open(FilePath,'w')
+        FH.write(String+'\n')
+        FH.close()
+        return
 
     def InitFilterReportDictDict(self,
                                  Tag=str):
@@ -38,9 +78,16 @@ class Filters:
     def FilterSEs(self,
                   XmlObj=lxml.etree._ElementTree,
                   DCs=DataContainer.DataContainers,
-                  ColumnTag=str):
+                  ColumnTag=str,
+                  boDryRun=False):
 
-        FilterTags  = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find('Filters').text.split(',')
+        FiltersTag = None
+        if(boDryRun):
+            FiltersTag = 'DryRunFilters'
+        else:
+            FiltersTag = 'Filters'
+
+        FilterTags  = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find(FiltersTag).text.split(',')
 
         self.InitFilterReportDictDict(ColumnTag)
 
@@ -55,12 +102,22 @@ class Filters:
                                                       CompareType=ValueType)
 
             InitLength  = len(DCs.DataContainers[ColumnTag].GetDataArray())
+            FinalLength = None
             FilterArray = FFunction.Run(DataArray=DCs.DataContainers[ColumnTag].GetDataArray())
-            for Key in DCs.DataContainers.iterkeys():
-                DataArray = scipy.compress(FilterArray,
-                                           DCs.DataContainers[Key].GetDataArray())
-                DCs.DataContainers[Key].ReplaceDataArray(DataArray)
-            FinalLength = len(DCs.DataContainers[ColumnTag].GetDataArray())
+
+            if(not boDryRun):
+                for Key in DCs.DataContainers.iterkeys():
+                    DataArray = scipy.compress(FilterArray,
+                                               DCs.DataContainers[Key].GetDataArray())
+                    DCs.DataContainers[Key].ReplaceDataArray(DataArray)
+                FinalLength = len(DCs.DataContainers[ColumnTag].GetDataArray())
+            else:
+                CounterDict = collections.defaultdict(int)
+                for Entry in FilterArray:
+                    CounterDict[Entry] += 1
+                Difference  = CounterDict[False]
+                FinalLength = InitLength-Difference
+
 
             self.SetFilterReportDictDict(ParentTag=ColumnTag,
                                          ChildTag=Tag,
@@ -76,9 +133,16 @@ class Filters:
     def FilterBetas(self,
                     XmlObj=lxml.etree._ElementTree,
                     DCs=DataContainer.DataContainers,
-                    ColumnTag=str):
+                    ColumnTag=str,
+                    boDryRun=False):
 
-        FilterTags  = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find('Filters').text.split(',')
+        FiltersTag = None
+        if(boDryRun):
+            FiltersTag = 'DryRunFilters'
+        else:
+            FiltersTag = 'Filters'
+
+        FilterTags  = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find(FiltersTag).text.split(',')
 
         self.InitFilterReportDictDict(ColumnTag)
 
@@ -93,12 +157,21 @@ class Filters:
                                                       CompareType=ValueType)
 
             InitLength  = len(DCs.DataContainers[ColumnTag].GetDataArray())
+            FinalLength = None
             FilterArray = FFunction.Run(DataArray=DCs.DataContainers[ColumnTag].GetDataArray())
-            for Key in DCs.DataContainers.iterkeys():
-                DataArray = scipy.compress(FilterArray,
-                                           DCs.DataContainers[Key].GetDataArray())
-                DCs.DataContainers[Key].ReplaceDataArray(DataArray)
-            FinalLength = len(DCs.DataContainers[ColumnTag].GetDataArray())
+
+            if(not boDryRun):
+                for Key in DCs.DataContainers.iterkeys():
+                    DataArray = scipy.compress(FilterArray,
+                                               DCs.DataContainers[Key].GetDataArray())
+                    DCs.DataContainers[Key].ReplaceDataArray(DataArray)
+                FinalLength = len(DCs.DataContainers[ColumnTag].GetDataArray())
+            else:
+                CounterDict = collections.defaultdict(int)
+                for Entry in FilterArray:
+                    CounterDict[Entry] += 1
+                Difference  = CounterDict[False]
+                FinalLength = InitLength-Difference
 
             self.SetFilterReportDictDict(ParentTag=ColumnTag,
                                          ChildTag=Tag,
@@ -158,9 +231,16 @@ class Filters:
     def FilterNTotals(self,
                       XmlObj=lxml.etree._ElementTree,
                       DCs=DataContainer.DataContainers,
-                      ColumnTag=str):
+                      ColumnTag=str,
+                      boDryRun=False):
 
-        FilterTags  = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find('Filters').text.split(',')
+        FiltersTag = None
+        if(boDryRun):
+            FiltersTag = 'DryRunFilters'
+        else:
+            FiltersTag = 'Filters'
+
+        FilterTags  = XmlObj.getroot().find('MtbGWAColumns').find(ColumnTag).find(FiltersTag).text.split(',')
 
         self.InitFilterReportDictDict(ColumnTag)
 
@@ -175,12 +255,21 @@ class Filters:
                                                       CompareType=ValueType)
 
             InitLength  = len(DCs.DataContainers[ColumnTag].GetDataArray())
+            FinalLength = None
             FilterArray = FFunction.Run(DataArray=DCs.DataContainers[ColumnTag].GetDataArray())
-            for Key in DCs.DataContainers.iterkeys():
-                DataArray = scipy.compress(FilterArray,
-                                           DCs.DataContainers[Key].GetDataArray())
-                DCs.DataContainers[Key].ReplaceDataArray(DataArray)
-            FinalLength = len(DCs.DataContainers[ColumnTag].GetDataArray())
+
+            if(not boDryRun):
+                for Key in DCs.DataContainers.iterkeys():
+                    DataArray = scipy.compress(FilterArray,
+                                               DCs.DataContainers[Key].GetDataArray())
+                    DCs.DataContainers[Key].ReplaceDataArray(DataArray)
+                FinalLength = len(DCs.DataContainers[ColumnTag].GetDataArray())
+            else:
+                CounterDict = collections.defaultdict(int)
+                for Entry in FilterArray:
+                    CounterDict[Entry] += 1
+                Difference  = CounterDict[False]
+                FinalLength = InitLength-Difference
 
             self.SetFilterReportDictDict(ParentTag=ColumnTag,
                                          ChildTag=Tag,
@@ -287,12 +376,14 @@ class Filters:
 
     def RemoveDuplicateSNPs(self,
                             DCs=DataContainer.DataContainers):
-        NRemoved = 0
+
+        NRemoved   = 0
         DuplicateIndexDict = DCs.DataContainers['SNPID'].GetDuplicateIndexDict()
         for DCKey in DCs.DataContainers.iterkeys():
             NRemoved = DCs.DataContainers[DCKey].RemoveDuplicates(DuplicateIndexDict)
 
         self.SetNDeletedDuplicateSNPs(NRemoved)
+
         return DCs
 
     def SetMaxNDuplicateSNPs(self,

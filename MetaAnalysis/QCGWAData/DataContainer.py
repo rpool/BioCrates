@@ -1,8 +1,7 @@
 import re
-import gzip
 import scipy
-import sys
 import collections
+import os
 
 import Logger
 
@@ -132,4 +131,49 @@ class DataContainers:
         self.DataContainers = {}
         self.Names2Columns  = {}
         self.Columns2Names  = {}
+        return
+
+    def WriteBioCratesGWAOutput(self,
+                                FileName=str,
+                                OutPath=str,
+                                HeaderList=[],
+                                Header2ColumnDict={}):
+
+        if(not os.path.isdir(OutPath)):
+            os.mkdir(OutPath)
+        FilePath = os.path.join(OutPath,FileName)
+
+        FH = open(FilePath,'w')
+
+        ColumnWidthList = []
+        MaxWidth        = 0
+        for Entry in HeaderList:
+            MaxWidth = max(len(Entry),MaxWidth)
+
+        for Entry in HeaderList:
+            ColumnWidthList.append(MaxWidth+1)
+
+        for i in range(len(HeaderList)):
+            Entry        = HeaderList[i]
+            FormatString = '{0:>'+str(ColumnWidthList[i])+'}'
+            FH.write(FormatString.format(Entry))
+        FH.write('\n')
+
+        ArrayLenth = len(self.DataContainers['SNPID'].GetDataArray())
+        for i in range(ArrayLenth):
+            for j in range(len(HeaderList)):
+                Entry       = HeaderList[j]
+                ColumnId    = Header2ColumnDict[Entry]
+                ColumnWidth = ColumnWidthList[j]
+
+                String = str(self.DataContainers[ColumnId].GetDataArray()[i])
+                FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
+                FH.write(FormatString.format(String))
+            FH.write('\n')
+
+        Cwd = os.getcwd()
+        os.chdir(OutPath)
+        os.system('pigz '+FileName)
+        os.chdir(Cwd)
+
         return

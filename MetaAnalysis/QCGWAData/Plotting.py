@@ -44,6 +44,7 @@ def LambdaEstimate(Array=scipy.array,
     #===========================================================================
     # copied from R-GenABEL.lamdaest
     #===========================================================================
+    Array      = Array.astype(float)
     Estimate   = None
     Ntp        = len(Array)
     QChi2Array = None

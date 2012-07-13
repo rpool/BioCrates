@@ -171,6 +171,7 @@
             <AllowedNumericFieldPrecision>1</AllowedNumericFieldPrecision>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA</Filters>
+            <DryRunFilters>NE_NA</DryRunFilters>
         </beta>
         <SE>
             <ColumnName>SE</ColumnName>    
@@ -181,6 +182,7 @@
             <AllowedNumericFieldPrecision>1</AllowedNumericFieldPrecision>
             <NonNAFieldType>float</NonNAFieldType>
             <Filters>NE_NA,GT_0,LT_10000</Filters>
+            <DryRunFilters>NE_NA</DryRunFilters>
         </SE>
         <pval>
             <ColumnName>pval</ColumnName>    
@@ -232,6 +234,7 @@
             <MandatoryFieldEntries>NA,[0-9]</MandatoryFieldEntries>
             <NonNAFieldType>int</NonNAFieldType>
             <Filters>NE_NA</Filters>
+            <DryRunFilters>NE_NA</DryRunFilters>
         </n_total>
         <imputed>
             <ColumnName>imputed</ColumnName>    

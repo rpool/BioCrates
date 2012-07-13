@@ -176,6 +176,12 @@ def main(ExecutableName):
                 Log.Write(LogString+'\n')
                 GWAChecksDict['GWADataFile']  = Checks.Checks()
                 GWAFiltersDict['GWADataFile'] = Filters.Filters()
+                GWAChecksDict['GWADataFile'].SetCsvHeader()
+                GWAChecksDict['GWADataFile'].WriteCsvHeader('Header.csv')
+                GWAChecksDict['GWADataFile'].SetCsvComments('COMMENTS per variable')
+                GWAChecksDict['GWADataFile'].WriteCsvComments('Comments.csv')
+                GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
             else:
                 LogString  = '  ** Found the GWA output file for metabolite \"'+\
                              N+\
@@ -206,7 +212,11 @@ def main(ExecutableName):
                                                         boRemoveDuplicateLines=boRemoveDuplicateLines)
 
                 for Key in GWADCsDict.iterkeys():
-                    GWAChecksDict[Key]  = Checks.Checks()
+                    GWAChecksDict[Key] = Checks.Checks()
+                    GWAChecksDict[Key].SetCsvHeader()
+                    GWAChecksDict[Key].WriteCsvHeader('Header.csv')
+                    GWAChecksDict[Key].SetCsvComments('COMMENTS per variable')
+                    GWAChecksDict[Key].WriteCsvComments('Comments.csv')
                     GWAFiltersDict[Key] = Filters.Filters()
 
                 GWAFormat.CheckFormat(DCsDict=GWADCsDict,
@@ -255,6 +265,100 @@ def main(ExecutableName):
                     print LogString
                     Log.Write(LogString+'\n')
 
+                boDryRun = False
+                for XmlTag in XmlProtocol.getroot().find('MtbGWAColumns'):
+                    if(XmlTag.find('DryRunFilters')!=None):
+                        boDryRun = True
+                        break
+                if(boDryRun):
+                    for Key in GWADCsDict.iterkeys():
+                        LogString = '    ++ Dry-running filters ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        LogString = '      ++ QCing column \"n_total\" (DRY-RUN FILTER) ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        GWADCsDict[Key],\
+                        FilterTags        = GWAFiltersDict[Key].FilterNTotals(XmlObj=XmlProtocol,
+                                                                              DCs=GWADCsDict[Key],
+                                                                              ColumnTag='n_total',
+                                                                              boDryRun=True)
+
+                        for i in range(len(FilterTags)):
+                            FilterTag = FilterTags[i]
+                            LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['n_total'][FilterTag]
+                            LogString = re.sub('\n','\n      **',LogString)
+                            if(i<(len(FilterTags)-1)):
+                                LogString += '\n'
+                            print LogString
+                            Log.Write(LogString+'\n')
+
+                        GWAFiltersDict[Key].WriteFilterReport(FileName='DryRunFilter_NTotal_'+N+'.txt',
+                                                              Tag='n_total')
+
+                        LogString = '      -- Done ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        LogString = '      ++ QCing column \"SE\" (DRY-RUN FILTER) ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        GWADCsDict[Key],\
+                        FilterTags        = GWAFiltersDict[Key].FilterSEs(XmlObj=XmlProtocol,
+                                                                          DCs=GWADCsDict[Key],
+                                                                          ColumnTag='SE',
+                                                                          boDryRun=True)
+
+                        for i in range(len(FilterTags)):
+                            FilterTag = FilterTags[i]
+                            LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['SE'][FilterTag]
+                            LogString = re.sub('\n','\n      **',LogString)
+                            if(i<(len(FilterTags)-1)):
+                                LogString += '\n'
+                            print LogString
+                            Log.Write(LogString+'\n')
+
+                        GWAFiltersDict[Key].WriteFilterReport(FileName='DryRunFilter_SE_'+N+'.txt',
+                                                              Tag='SE')
+
+                        LogString = '      -- Done ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        LogString = '      ++ QCing column \"beta\" (DRY-RUN FILTER) ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        GWADCsDict[Key],\
+                        FilterTags        = GWAFiltersDict[Key].FilterBetas(XmlObj=XmlProtocol,
+                                                                            DCs=GWADCsDict[Key],
+                                                                            ColumnTag='beta',
+                                                                            boDryRun=True)
+
+                        for i in range(len(FilterTags)):
+                            FilterTag = FilterTags[i]
+                            LogString = '      **'+GWAFiltersDict[Key].GetFilterReportDictDict()['beta'][FilterTag]
+                            LogString = re.sub('\n','\n      **',LogString)
+                            if(i<(len(FilterTags)-1)):
+                                LogString += '\n'
+                            print LogString
+                            Log.Write(LogString+'\n')
+
+                        GWAFiltersDict[Key].WriteFilterReport(FileName='DryRunFilter_Beta_'+N+'.txt',
+                                                              Tag='beta')
+
+                        LogString = '      -- Done ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+                        LogString = '    -- Done ...'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
+
                 for Key in GWADCsDict.iterkeys():
                     GWAFiltersDict[Key].SetInitialArrayLength(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray()))
 
@@ -281,9 +385,12 @@ def main(ExecutableName):
 
                     if(GWAFiltersDict[Key].GetMaxNDuplicateSNPs()>0):
                         GWADCsDict[Key] = GWAFiltersDict[Key].RemoveDuplicateSNPs(DCs=GWADCsDict[Key])
-
-                        LogString = '      ** Removed '+str(GWAFiltersDict[Key].GetNDeletedDuplicateSNPs())+\
+                        String = '      ** Removed '+str(GWAFiltersDict[Key].GetNDeletedDuplicateSNPs())+\
                                     ' row(s) containing duplicate SNPs!'
+                        GWAFiltersDict[Key].WriteCustomFilterReport(FileName='Filter_SnpIdUnique_'+N+'.txt',
+                                                                    Value=String)
+
+                        LogString = String
                         print LogString
                         Log.Write(LogString+'\n')
                     else:
@@ -292,12 +399,18 @@ def main(ExecutableName):
                         Log.Write(LogString+'\n')
                     GWAFiltersDict[Key].SetboDuplicateSNPWarning()
 
+                    if(GWAFiltersDict[Key].GetboDuplicateSNPWarning()):
+                        LogString = '      ** WARNING: REMOVED MORE THAN 100 duplicate SNPs!!'
+                        print LogString
+                        Log.Write(LogString+'\n')
+
                     if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
                         LogString  = '      !! Data arrays are empty after filtering!\n'
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -322,12 +435,16 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    GWAFiltersDict[Key].WriteFilterReport(FileName='Filter_SE_'+N+'.txt',
+                                                          Tag='SE')
+
                     if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
                         LogString  = '      !! Data arrays are empty after filtering!\n'
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -352,12 +469,16 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    GWAFiltersDict[Key].WriteFilterReport(FileName='Filter_Beta_'+N+'.txt',
+                                                          Tag='beta')
+
                     if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
                         LogString  = '      !! Data arrays are empty after filtering!\n'
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -410,12 +531,16 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    GWAFiltersDict[Key].WriteFilterReport(FileName='Filter_NTotal_'+N+'.txt',
+                                                          Tag='n_total')
+
                     if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
                         LogString  = '      !! Data arrays are empty after filtering!\n'
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -473,6 +598,11 @@ def main(ExecutableName):
                     DataArray  = scipy.real(scipy.power(DataArray,2.0))
                     PValArray  = scipy.stats.chi2.sf(DataArray,\
                                                      1) # df=1
+                    PValArray  = scipy.around(PValArray,5)
+                    TmpArray   = []
+                    for Entry in PValArray:
+                        TmpArray.append(str(Entry))
+                    PValArray = scipy.array(TmpArray)
 
                     GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray)
                     del PValArray
@@ -527,7 +657,8 @@ def main(ExecutableName):
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -590,12 +721,16 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    GWAFiltersDict[Key].WriteFilterReport(FileName='Filter_AFCodedAll_'+N+'.txt',
+                                                          Tag='AF_coded_all')
+
                     if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
                         LogString  = '      !! Data arrays are empty after filtering!\n'
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -658,12 +793,16 @@ def main(ExecutableName):
                         print LogString
                         Log.Write(LogString+'\n')
 
+                    GWAFiltersDict[Key].WriteFilterReport(FileName='Filter_EMAC_'+N+'.txt',
+                                                          Tag='EMAC')
+
                     if(len(GWADCsDict[Key].DataContainers['SNPID'].GetDataArray())==0):
                         LogString  = '      !! Data arrays are empty after filtering!\n'
                         LogString += '      !! CONTINUING ...'
                         print LogString
                         Log.Write(LogString+'\n')
-                        write report
+                        GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                        GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
                         continue
 
                     LogString = '    -- Done ...'
@@ -731,6 +870,48 @@ def main(ExecutableName):
                     LogString = '      **  \"HapMapMAF\" Vs. \"GWAMAF\" correlation coefficient = '+str(round(CorrCoeff,5))
                     print LogString
                     Log.Write(LogString+'\n')
+
+                    GWAChecksDict['GWADataFile'].SetCsvLine(N)
+                    GWAChecksDict['GWADataFile'].WriteCsvLine('Checks_'+N+'.csv')
+
+                    LogString = '    -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    FilteredGWADataPath = os.path.join(GWADataPath,'FILTERED')
+                    FilteredGWADataFile = os.path.basename(GWADataFile)
+                    if(re.search('.gz',FilteredGWADataFile)):
+                        FilteredGWADataFile = re.sub('.gz','',FilteredGWADataFile)
+                    HeaderList = ['SNPID',
+                                  'chr',
+                                  'position',
+                                  'coded_all',
+                                  'noncoded_all',
+                                  'strand_genome',
+                                  'beta',
+                                  'SE',
+                                  'pval',
+                                  'AF_coded_all',
+                                  'HWE_pval',
+                                  'n_total',
+                                  'imputed',
+                                  'used_for_imp',
+                                  'oevar_imp']
+                    Header2ColumnDict = {}
+                    for Entry in HeaderList:
+                        Header2ColumnDict[Entry] = Entry
+                    Header2ColumnDict['pval'] = 'PValWald'
+
+                    LogString = '    -- Writing filtered GWA data to \"'+\
+                                os.path.join(FilteredGWADataPath,FilteredGWADataFile)+\
+                                '\" ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+
+                    GWADCsDict[Key].WriteBioCratesGWAOutput(FileName=FilteredGWADataFile,
+                                                            OutPath=FilteredGWADataPath,
+                                                            HeaderList=HeaderList,
+                                                            Header2ColumnDict=Header2ColumnDict)
 
                     LogString = '    -- Done ...'
                     print LogString
