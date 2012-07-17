@@ -808,7 +808,7 @@ def main(ExecutableName):
                     Log.Write(LogString+'\n')
 
                     MaxNTotal = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray())
-                    MaxNTotal = MaxNTotal.astype(int)
+                    MaxNTotal = scipy.around(MaxNTotal.astype(float)).astype(int)
                     MaxNTotal = MaxNTotal.max()
                     boOK,\
                     LambdaEst,\
@@ -841,10 +841,6 @@ def main(ExecutableName):
                     LogString = '    ++ QCing column \"HapMapMAF\" against column \"MAF\" (CHECK) ...'
                     print LogString
                     Log.Write(LogString+'\n')
-
-                    MaxNTotal = scipy.copy(GWADCsDict[Key].DataContainers['n_total'].GetDataArray())
-                    MaxNTotal = MaxNTotal.astype(int)
-                    MaxNTotal = MaxNTotal.max()
 
                     boOK,\
                     CorrCoeff = GWAChecksDict[Key].CheckScatterFreqsOK(XmlObj=XmlProtocol,
