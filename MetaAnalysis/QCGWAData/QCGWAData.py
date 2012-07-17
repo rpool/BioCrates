@@ -555,7 +555,7 @@ def main(ExecutableName):
                     GWADCsDict[Key].DataContainers['PValTTest'].SetDataName('PValTtest')
                     DataArray  = scipy.copy(GWADCsDict[Key].DataContainers['beta'].GetDataArray()).astype(float)
                     DataArray /= GWADCsDict[Key].DataContainers['SE'].GetDataArray().astype(float)
-                    NTotArray  = GWADCsDict[Key].DataContainers['n_total'].GetDataArray().astype(int)
+                    NTotArray  = scipy.around(GWADCsDict[Key].DataContainers['n_total'].GetDataArray().astype(float)).astype(int)
 
                     PValArray = map(scipy.stats.t.sf,
                                     scipy.absolute(DataArray).tolist(),
