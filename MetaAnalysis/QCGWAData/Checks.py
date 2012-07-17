@@ -231,6 +231,10 @@ class Checks:
         if(CorrCoeff[0][1]<float(CompareValue)):
             boOk = False
 
+        FilterArray     = (DataArray>0.0)
+        FilterArray    *= (CheckDataArray>0.0)
+        DataArray       = scipy.compress(FilterArray,DataArray)
+        CheckDataArray  = scipy.compress(FilterArray,CheckDataArray)
         pCheckDataArray = -scipy.log10(CheckDataArray)
         pDataArray      = -scipy.log10(DataArray)
         Log10CorrCoeff  = scipy.corrcoef(pCheckDataArray,
@@ -308,6 +312,10 @@ class Checks:
         if(CorrCoeff[0][1]<float(CompareValue)):
             boOk = False
 
+        FilterArray     = (DataArray>0.0)
+        FilterArray    *= (CheckDataArray>0.0)
+        DataArray       = scipy.compress(FilterArray,DataArray)
+        CheckDataArray  = scipy.compress(FilterArray,CheckDataArray)
         pCheckDataArray = -scipy.log10(CheckDataArray)
         pDataArray      = -scipy.log10(DataArray)
         Log10CorrCoeff  = scipy.corrcoef(pCheckDataArray,
