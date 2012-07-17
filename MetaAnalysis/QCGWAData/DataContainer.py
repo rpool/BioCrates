@@ -164,17 +164,15 @@ class DataContainers:
             for j in range(len(HeaderList)):
                 Entry       = HeaderList[j]
                 ColumnId    = Header2ColumnDict[Entry]
-                ColumnWidth = ColumnWidthList[j]
 
                 String = str(self.DataContainers[ColumnId].GetDataArray()[i])
                 FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
                 FH.write(FormatString.format(String))
             FH.write('\n')
-        FH.close()
 
         Cwd = os.getcwd()
         os.chdir(OutPath)
-        os.system('pigz '+FileName)
+        os.system('pigz -f '+FileName)
         os.chdir(Cwd)
 
         return
