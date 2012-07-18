@@ -1,5 +1,6 @@
 import lxml.etree
 import scipy
+import copy
 
 def MergeWithExtraInfo(XmlObj=lxml.etree._ElementTree,
                        SourceDCsDict={},
@@ -15,15 +16,18 @@ def MergeWithExtraInfo(XmlObj=lxml.etree._ElementTree,
            (eval(Column.find('GetFromExtraInfoFile').text))):
             Tag = Column.tag
             for DKey in DestDCsDict.iterkeys():
-                DataArray = []
-                for Entry in DestDCsDict[DKey].DataContainers[SourceColumnTag].GetDataArray():
+                DataArray = copy.deepcopy(DestDCsDict[DKey].DataContainers[Tag].GetDataArray())
+                DataArray = DataArray.tolist()
+                for i in range(len(DestDCsDict[DKey].DataContainers[SourceColumnTag].GetDataArray())):
+                    Entry = DestDCsDict[DKey].DataContainers[SourceColumnTag].GetDataArray()[i]
                     IndexInSourceDict = None
                     for SKey in Entry2IndexDictDict.iterkeys():
                         if(Entry2IndexDictDict[SKey].has_key(Entry)):
                             IndexInSourceDict = Entry2IndexDictDict[SKey][Entry]
                             break
-                    SEntry = SourceDCsDict[SKey].DataContainers[Tag].GetDataArray()[IndexInSourceDict]
-                    DataArray.append(SEntry)
+                    if(IndexInSourceDict!=None):
+                        SEntry       = SourceDCsDict[SKey].DataContainers[Tag].GetDataArray()[IndexInSourceDict]
+                        DataArray[i] = SEntry
                 DataArray = scipy.array(DataArray)
                 DestDCsDict[DKey].DataContainers[Tag].ReplaceDataArray(DataArray)
 

@@ -169,6 +169,7 @@ class DataContainers:
                 FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
                 FH.write(FormatString.format(String))
             FH.write('\n')
+        FH.close()
 
         Cwd = os.getcwd()
         os.chdir(OutPath)

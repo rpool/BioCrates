@@ -136,7 +136,8 @@ class Format:
 
     def ParseExtraInfoFiles(self,
                             Log=Logger,
-                            boRemoveDuplicateLines=False):
+                            boRemoveDuplicateLines=False,
+                            Delimiter=None):
         DCsDict = {}
         for EIFile in self.GetExtraInfoFiles():
             LogString = '    ++ Parsing \"'+EIFile.GetName()+'\" ...'
@@ -162,9 +163,9 @@ class Format:
                 LogString = '      ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
                 print LogString
                 Log.Write(LogString+'\n')
-                DCsDict[EIFile.GetName()] = EIFile.LineArray2DataContainers()
+                DCsDict[EIFile.GetName()] = EIFile.LineArray2DataContainers(Delimiter=Delimiter)
             else:
-                DCsDict[EIFile.GetName()] = EIFile.ParseToDataContainers()
+                DCsDict[EIFile.GetName()] = EIFile.ParseToDataContainers(Delimiter=Delimiter)
             EIFile.Close()
             EIFile.Cleanup()
 
@@ -286,6 +287,28 @@ class Format:
 
         for Key in DCsDict.iterkeys():
             for Column in XmlObj.getroot().find(Tag):
+                if((not DCsDict[Key].DataContainers.has_key(Column.tag)) and
+                   (type(Column.tag)==str)):
+                    LogString  = '      ++ Creating missing column \"'+Column.tag+\
+                                 '\" with same length as column \"SNPID\" ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    FmtLog.Write(LogString+'\n')
+
+                    DCsDict[Key].DataContainers[Column.tag] = DataContainer.DataContainer()
+                    DCsDict[Key].DataContainers[Column.tag].SetDataName(Column.tag)
+                    DataArray = []
+                    for i in range(len(DCsDict[Key].DataContainers['SNPID'].GetDataArray())):
+                        DataArray.append('NA')
+                    DCsDict[Key].DataContainers[Column.tag].ReplaceDataArray(scipy.array(DataArray))
+
+                    LogString  = '      -- Done ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    FmtLog.Write(LogString+'\n')
+
+        for Key in DCsDict.iterkeys():
+            for Column in XmlObj.getroot().find(Tag):
                 if(Column.find('Renames')!=None):
                     for Rename in Column.find('Renames'):
                         Source = Rename.find('Source').text
@@ -355,34 +378,38 @@ class Format:
                          FmtLog=FmtLog,
                          HeadingSpaces='  ',
                          ConditionList=CondList)
-        CondList = XmlObj.getroot().find(Tag).find('chr').find('MandatoryFieldEntries').text
-        CondList = CondList.split(',')
-        self.CheckChrs(DCsDict=DCsDict,
-                       Log=Log,
-                       FmtLog=FmtLog,
-                       HeadingSpaces='  ',
-                       ConditionList=CondList)
-        CondList = XmlObj.getroot().find(Tag).find('strand_genome').find('MandatoryFieldEntries').text
-        CondList = CondList.split(',')
-        self.CheckStrandGenomes(DCsDict=DCsDict,
-                                Log=Log,
-                                FmtLog=FmtLog,
-                                HeadingSpaces='  ',
-                                ConditionList=CondList)
-        CondList = XmlObj.getroot().find(Tag).find('imputed').find('MandatoryFieldEntries').text
-        CondList = CondList.split(',')
-        self.CheckImputeds(DCsDict=DCsDict,
+        if(XmlObj.getroot().find(Tag).find('chr')!=None):
+            CondList = XmlObj.getroot().find(Tag).find('chr').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckChrs(DCsDict=DCsDict,
                            Log=Log,
                            FmtLog=FmtLog,
                            HeadingSpaces='  ',
                            ConditionList=CondList)
-        CondList = XmlObj.getroot().find(Tag).find('used_for_imp').find('MandatoryFieldEntries').text
-        CondList = CondList.split(',')
-        self.CheckUsedForImps(DCsDict=DCsDict,
-                              Log=Log,
-                              FmtLog=FmtLog,
-                              HeadingSpaces='  ',
-                              ConditionList=CondList)
+        if(XmlObj.getroot().find(Tag).find('strand_genome')!=None):
+            CondList = XmlObj.getroot().find(Tag).find('strand_genome').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckStrandGenomes(DCsDict=DCsDict,
+                                    Log=Log,
+                                    FmtLog=FmtLog,
+                                    HeadingSpaces='  ',
+                                    ConditionList=CondList)
+        if(XmlObj.getroot().find(Tag).find('imputed')!=None):
+            CondList = XmlObj.getroot().find(Tag).find('imputed').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckImputeds(DCsDict=DCsDict,
+                               Log=Log,
+                               FmtLog=FmtLog,
+                               HeadingSpaces='  ',
+                               ConditionList=CondList)
+        if(XmlObj.getroot().find(Tag).find('used_for_imp')!=None):
+            CondList = XmlObj.getroot().find(Tag).find('used_for_imp').find('MandatoryFieldEntries').text
+            CondList = CondList.split(',')
+            self.CheckUsedForImps(DCsDict=DCsDict,
+                                  Log=Log,
+                                  FmtLog=FmtLog,
+                                  HeadingSpaces='  ',
+                                  ConditionList=CondList)
 
         if(Tag=='MtbGWAColumns'):
             CondList = XmlObj.getroot().find(Tag).find('position').find('MandatoryFieldEntries').text
@@ -1038,7 +1065,6 @@ class Format:
             print LogString
             Log.Write(LogString+'\n')
             FmtLog.Write(LogString+'\n')
-
             FilterArray    = (DCs.DataContainers['used_for_imp'].GetDataArray()==ConditionList[0])
             for i in range(1,len(ConditionList)):
                 TmpFilterArray = (DCs.DataContainers['used_for_imp'].GetDataArray()==ConditionList[i])

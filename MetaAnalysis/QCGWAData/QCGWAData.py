@@ -96,8 +96,13 @@ def main(ExecutableName):
     ExtraInfoFormat.AppendFilesToExtraInfoFiles(XmlObj=XmlProtocol,
                                                 Log=Log)
     boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
+    Delimiter              = None
+    if(XmlProtocol.getroot().find('Format').find('ExtraInfoDelimiter')!=None):
+        Delimiter = XmlProtocol.getroot().find('Format').find('ExtraInfoDelimiter').text
     ExtraInfoDCsDict       = ExtraInfoFormat.ParseExtraInfoFiles(Log=Log,
-                                                                 boRemoveDuplicateLines=boRemoveDuplicateLines)
+                                                                 boRemoveDuplicateLines=boRemoveDuplicateLines,
+                                                                 Delimiter=Delimiter)
+
     ExtraInfoChecksDict = {}
     for Key in ExtraInfoDCsDict.iterkeys():
         ExtraInfoChecksDict[Key] = Checks.Checks()

@@ -75,10 +75,11 @@ class File:
 
         return DataArray
 
-    def ParseToLineArray(self):
+    def ParseToLineArray(self,
+                         Delimiter=None):
         LineArray = []
         for Line in self.GetFileHandle():
-            LJoin = Line.strip().split()
+            LJoin = Line.strip().split(Delimiter)
             LJoin = ' '.join(LJoin)
             LineArray.append(LJoin)
         LineArray      = scipy.array(LineArray)
@@ -92,11 +93,12 @@ class File:
     def GetLineArray(self):
         return self.LineArray
 
-    def LineArray2DataContainers(self):
+    def LineArray2DataContainers(self,
+                                 Delimiter=None):
         DCs  = DataContainer.DataContainers()
         if(self.GetboHeader()):
             Header = re.sub('#','',self.GetLineArray()[0])
-            Names  = Header.strip().split()
+            Names  = Header.strip().split(Delimiter)
             for i in range(len(Names)):
                 Name                     = Names[i] # The names of the datacontainers are determined by the
                                                     # header column names.
@@ -107,7 +109,7 @@ class File:
                 DCs.DataContainers[Name].SetDataName(Name)
         else:
             Line   = self.GetLineArray()[0]
-            LSplit = Line.strip().split()
+            LSplit = Line.strip().split(Delimiter)
             for i in range(len(LSplit)):
                 Name                     = str(i)
                 DCs.DataContainers[Name] = DataContainer.DataContainer()
@@ -120,7 +122,7 @@ class File:
 
         for i in range(1,len(self.GetLineArray())):
             Line = self.GetLineArray()[i]
-            LSplit = Line.strip().split()
+            LSplit = Line.strip().split(Delimiter)
             for i in range(len(LSplit)):
                 Name  = DCs.Columns2Names[i]
                 Entry = LSplit[i]
