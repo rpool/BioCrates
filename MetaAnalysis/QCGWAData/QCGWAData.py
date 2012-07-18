@@ -388,7 +388,7 @@ def main(ExecutableName):
                         String = '      ** Removed '+str(GWAFiltersDict[Key].GetNDeletedDuplicateSNPs())+\
                                     ' row(s) containing duplicate SNPs!'
                         GWAFiltersDict[Key].WriteCustomFilterReport(FileName='Filter_SnpIdUnique_'+N+'.txt',
-                                                                    Value=String)
+                                                                    String=String)
 
                         LogString = String
                         print LogString
