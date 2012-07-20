@@ -218,6 +218,7 @@ def main(ExecutableName):
 
                 for Key in GWADCsDict.iterkeys():
                     GWAChecksDict[Key] = Checks.Checks()
+                    GWAChecksDict[Key].SetMtbnameOK(1)
                     GWAChecksDict[Key].SetCsvHeader()
                     GWAChecksDict[Key].WriteCsvHeader('Header.csv')
                     GWAChecksDict[Key].SetCsvComments('COMMENTS per variable')
