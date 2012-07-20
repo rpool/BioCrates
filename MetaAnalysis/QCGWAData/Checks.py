@@ -539,6 +539,8 @@ class Checks:
 
         if(boOk):
             self.SetScatterFreqsOK(1)
+        else:
+            self.SetScatterFreqsOK(0)
 
         return boOk,\
                CorrCoeff[0][1]
