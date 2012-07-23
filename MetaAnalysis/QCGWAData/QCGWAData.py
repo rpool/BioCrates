@@ -16,7 +16,7 @@ import Checks
 import Filters
 import DataContainer
 
-def main(ExecutableName):
+def main(ExecutableName=str):
 
     #===========================================================================
     # START Initialization
@@ -935,7 +935,7 @@ def main(ExecutableName):
     #===========================================================================
 
     #===========================================================================
-    # START Finilization
+    # START Finalization
     #===========================================================================
     LogString = '\n**** Done :-)'
     print LogString
@@ -945,7 +945,7 @@ def main(ExecutableName):
     Log.Write(LogString+'\n')
     Log.Close()
     #===========================================================================
-    # START Finilization
+    # START Finalization
     #===========================================================================
 
     return
