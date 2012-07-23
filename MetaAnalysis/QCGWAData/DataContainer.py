@@ -179,7 +179,7 @@ class DataContainers:
                 elif(ColumnId=='HWE_pval'):
                     String = str(round(float(String),5))
                 elif(ColumnId=='n_total'):
-                    String = str(round(int(float(String),0)))
+                    String = str(int(round(float(String),0)))
                 elif(ColumnId=='oevar_imp'):
                     String = str(round(float(String),5))
 
