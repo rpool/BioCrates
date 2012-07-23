@@ -166,6 +166,23 @@ class DataContainers:
                 ColumnId    = Header2ColumnDict[Entry]
 
                 String = str(self.DataContainers[ColumnId].GetDataArray()[i])
+                if(String=='NA'):
+                    pass
+                elif(ColumnId=='beta'):
+                    String = str(round(float(String),5))
+                elif(ColumnId=='SE'):
+                    String = str(round(float(String),5))
+                elif(ColumnId=='pval'):
+                    String = str(round(float(String),5))
+                elif(ColumnId=='AF_coded_all'):
+                    String = str(round(float(String),5))
+                elif(ColumnId=='HWE_pval'):
+                    String = str(round(float(String),5))
+                elif(ColumnId=='n_total'):
+                    String = str(round(int(float(String),0)))
+                elif(ColumnId=='oevar_imp'):
+                    String = str(round(float(String),5))
+
                 FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
                 FH.write(FormatString.format(String))
             FH.write('\n')
