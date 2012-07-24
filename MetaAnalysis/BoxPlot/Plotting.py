@@ -114,7 +114,7 @@ def PylabGetParams():
                    'text.usetex': True,
                    'figure.figsize': FigSize}
     Left   = 0.16
-    Bottom = 0.16
+    Bottom = 0.25
     Width  = 0.86 - Left
     Height = 0.95 - Bottom
 
@@ -357,6 +357,7 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
     PylabAxis.spines['top'].set_visible(False)
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
+    pylab.xticks(rotation='vertical')
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 
@@ -454,6 +455,7 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
     PylabAxis.spines['top'].set_visible(False)
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
+    pylab.xticks(rotation='vertical')
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 
