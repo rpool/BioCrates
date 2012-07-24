@@ -102,6 +102,7 @@ def PylabGetParams():
                    'patch.antialiased': True,
                    'axes.labelsize': 8,
                    'axes.linewidth': 0.5,
+                   'axes.fontsize' : 4,
                    'grid.color': '0.75',
                    'grid.linewidth': 0.25,
                    'grid.linestyle': ':',
@@ -278,18 +279,23 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
 
     XMean = []
     YMean = []
+    YMax  = -1e200
     for i in range(len(XArrayList)):
         FilterArray   = (YArrayList[i]!='NA')
         FilterArray  *= (XArrayList[i]!='NA')
         XArrayList[i] = scipy.compress(FilterArray,XArrayList[i]).astype(float)
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         XMean.append(scipy.mean(XArrayList[i]))
-        YMean.append(scipy.mean(YArrayList[i]))
+        YMean.append(scipy.median(YArrayList[i]))
+        YMax = max(YMax,YArrayList[i].max())
     XMean    = scipy.array(XMean)
+    XMean    = scipy.around(XMean,1)
     YMean    = scipy.array(YMean)
     XArgSort = scipy.argsort(XMean)
-    XMax     = XMean.max()+10.0
-    YMax     = YMean.max()+10.0
+    XMax     = XMean.max()+60.0
+    XMin     = XMean.min()-60.0
+    Factor   = 1.1
+    YMax     = (YMax-0.0)*Factor
 
     PylabParameters,\
     Rectangle         = PylabGetParams()
@@ -305,36 +311,52 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
         os.mkdir(PlotPath)
     PlotName = os.path.join(PlotPath,PlotName)
 
-#    for i in XArgSort:
     BP = PylabAxis.boxplot(YArrayList,
-                           notch=1,
-                           positions=XMean)#,
-                           #label=r'${\rm '+DataList[i]+r'} \overline(N)='+str(round(XMean[i],2)))
-    pylab.setp(BP['boxes'], color='black')
-    pylab.setp(BP['whiskers'], color='black')
-    pylab.setp(BP['fliers'], color='blue', marker='o')
+                           notch=0,
+                           positions=XMean,
+                           widths=50)
+    pylab.setp(BP['boxes'],
+               color='black',
+               lw=0.75)
+    pylab.setp(BP['whiskers'],
+               color='black',
+               lw=0.75,
+               ls=':')
+    pylab.setp(BP['fliers'],
+               color='black',
+               marker='o',
+               markerfacecolor='None',
+               ms=1,
+               markeredgewidth=0.5)
+    pylab.setp(BP['caps'],
+               color='black',
+               lw=0.75)
+    pylab.setp(BP['medians'],
+               color='black',
+               lw=0.75)
 
-    PylabAxis.plot(XMean,
-                   YMean,
+    PylabAxis.plot(XMean[XArgSort],
+                   YMean[XArgSort],
                    color='black',
-                   marker='D',
-                   markerfacecolor='None',
-                   ls=':')
+                   ls=':',
+                   lw=0.5)
 
-#    PylabAxis.set_ylim([0.0,XMax])
-#    PylabAxis.set_xlim([0.0,YMax])
+    for i in XArgSort:
+        PylabAxis.text(x=XMean[i],
+                       y=YMax,
+                       s=r'${\rm '+DataList[i]+r'}$',
+                       fontsize=4,
+                       ha='center',
+                       va='top')
+
+    PylabAxis.set_xlim([XMin,XMax])
+    PylabAxis.set_ylim([0.0,YMax])
     PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
     PylabAxis.set_ylabel(r'${\rm SE~[-]}$')
     PylabAxis.spines['right'].set_visible(False)
     PylabAxis.spines['top'].set_visible(False)
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
-    Handles,Labels = PylabAxis.get_legend_handles_labels()
-    PylabAxis.legend(Handles,
-                     Labels,
-                     fancybox=True,
-                     shadow=True,
-                     loc='lower right')
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 
@@ -347,8 +369,30 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
 def BoxPlotBetaPlusConnectingLines(MtbName=str,
                                    DataList=[],
                                    XArrayList=[],
-                                   YArrayList=[],
-                                   MarkerList=[]):
+                                   YArrayList=[]):
+
+    XMean = []
+    YMean = []
+    YMax  = -1e200
+    YMin  = 1e200
+    for i in range(len(XArrayList)):
+        FilterArray   = (YArrayList[i]!='NA')
+        FilterArray  *= (XArrayList[i]!='NA')
+        XArrayList[i] = scipy.compress(FilterArray,XArrayList[i]).astype(float)
+        YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
+        XMean.append(scipy.mean(XArrayList[i]))
+        YMean.append(scipy.median(YArrayList[i]))
+        YMax = max(YMax,YArrayList[i].max())
+        YMin = min(YMin,YArrayList[i].min())
+    XMean    = scipy.array(XMean)
+    XMean    = scipy.around(XMean,1)
+    YMean    = scipy.array(YMean)
+    XArgSort = scipy.argsort(XMean)
+    XMax     = XMean.max()+60.0
+    XMin     = XMean.min()-60.0
+    Factor   = 1.1
+    YMax     = YMax+(1.0-Factor)*YMax
+    YMin     = YMin-(1.0-Factor)*YMin
 
     PylabParameters,\
     Rectangle         = PylabGetParams()
@@ -364,24 +408,52 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
         os.mkdir(PlotPath)
     PlotName = os.path.join(PlotPath,PlotName)
 
-    XMax = XMean.max()+10.0
-    YMax = YArrayList.max()+2.5
-    PylabAxis.set_ylim([0.0,XMax])
-    PylabAxis.set_xlim([0.0,YMax])
-    PylabAxis.set_ylim([0.0,XMax])
-    PylabAxis.set_xlim([0.0,YMax])
+    BP = PylabAxis.boxplot(YArrayList,
+                           notch=0,
+                           positions=XMean,
+                           widths=50)
+    pylab.setp(BP['boxes'],
+               color='black',
+               lw=0.75)
+    pylab.setp(BP['whiskers'],
+               color='black',
+               lw=0.75,
+               ls=':')
+    pylab.setp(BP['fliers'],
+               color='black',
+               marker='o',
+               markerfacecolor='None',
+               ms=1,
+               markeredgewidth=0.5)
+    pylab.setp(BP['caps'],
+               color='black',
+               lw=0.75)
+    pylab.setp(BP['medians'],
+               color='black',
+               lw=0.75)
+
+    PylabAxis.plot(XMean[XArgSort],
+                   YMean[XArgSort],
+                   color='black',
+                   ls=':',
+                   lw=0.5)
+
+    for i in XArgSort:
+        PylabAxis.text(x=XMean[i],
+                       y=YMax,
+                       s=r'${\rm '+DataList[i]+r'}$',
+                       fontsize=4,
+                       ha='center',
+                       va='top')
+
+    PylabAxis.set_xlim([XMin,XMax])
+    PylabAxis.set_ylim([YMin,YMax])
     PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
-    PylabAxis.set_ylabel(r'$\beta{~\rm [-]}$')
+    PylabAxis.set_ylabel(r'$\beta{\rm ~[-]}$')
     PylabAxis.spines['right'].set_visible(False)
     PylabAxis.spines['top'].set_visible(False)
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
-    Handles,Labels = PylabAxis.get_legend_handles_labels()
-    PylabAxis.legend(Handles,
-                     Labels,
-                     fancybox=True,
-                     shadow=True,
-                     loc='lower right')
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 
@@ -390,3 +462,50 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
     del PylabFigure
 
     return
+
+#def BoxPlotBetaPlusConnectingLines(MtbName=str,
+#                                   DataList=[],
+#                                   XArrayList=[],
+#                                   YArrayList=[],
+#                                   MarkerList=[]):
+#
+#    PylabParameters,\
+#    Rectangle         = PylabGetParams()
+#    Size              = 1.5
+#    LineWidth         = 0.5
+#    pylab.rcParams.update(PylabParameters)
+#    PylabFigure = pylab.figure()
+#    PylabFigure.clf()
+#    PylabAxis = PylabFigure.add_axes(Rectangle)
+#    PlotName  = 'BoxPlotBeta_'+MtbName+'.png'
+#    PlotPath  = os.path.join(os.getcwd(),'Plots')
+#    if(not os.path.isdir(PlotPath)):
+#        os.mkdir(PlotPath)
+#    PlotName = os.path.join(PlotPath,PlotName)
+#
+#    XMax = XMean.max()+10.0
+#    YMax = YArrayList.max()+2.5
+#    PylabAxis.set_ylim([0.0,XMax])
+#    PylabAxis.set_xlim([0.0,YMax])
+#    PylabAxis.set_ylim([0.0,XMax])
+#    PylabAxis.set_xlim([0.0,YMax])
+#    PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
+#    PylabAxis.set_ylabel(r'$\beta{~\rm [-]}$')
+#    PylabAxis.spines['right'].set_visible(False)
+#    PylabAxis.spines['top'].set_visible(False)
+#    PylabAxis.xaxis.set_ticks_position('bottom')
+#    PylabAxis.yaxis.set_ticks_position('left')
+#    Handles,Labels = PylabAxis.get_legend_handles_labels()
+#    PylabAxis.legend(Handles,
+#                     Labels,
+#                     fancybox=True,
+#                     shadow=True,
+#                     loc='lower right')
+#    PylabAxis.grid(True)
+#    PylabFigure.savefig(PlotName,dpi=600)
+#
+#    pylab.close(PylabFigure)
+#    del PylabAxis
+#    del PylabFigure
+#
+#    return

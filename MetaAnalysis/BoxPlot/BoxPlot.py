@@ -200,6 +200,23 @@ def main(ExecutableName=str):
         print LogString
         Log.Write(LogString+'\n')
 
+        LogString = '  ++ Plotting \"beta\" box plot ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+        YArrayList = []
+        for ChrtName in CohortList:
+            YArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['beta'].GetDataArray())
+
+        Plotting.BoxPlotBetaPlusConnectingLines(MtbName=MtbName,
+                                                DataList=CohortList,
+                                                XArrayList=XArrayList,
+                                                YArrayList=YArrayList)
+
+        LogString = '  -- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
         LogString = '-- Done ...'
         print LogString
         Log.Write(LogString+'\n')
