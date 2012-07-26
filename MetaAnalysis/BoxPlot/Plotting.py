@@ -104,7 +104,7 @@ def PylabGetParams():
                    'axes.linewidth': 0.5,
                    'axes.fontsize' : 4,
                    'grid.color': '0.75',
-                   'grid.linewidth': 0.25,
+                   'grid.linewidth': 0.125,
                    'grid.linestyle': ':',
                    'axes.axisbelow': False,
                    'text.fontsize': 8,
@@ -113,9 +113,9 @@ def PylabGetParams():
                    'ytick.labelsize': 8,
                    'text.usetex': True,
                    'figure.figsize': FigSize}
-    Left   = 0.16
-    Bottom = 0.25
-    Width  = 0.86 - Left
+    Left   = 0.15
+    Bottom = 0.16
+    Width  = 0.84 - Left
     Height = 0.95 - Bottom
 
     return Params,\
@@ -275,22 +275,23 @@ def PlotQQFilteredOnScore(MtbName=str,
 def BoxPlotSEPlusConnectingLines(MtbName=str,
                                  DataList=[],
                                  XArrayList=[],
-                                 YArrayList=[]):
+                                 YArrayList=[],
+                                 MarkerDict={}):
 
-    XMean = []
-    YMean = []
-    YMax  = -1e200
+    XMean   = []
+    YMedian = []
+    YMax    = -1e200
     for i in range(len(XArrayList)):
         FilterArray   = (YArrayList[i]!='NA')
         FilterArray  *= (XArrayList[i]!='NA')
         XArrayList[i] = scipy.compress(FilterArray,XArrayList[i]).astype(float)
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         XMean.append(scipy.mean(XArrayList[i]))
-        YMean.append(scipy.median(YArrayList[i]))
+        YMedian.append(scipy.median(YArrayList[i]))
         YMax = max(YMax,YArrayList[i].max())
     XMean    = scipy.array(XMean)
     XMean    = scipy.around(XMean,1)
-    YMean    = scipy.array(YMean)
+    YMedian  = scipy.array(YMedian)
     XArgSort = scipy.argsort(XMean)
     XMax     = XMean.max()+60.0
     XMin     = XMean.min()-60.0
@@ -299,8 +300,8 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
 
     PylabParameters,\
     Rectangle         = PylabGetParams()
-    Size              = 1.5
-    LineWidth         = 0.5
+    Size              = 0.75
+    LineWidth         = 0.25
     pylab.rcParams.update(PylabParameters)
     PylabFigure = pylab.figure()
     PylabFigure.clf()
@@ -314,40 +315,41 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
     BP = PylabAxis.boxplot(YArrayList,
                            notch=0,
                            positions=XMean,
-                           widths=50)
+                           widths=12.5)
     pylab.setp(BP['boxes'],
                color='black',
-               lw=0.75)
+               lw=0.25)
     pylab.setp(BP['whiskers'],
                color='black',
-               lw=0.75,
+               lw=0.25,
                ls=':')
     pylab.setp(BP['fliers'],
                color='black',
-               marker='o',
+               marker='+',
                markerfacecolor='None',
-               ms=1,
-               markeredgewidth=0.5)
+               ms=0.5,
+               markeredgewidth=0.125)
     pylab.setp(BP['caps'],
                color='black',
-               lw=0.75)
+               lw=0.25)
     pylab.setp(BP['medians'],
                color='black',
-               lw=0.75)
+               lw=0.25)
 
     PylabAxis.plot(XMean[XArgSort],
-                   YMean[XArgSort],
+                   YMedian[XArgSort],
                    color='black',
                    ls=':',
-                   lw=0.5)
+                   lw=0.25)
 
     for i in XArgSort:
-        PylabAxis.text(x=XMean[i],
-                       y=YMax,
-                       s=r'${\rm '+DataList[i]+r'}$',
-                       fontsize=4,
-                       ha='center',
-                       va='top')
+        PylabAxis.scatter(x=XMean[i],
+                          y=YMedian[i],
+                          label=r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}',
+                          s=Size,
+                          linewidths=LineWidth,
+                          facecolor='None',
+                          marker=MarkerDict[DataList[i]])
 
     PylabAxis.set_xlim([XMin,XMax])
     PylabAxis.set_ylim([0.0,YMax])
@@ -358,6 +360,16 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
     pylab.xticks(rotation='vertical')
+    PylabAxis.get_xaxis().set_ticks([])
+    Handles,Labels = PylabAxis.get_legend_handles_labels()
+    PylabAxis.legend(Handles,
+                     Labels,
+                     fancybox=True,
+                     shadow=True,
+                     loc='center right',
+                     bbox_to_anchor=(1.2, 0.5),
+                     numpoints=1,
+                     scatterpoints=1)
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 
@@ -370,24 +382,25 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
 def BoxPlotBetaPlusConnectingLines(MtbName=str,
                                    DataList=[],
                                    XArrayList=[],
-                                   YArrayList=[]):
+                                   YArrayList=[],
+                                   MarkerDict={}):
 
-    XMean = []
-    YMean = []
-    YMax  = -1e200
-    YMin  = 1e200
+    XMean   = []
+    YMedian = []
+    YMax    = -1e200
+    YMin    = 1e200
     for i in range(len(XArrayList)):
         FilterArray   = (YArrayList[i]!='NA')
         FilterArray  *= (XArrayList[i]!='NA')
         XArrayList[i] = scipy.compress(FilterArray,XArrayList[i]).astype(float)
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         XMean.append(scipy.mean(XArrayList[i]))
-        YMean.append(scipy.median(YArrayList[i]))
+        YMedian.append(scipy.median(YArrayList[i]))
         YMax = max(YMax,YArrayList[i].max())
         YMin = min(YMin,YArrayList[i].min())
     XMean    = scipy.array(XMean)
     XMean    = scipy.around(XMean,1)
-    YMean    = scipy.array(YMean)
+    YMedian  = scipy.array(YMedian)
     XArgSort = scipy.argsort(XMean)
     XMax     = XMean.max()+60.0
     XMin     = XMean.min()-60.0
@@ -397,8 +410,8 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
 
     PylabParameters,\
     Rectangle         = PylabGetParams()
-    Size              = 1.5
-    LineWidth         = 0.5
+    Size              = 0.75
+    LineWidth         = 0.25
     pylab.rcParams.update(PylabParameters)
     PylabFigure = pylab.figure()
     PylabFigure.clf()
@@ -412,40 +425,41 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
     BP = PylabAxis.boxplot(YArrayList,
                            notch=0,
                            positions=XMean,
-                           widths=50)
+                           widths=12.5)
     pylab.setp(BP['boxes'],
                color='black',
-               lw=0.75)
+               lw=0.25)
     pylab.setp(BP['whiskers'],
                color='black',
-               lw=0.75,
+               lw=0.25,
                ls=':')
     pylab.setp(BP['fliers'],
                color='black',
-               marker='o',
+               marker='+',
                markerfacecolor='None',
-               ms=1,
-               markeredgewidth=0.5)
+               ms=0.5,
+               markeredgewidth=0.125)
     pylab.setp(BP['caps'],
                color='black',
-               lw=0.75)
+               lw=0.25)
     pylab.setp(BP['medians'],
                color='black',
-               lw=0.75)
+               lw=0.25)
 
     PylabAxis.plot(XMean[XArgSort],
-                   YMean[XArgSort],
+                   YMedian[XArgSort],
                    color='black',
                    ls=':',
-                   lw=0.5)
+                   lw=0.25)
 
     for i in XArgSort:
-        PylabAxis.text(x=XMean[i],
-                       y=YMax,
-                       s=r'${\rm '+DataList[i]+r'}$',
-                       fontsize=4,
-                       ha='center',
-                       va='top')
+        PylabAxis.scatter(x=XMean[i],
+                          y=YMedian[i],
+                          label=r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}',
+                          s=Size,
+                          linewidths=LineWidth,
+                          facecolor='None',
+                          marker=MarkerDict[DataList[i]])
 
     PylabAxis.set_xlim([XMin,XMax])
     PylabAxis.set_ylim([YMin,YMax])
@@ -456,6 +470,16 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
     PylabAxis.xaxis.set_ticks_position('bottom')
     PylabAxis.yaxis.set_ticks_position('left')
     pylab.xticks(rotation='vertical')
+    PylabAxis.get_xaxis().set_ticks([])
+    Handles,Labels = PylabAxis.get_legend_handles_labels()
+    PylabAxis.legend(Handles,
+                     Labels,
+                     fancybox=True,
+                     shadow=True,
+                     loc='center right',
+                     bbox_to_anchor=(1.2, 0.5),
+                     numpoints=1,
+                     scatterpoints=1)
     PylabAxis.grid(True)
     PylabFigure.savefig(PlotName,dpi=600)
 

@@ -190,11 +190,20 @@ def main(ExecutableName=str):
         for ChrtName in CohortList:
             XArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['n_total'].GetDataArray())
             YArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['SE'].GetDataArray())
+        MarkerDict = {}
+        MarkerDict['EGCUT']   = 'v'
+        MarkerDict['ERF']     = 'o'
+        MarkerDict['KORA']    = 's'
+        MarkerDict['LLS']     = 'd'
+        MarkerDict['NTR']     = 'p'
+        MarkerDict['QIMR']    = 'h'
+        MarkerDict['TwinsUK'] = '^'
 
         Plotting.BoxPlotSEPlusConnectingLines(MtbName=MtbName,
                                               DataList=CohortList,
                                               XArrayList=XArrayList,
-                                              YArrayList=YArrayList)
+                                              YArrayList=YArrayList,
+                                              MarkerDict=MarkerDict)
 
         LogString = '  -- Done ...'
         print LogString
@@ -211,7 +220,8 @@ def main(ExecutableName=str):
         Plotting.BoxPlotBetaPlusConnectingLines(MtbName=MtbName,
                                                 DataList=CohortList,
                                                 XArrayList=XArrayList,
-                                                YArrayList=YArrayList)
+                                                YArrayList=YArrayList,
+                                                MarkerDict=MarkerDict)
 
         LogString = '  -- Done ...'
         print LogString
