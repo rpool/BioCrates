@@ -519,13 +519,7 @@ def BoxPlotSDPlusConnectingLines(MtbName=str,
                    color='black',
                    ls='-',
                    lw=0.25))
-    Handles.append(PylabAxis.plot(XMean[XArgSort],
-                   YMean[XArgSort],
-                   color='grey',
-                   ls='-',
-                   lw=0.25))
     Labels.append(r'\rm Median')
-    Labels.append(r'\rm Mean')
 
     for i in XArgSort:
         Handles.append(PylabAxis.scatter(x=XMean[i],
@@ -564,7 +558,7 @@ def BoxPlotSDPlusConnectingLines(MtbName=str,
                lw=0.25)
 
     PylabAxis.set_xlim([XMin,XMax])
-    PylabAxis.set_ylim(YLim)
+    PylabAxis.set_ylim([0.0,YLim[1]*2.0])
     PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
     PylabAxis.set_ylabel(r'${\rm SD~[-]}$')
     PylabAxis.spines['right'].set_visible(False)
