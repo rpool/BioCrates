@@ -127,7 +127,7 @@ def main(ExecutableName=str):
                                  RE)
 
     for MtbName in MtbNameFileDCs.DataContainers['0'].GetDataArray():
-        LogString = '++ Box plotting \"beta\" and \"SE\" as a function of average N for metabolite\"'+MtbName+'\" ...'
+        LogString = '++ Box plotting \"beta\", \"SE\" and \"SD\" as a function of average N for metabolite\"'+MtbName+'\" ...'
         print LogString
         Log.Write(LogString+'\n')
 
@@ -187,9 +187,11 @@ def main(ExecutableName=str):
 
         XArrayList = []
         YArrayList = []
+        NArrayList = []
         for ChrtName in CohortList:
             XArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['n_total'].GetDataArray())
             YArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['SE'].GetDataArray())
+            NArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['n_total'].GetDataArray())
         MarkerDict = {}
         MarkerDict['EGCUT']   = 'v'
         MarkerDict['ERF']     = 'o'
@@ -203,6 +205,21 @@ def main(ExecutableName=str):
                                               DataList=CohortList,
                                               XArrayList=XArrayList,
                                               YArrayList=YArrayList,
+                                              MarkerDict=MarkerDict)
+
+        LogString = '  -- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+        LogString = '  ++ Plotting \"SD\" box plot ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+        Plotting.BoxPlotSDPlusConnectingLines(MtbName=MtbName,
+                                              DataList=CohortList,
+                                              XArrayList=XArrayList,
+                                              YArrayList=YArrayList,
+                                              NArrayList=NArrayList,
                                               MarkerDict=MarkerDict)
 
         LogString = '  -- Done ...'

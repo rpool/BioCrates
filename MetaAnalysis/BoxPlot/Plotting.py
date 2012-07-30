@@ -279,6 +279,7 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
                                  MarkerDict={}):
 
     XMean   = []
+    YMean   = []
     YMedian = []
     YMax    = -1e200
     for i in range(len(XArrayList)):
@@ -288,10 +289,12 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         XMean.append(scipy.mean(XArrayList[i]))
         YMedian.append(scipy.median(YArrayList[i]))
+        YMean.append(scipy.mean(YArrayList[i]))
         YMax = max(YMax,YArrayList[i].max())
     XMean    = scipy.array(XMean)
     XMean    = scipy.around(XMean,1)
     YMedian  = scipy.array(YMedian)
+    YMean    = scipy.array(YMean)
     XArgSort = scipy.argsort(XMean)
     XMax     = XMean.max()+60.0
     XMin     = XMean.min()-60.0
@@ -342,14 +345,16 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
                    ls=':',
                    lw=0.25)
 
+    Handles = []
+    Labels  = []
     for i in XArgSort:
-        PylabAxis.scatter(x=XMean[i],
-                          y=YMedian[i],
-                          label=r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}',
-                          s=Size,
-                          linewidths=LineWidth,
-                          facecolor='None',
-                          marker=MarkerDict[DataList[i]])
+        Handles.append(PylabAxis.scatter(x=XMean[i],
+                                         y=YMedian[i],
+                                         s=Size,
+                                         linewidths=LineWidth,
+                                         facecolor='None',
+                                         marker=MarkerDict[DataList[i]]))
+        Labels.append(r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}')
 
     PylabAxis.set_xlim([XMin,XMax])
     PylabAxis.set_ylim([0.0,YMax])
@@ -361,7 +366,212 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
     PylabAxis.yaxis.set_ticks_position('left')
     pylab.xticks(rotation='vertical')
     PylabAxis.get_xaxis().set_ticks([])
-    Handles,Labels = PylabAxis.get_legend_handles_labels()
+
+    PylabAxis.legend(Handles,
+                     Labels,
+                     fancybox=True,
+                     shadow=True,
+                     loc='center right',
+                     bbox_to_anchor=(1.2, 0.5),
+                     numpoints=1,
+                     scatterpoints=1)
+    PylabAxis.grid(True)
+    PylabFigure.savefig(PlotName,dpi=600)
+
+    pylab.close(PylabFigure)
+    del PylabAxis
+    del PylabFigure
+
+    return
+
+def BoxPlotSDPlusConnectingLines(MtbName=str,
+                                 DataList=[],
+                                 XArrayList=[],
+                                 YArrayList=[],
+                                 NArrayList=[],
+                                 MarkerDict={}):
+
+    XMean   = []
+    YMean   = []
+    YMedian = []
+    YMax    = -1e200
+    for i in range(len(XArrayList)):
+        FilterArray    = (YArrayList[i]!='NA')
+        FilterArray   *= (XArrayList[i]!='NA')
+        FilterArray   *= (NArrayList[i]!='NA')
+        XArrayList[i]  = scipy.compress(FilterArray,XArrayList[i]).astype(float)
+        YArrayList[i]  = scipy.compress(FilterArray,YArrayList[i]).astype(float)
+        NArrayList[i]  = scipy.compress(FilterArray,NArrayList[i]).astype(float)
+        YArrayList[i] *= scipy.sqrt(NArrayList[i])
+        XMean.append(scipy.mean(XArrayList[i]))
+        YMedian.append(scipy.median(YArrayList[i]))
+        YMean.append(scipy.mean(YArrayList[i]))
+        YMax = max(YMax,YArrayList[i].max())
+    XMean    = scipy.array(XMean)
+    XMean    = scipy.around(XMean,1)
+    YMedian  = scipy.array(YMedian)
+    YMean    = scipy.array(YMean)
+    XArgSort = scipy.argsort(XMean)
+    XMax     = XMean.max()+60.0
+    XMin     = XMean.min()-60.0
+    Factor   = 1.1
+    YMax     = (YMax-0.0)*Factor
+
+    PylabParameters,\
+    Rectangle         = PylabGetParams()
+    Size              = 0.75
+    LineWidth         = 0.25
+    pylab.rcParams.update(PylabParameters)
+    PylabFigure = pylab.figure()
+    PylabFigure.clf()
+    PylabAxis = PylabFigure.add_axes(Rectangle)
+    PlotName  = 'BoxPlotSD_'+MtbName+'.png'
+    PlotPath  = os.path.join(os.getcwd(),'Plots')
+    if(not os.path.isdir(PlotPath)):
+        os.mkdir(PlotPath)
+    PlotName = os.path.join(PlotPath,PlotName)
+
+    BP = PylabAxis.boxplot(YArrayList,
+                           notch=0,
+                           positions=XMean,
+                           widths=12.5)
+    pylab.setp(BP['boxes'],
+               color='black',
+               lw=0.25)
+    pylab.setp(BP['whiskers'],
+               color='black',
+               lw=0.25,
+               ls=':')
+    pylab.setp(BP['fliers'],
+               color='black',
+               marker='+',
+               markerfacecolor='None',
+               ms=0.5,
+               markeredgewidth=0.125)
+    pylab.setp(BP['caps'],
+               color='black',
+               lw=0.25)
+    pylab.setp(BP['medians'],
+               color='black',
+               lw=0.25)
+
+    PylabAxis.plot(XMean[XArgSort],
+                   YMedian[XArgSort],
+                   color='black',
+                   ls=':',
+                   lw=0.25)
+
+    Handles = []
+    Labels  = []
+    for i in XArgSort:
+        Handles.append(PylabAxis.scatter(x=XMean[i],
+                                         y=YMedian[i],
+                                         s=Size,
+                                         linewidths=LineWidth,
+                                         facecolor='None',
+                                         marker=MarkerDict[DataList[i]]))
+        Labels.append(r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}')
+
+    PylabAxis.set_xlim([XMin,XMax])
+    PylabAxis.set_ylim([0.0,YMax])
+    PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
+    PylabAxis.set_ylabel(r'${\rm SD~[-]}$')
+    PylabAxis.spines['right'].set_visible(False)
+    PylabAxis.spines['top'].set_visible(False)
+    PylabAxis.xaxis.set_ticks_position('bottom')
+    PylabAxis.yaxis.set_ticks_position('left')
+    pylab.xticks(rotation='vertical')
+    PylabAxis.get_xaxis().set_ticks([])
+
+    PylabAxis.legend(Handles,
+                     Labels,
+                     fancybox=True,
+                     shadow=True,
+                     loc='center right',
+                     bbox_to_anchor=(1.2, 0.5),
+                     numpoints=1,
+                     scatterpoints=1)
+    PylabAxis.grid(True)
+    PylabFigure.savefig(PlotName,dpi=600)
+
+    pylab.close(PylabFigure)
+    del PylabAxis
+    del PylabFigure
+
+    PylabParameters,\
+    Rectangle         = PylabGetParams()
+    Size              = 1.5
+    LineWidth         = 0.5
+    pylab.rcParams.update(PylabParameters)
+    PylabFigure = pylab.figure()
+    PylabFigure.clf()
+    PylabAxis = PylabFigure.add_axes(Rectangle)
+    PlotName  = 'BoxPlotMeanMedianSD_'+MtbName+'.png'
+    PlotPath  = os.path.join(os.getcwd(),'Plots')
+    if(not os.path.isdir(PlotPath)):
+        os.mkdir(PlotPath)
+    PlotName = os.path.join(PlotPath,PlotName)
+
+    Handles = []
+    Labels  = []
+    Handles.append(PylabAxis.plot(XMean[XArgSort],
+                   YMedian[XArgSort],
+                   color='black',
+                   ls='-',
+                   lw=0.25))
+    Handles.append(PylabAxis.plot(XMean[XArgSort],
+                   YMean[XArgSort],
+                   color='grey',
+                   ls='-',
+                   lw=0.25))
+    Labels.append(r'\rm Median')
+    Labels.append(r'\rm Mean')
+
+    for i in XArgSort:
+        Handles.append(PylabAxis.scatter(x=XMean[i],
+                                         y=YMedian[i],
+                                         s=Size,
+                                         linewidths=LineWidth,
+                                         facecolor='None',
+                                         marker=MarkerDict[DataList[i]]))
+        Labels.append(r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}')
+        PylabAxis.scatter(x=XMean[i],
+                          y=YMean[i],
+                          s=Size,
+                          linewidths=LineWidth,
+                          facecolor='None',
+                          marker=MarkerDict[DataList[i]])
+    YLim = PylabAxis.get_ylim()
+
+    BP = PylabAxis.boxplot(YArrayList,
+                           notch=0,
+                           positions=XMean,
+                           widths=12.5)
+    pylab.setp(BP['boxes'],
+               color='black',
+               lw=0.25)
+    pylab.setp(BP['whiskers'],
+               color='black',
+               lw=0.25,
+               ls='-.')
+    pylab.setp(BP['fliers'],
+               marker='None')
+    pylab.setp(BP['caps'],
+               color='black',
+               lw=0.25)
+    pylab.setp(BP['medians'],
+               color='black',
+               lw=0.25)
+
+    PylabAxis.set_xlim([XMin,XMax])
+    PylabAxis.set_ylim(YLim)
+    PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
+    PylabAxis.set_ylabel(r'${\rm SD~[-]}$')
+    PylabAxis.spines['right'].set_visible(False)
+    PylabAxis.spines['top'].set_visible(False)
+    PylabAxis.xaxis.set_ticks_position('bottom')
+    PylabAxis.yaxis.set_ticks_position('left')
+    PylabAxis.get_xaxis().set_ticks([])
     PylabAxis.legend(Handles,
                      Labels,
                      fancybox=True,
@@ -452,14 +662,16 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
                    ls=':',
                    lw=0.25)
 
+    Handles = []
+    Labels  = []
     for i in XArgSort:
-        PylabAxis.scatter(x=XMean[i],
-                          y=YMedian[i],
-                          label=r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}',
-                          s=Size,
-                          linewidths=LineWidth,
-                          facecolor='None',
-                          marker=MarkerDict[DataList[i]])
+        Handles.append(PylabAxis.scatter(x=XMean[i],
+                                         y=YMedian[i],
+                                         s=Size,
+                                         linewidths=LineWidth,
+                                         facecolor='None',
+                                         marker=MarkerDict[DataList[i]]))
+        Labels.append(r'\begin{tabular}{l} ${\rm '+DataList[i]+r'}$ \\ $\overline{N}\approx '+str(int(round(XMean[i])))+r'$ \end{tabular}')
 
     PylabAxis.set_xlim([XMin,XMax])
     PylabAxis.set_ylim([YMin,YMax])
@@ -471,7 +683,6 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
     PylabAxis.yaxis.set_ticks_position('left')
     pylab.xticks(rotation='vertical')
     PylabAxis.get_xaxis().set_ticks([])
-    Handles,Labels = PylabAxis.get_legend_handles_labels()
     PylabAxis.legend(Handles,
                      Labels,
                      fancybox=True,
@@ -488,50 +699,3 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
     del PylabFigure
 
     return
-
-#def BoxPlotBetaPlusConnectingLines(MtbName=str,
-#                                   DataList=[],
-#                                   XArrayList=[],
-#                                   YArrayList=[],
-#                                   MarkerList=[]):
-#
-#    PylabParameters,\
-#    Rectangle         = PylabGetParams()
-#    Size              = 1.5
-#    LineWidth         = 0.5
-#    pylab.rcParams.update(PylabParameters)
-#    PylabFigure = pylab.figure()
-#    PylabFigure.clf()
-#    PylabAxis = PylabFigure.add_axes(Rectangle)
-#    PlotName  = 'BoxPlotBeta_'+MtbName+'.png'
-#    PlotPath  = os.path.join(os.getcwd(),'Plots')
-#    if(not os.path.isdir(PlotPath)):
-#        os.mkdir(PlotPath)
-#    PlotName = os.path.join(PlotPath,PlotName)
-#
-#    XMax = XMean.max()+10.0
-#    YMax = YArrayList.max()+2.5
-#    PylabAxis.set_ylim([0.0,XMax])
-#    PylabAxis.set_xlim([0.0,YMax])
-#    PylabAxis.set_ylim([0.0,XMax])
-#    PylabAxis.set_xlim([0.0,YMax])
-#    PylabAxis.set_xlabel(r'$\overline{N} {~\rm [-]}$')
-#    PylabAxis.set_ylabel(r'$\beta{~\rm [-]}$')
-#    PylabAxis.spines['right'].set_visible(False)
-#    PylabAxis.spines['top'].set_visible(False)
-#    PylabAxis.xaxis.set_ticks_position('bottom')
-#    PylabAxis.yaxis.set_ticks_position('left')
-#    Handles,Labels = PylabAxis.get_legend_handles_labels()
-#    PylabAxis.legend(Handles,
-#                     Labels,
-#                     fancybox=True,
-#                     shadow=True,
-#                     loc='lower right')
-#    PylabAxis.grid(True)
-#    PylabFigure.savefig(PlotName,dpi=600)
-#
-#    pylab.close(PylabFigure)
-#    del PylabAxis
-#    del PylabFigure
-#
-#    return
