@@ -278,6 +278,8 @@ class Checks:
 
         if(boOk):
             self.SetNTotalOK(1)
+        else:
+            self.SetNTotalOK(0)
 
         return boOk
 
