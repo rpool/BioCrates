@@ -36,7 +36,7 @@ def LogArguments(Log=Logger,
 def ParseArguments(Log=None):
 #   Argument parsing module
     ArgumentParser = argparse.ArgumentParser(description=\
-                                             'This python module can be used for the initial QC of GWA output files.')
+                                             'This python module can be used preparing metal script files.')
     ArgumentParser.add_argument('-P',
                                 '--protocolfile',
                                 dest='ProtocolFile',
