@@ -151,7 +151,7 @@ class DataContainers:
             MaxWidth = max(len(Entry),MaxWidth)
 
         for Entry in HeaderList:
-            ColumnWidthList.append(MaxWidth+1)
+            ColumnWidthList.append(MaxWidth+6)
 
         for i in range(len(HeaderList)):
             Entry        = HeaderList[i]
@@ -167,24 +167,30 @@ class DataContainers:
 
                 String = str(self.DataContainers[ColumnId].GetDataArray()[i])
                 if(String=='NA'):
-                    pass
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
+                    String       = FormatString.format(String)
                 elif(ColumnId=='beta'):
-                    String = str(round(float(String),5))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
                 elif(ColumnId=='SE'):
-                    String = str(round(float(String),5))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
                 elif(ColumnId=='pval'):
-                    String = str(round(float(String),5))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
                 elif(ColumnId=='AF_coded_all'):
-                    String = str(round(float(String),5))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
                 elif(ColumnId=='HWE_pval'):
-                    String = str(round(float(String),5))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
                 elif(ColumnId=='n_total'):
-                    String = str(int(round(float(String),0)))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'d}'
+                    String       = FormatString.format(int(round(float(String),0)))
                 elif(ColumnId=='oevar_imp'):
-                    String = str(round(float(String),5))
-
-                FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
-                FH.write(FormatString.format(String))
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
+                FH.write(String)
             FH.write('\n')
         FH.close()
 

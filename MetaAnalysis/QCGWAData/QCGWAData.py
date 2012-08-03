@@ -904,14 +904,14 @@ def main(ExecutableName=str):
                     print LogString
                     Log.Write(LogString+'\n')
 
-                    PValArray  = GWADCsDict[Key].DataContainers['PValWald'].GetDataArray()
-                    PValArray  = scipy.around(PValArray,5)
-                    TmpArray   = []
-                    for Entry in PValArray:
-                        TmpArray.append(str(Entry))
-                    PValArray = scipy.array(TmpArray)
-
-                    GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray)
+#                    PValArray  = GWADCsDict[Key].DataContainers['PValWald'].GetDataArray()
+#                    PValArray  = scipy.around(PValArray,5)
+#                    TmpArray   = []
+#                    for Entry in PValArray:
+#                        TmpArray.append(str(Entry))
+#                    PValArray = scipy.array(TmpArray)
+#
+#                    GWADCsDict[Key].DataContainers['PValWald'].ReplaceDataArray(PValArray)
 
                     GWADCsDict[Key].WriteBioCratesGWAOutput(FileName=FilteredGWADataFile,
                                                             OutPath=FilteredGWADataPath,
