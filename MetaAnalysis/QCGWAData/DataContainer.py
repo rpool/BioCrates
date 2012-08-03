@@ -178,6 +178,9 @@ class DataContainers:
                 elif(ColumnId=='pval'):
                     FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
                     String       = FormatString.format(float(String))
+                elif(ColumnId=='PValWald'):
+                    FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
+                    String       = FormatString.format(float(String))
                 elif(ColumnId=='AF_coded_all'):
                     FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
                     String       = FormatString.format(float(String))
