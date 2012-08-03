@@ -190,7 +190,8 @@ class DataContainers:
                 elif(ColumnId=='oevar_imp'):
                     FormatString = '{0:>'+str(ColumnWidthList[j])+'.5e}'
                     String       = FormatString.format(float(String))
-                FH.write(String)
+                FormatString = '{0:>'+str(ColumnWidthList[j])+'}'
+                FH.write(FormatString.format(String))
             FH.write('\n')
         FH.close()
 
