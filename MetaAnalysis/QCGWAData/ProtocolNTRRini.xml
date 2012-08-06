@@ -2,12 +2,12 @@
 <Protocol>
     <!-- The directory containing the GWA output files -->
     <GWAOutputPath>
-        /home/r.pool/Work/TestQCGWA/Data
+        /home/r.pool/Work/TestQCGWA/NTR/Data
     </GWAOutputPath>
 
     <!-- Your working directory -->
     <WorkingPath>
-        /home/r.pool/Work/TestQCGWA
+        /home/r.pool/Work/TestQCGWA/NTR
     </WorkingPath>
 
     <!-- Format specifiers of GWA output and GWA extra files -->
@@ -20,7 +20,7 @@
     </Format>
 
     <HapMap>
-        <SummaryPath>/home/r.pool/Work/TestQCGWA/Data</SummaryPath>
+        <SummaryPath>/home/r.pool/Work/TestQCGWA/NTR/Data</SummaryPath>
         <SummaryFile>HapMapB36R22.txt.gz</SummaryFile>
         <SourceBuild>36</SourceBuild>
         <SourceRelease>24</SourceRelease>
@@ -35,7 +35,7 @@
     <ExtraInfoFiles>
         <ExtraInfoFile1>
             <boUse>True</boUse>
-            <Path>/home/r.pool/Work/TestQCGWA/Data</Path>
+            <Path>/home/r.pool/Work/TestQCGWA/NTR/Data</Path>
             <Name>SNP_INFO_NTRMRG3_FOR_ENGAGE.txt.gz</Name>
         </ExtraInfoFile1>    
     </ExtraInfoFiles>
@@ -79,21 +79,21 @@
     <!-- Details on the ExcludedMetabolites file -->
     <ExcludedMtbFile>
         <boUse>True</boUse>
-        <Path>/home/r.pool/Work/TestQCGWA/Data</Path>
+        <Path>/home/r.pool/Work/TestQCGWA/NTR/Data</Path>
         <Name>NTR_BIOC_ExcludedMetabolites_01JUN2012_RPL.txt.gz</Name>
     </ExcludedMtbFile>
 
     <!-- Details on the PositiveControl file -->
     <PositiveControlFile>
         <boUse>False</boUse>
-        <Path>/home/r.pool/Work/TestQCGWA/Data</Path>
+        <Path>/home/r.pool/Work/TestQCGWA/NTR/Data</Path>
         <Name>NTR_BIOC_PC.aa.C36.3OverPC.aa.C36.4_POSITIVECONTROL_01JUN2012_RPL.txt.gz</Name>
     </PositiveControlFile>
     
     <!-- File containing the list of metabolite names you want to QC -->
     <MtbNameFile>
         <boUse>True</boUse>
-        <Path>/home/r.pool/Work/TestQCGWA</Path>
+        <Path>/home/r.pool/Work/TestQCGWA/NTR</Path>
         <Name>MtbNames.txt</Name>
     </MtbNameFile>
     <MtbGWAColumns>

@@ -181,8 +181,11 @@ def main(ExecutableName=str):
             fw.write('USESTRAND ON\n')
             fw.write('# Column counting per line\n')
             fw.write('COLUMNCOUNTING STRICT\n')
+            fw.write('# Column counting per line\n')
+            fw.write('SCHEME SAMPLESIZE\n')
             fw.write('#Process file; assuming that it has been unzipped using e.g. \"gzip -dc\"\n')
             fw.write('PROCESSFILE '+FileName+'\n')
+            fw.write('\n')
 
         fw.write('# Outfile\n')
         fw.write('OUTFILE MetaAnalysis_'+MtbName+'_ .tbl\n')
