@@ -37,6 +37,12 @@ def ParseArguments(Log=None):
                                 help='PATH: Name of file path of the MA output files (input)',
                                 metavar='PATH',
                                 default=os.getcwd())
+    ArgumentParser.add_argument('-P',
+                                '--positionpath',
+                                dest='PositionPath',
+                                help='PATH: Name of file path containing the SNP position and chromosome details (input)',
+                                metavar='PATH',
+                                default=os.getcwd())
     ArgumentParser.add_argument('-x',
                                 '--xproperty',
                                 dest='XProperty',

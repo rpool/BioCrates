@@ -31,6 +31,68 @@ def main(ExecutableName):
     ArgumentParser.LogArguments(Log,
                                 ArgParser,
                                 Arguments)
+    TmpPath = os.path.join(os.getcwd(),'Tmp')
+    if(not os.path.isdir(TmpPath)):
+        os.mkdir(TmpPath)
+    SNPInfoDict = {} # will contain a dictionary of two elements: {'chr':int(chr),'pos':int(pos)}
+    if(Arguments.YProperty=='PHE'):
+        XPath               = os.path.join(Arguments.PositionPath,'SNPInfo.txt.gz')
+        SNPInfoDecompressed = os.path.join(TmpPath,'SNPInfo.txt')
+        os.system('pigz -d -c -k '+XPath+' > '+SNPInfoDecompressed)
+        FH          = open(SNPInfoDecompressed,'r')
+        HeaderList  = FH.readline().strip().split()
+        FH.close()
+        SNPIDArray  = None
+        ChrArray    = None
+        PosArray    = None
+        SNPIDColumn = None
+        ChrColumn   = None
+        PosColumn   = None
+        for Entry in HeaderList:
+            if(Entry=='SNPID'):
+                SNPIDColumn = HeaderList.index(Entry)
+            if(Entry=='chr'):
+                ChrColumn = HeaderList.index(Entry)
+            if(Entry=='pos'):
+                PosColumn = HeaderList.index(Entry)
+        Arrays = scipy.loadtxt(fname=SNPInfoDecompressed,
+                               dtype=str,
+                               skiprows=1,
+                               usecols=[SNPIDColumn,
+                                        ChrColumn,
+                                        PosColumn],
+                               unpack=True)
+        os.remove(SNPInfoDecompressed)
+        SNPIDArray = Arrays[0]
+        ChrArray   = Arrays[1].astype(int)
+        PosArray   = Arrays[2].astype(int)
+        ArgSort    = scipy.argsort(ChrArray)
+        SNPIDArray = SNPIDArray[ArgSort]
+        ChrArray   = ChrArray[ArgSort]
+        PosArray   = PosArray[ArgSort]
+
+        TmpSNPIDArray = []
+        TmpChrArray   = []
+        TmpPosArray   = []
+        for c in range(Arguments.NChr):
+            Chr              = c+1
+            FilterArray      = (ChrArray==Chr)
+            TmpTmpSNPIDArray = scipy.compress(FilterArray,SNPIDArray)
+            TmpTmpChrArray   = scipy.compress(FilterArray,ChrArray)
+            TmpTmpPosArray   = scipy.compress(FilterArray,PosArray)
+            ArgSort          = scipy.argsort(TmpPosArray)
+            TmpTmpSNPIDArray = TmpTmpSNPIDArray(ArgSort)
+            TmpTmpChrArray   = TmpTmpChrArray(ArgSort)
+            TmpTmpPosArray   = TmpTmpPosArray(ArgSort)
+            TmpSNPIDArray.extend(TmpTmpSNPIDArray)
+            TmpChrArray.extend(TmpTmpChrArray)
+            TmpPosArray.extend(TmpTmpPosArray)
+        
+        for i in range(len(SNPIDArray)):
+            Entry                     = SNPIDArray[i]
+            SNPInfoDict[Entry]        = {}
+            SNPInfoDict[Entry]['chr'] = ChrArray[i]
+            SNPInfoDict[Entry]['pos'] = PosArray[i]
 
     if(Arguments.YProperty=='PHE'):
         XPath       = os.path.join(Arguments.SnpTestPath,Arguments.XProperty)
