@@ -8,6 +8,7 @@ import matplotlib
 
 import ArgumentParser
 import Logger
+import fnmatch
 
 iLARGE = 1e500
 fLARGE = 1.0e500
@@ -34,7 +35,16 @@ def main(ExecutableName):
     TmpPath = os.path.join(os.getcwd(),'Tmp')
     if(not os.path.isdir(TmpPath)):
         os.mkdir(TmpPath)
-    SNPInfoDict = {} # will contain a dictionary of two elements: {'chr':int(chr),'pos':int(pos)}
+    SNPInfoDict  = {} # will contain a dictionary of two elements: {'chr':int(chr),'pos':int(pos)}
+    SNPChrArray  = scipy.array([])
+    SNPPosArray  = scipy.array([])
+    SNPXPosArray = scipy.array([])
+    XLeft        = []
+    XRight       = []
+    XTicks       = []
+    XTickLabels  = []
+    XXMax        = None
+    XXMin        = None
     if(Arguments.YProperty=='PHE'):
         XPath               = os.path.join(Arguments.PositionPath,'SNPInfo.txt.gz')
         SNPInfoDecompressed = os.path.join(TmpPath,'SNPInfo.txt')
@@ -43,6 +53,7 @@ def main(ExecutableName):
         HeaderList  = FH.readline().strip().split()
         FH.close()
         SNPIDArray  = None
+        SNPIDList   = None
         ChrArray    = None
         PosArray    = None
         SNPIDColumn = None
@@ -53,7 +64,7 @@ def main(ExecutableName):
                 SNPIDColumn = HeaderList.index(Entry)
             if(Entry=='chr'):
                 ChrColumn = HeaderList.index(Entry)
-            if(Entry=='pos'):
+            if(Entry=='position'):
                 PosColumn = HeaderList.index(Entry)
         Arrays = scipy.loadtxt(fname=SNPInfoDecompressed,
                                dtype=str,
@@ -71,65 +82,101 @@ def main(ExecutableName):
         ChrArray   = ChrArray[ArgSort]
         PosArray   = PosArray[ArgSort]
 
-        TmpSNPIDArray = []
-        TmpChrArray   = []
-        TmpPosArray   = []
+        TmpSNPIDArray = scipy.array([])
+        TmpChrArray   = scipy.array([])
+        TmpPosArray   = scipy.array([])
+        TmpXPosArray  = scipy.array([])
+        XMax          = 0
         for c in range(Arguments.NChr):
             Chr              = c+1
             FilterArray      = (ChrArray==Chr)
             TmpTmpSNPIDArray = scipy.compress(FilterArray,SNPIDArray)
             TmpTmpChrArray   = scipy.compress(FilterArray,ChrArray)
             TmpTmpPosArray   = scipy.compress(FilterArray,PosArray)
-            ArgSort          = scipy.argsort(TmpPosArray)
-            TmpTmpSNPIDArray = TmpTmpSNPIDArray(ArgSort)
-            TmpTmpChrArray   = TmpTmpChrArray(ArgSort)
-            TmpTmpPosArray   = TmpTmpPosArray(ArgSort)
-            TmpSNPIDArray.extend(TmpTmpSNPIDArray)
-            TmpChrArray.extend(TmpTmpChrArray)
-            TmpPosArray.extend(TmpTmpPosArray)
-        
-        for i in range(len(SNPIDArray)):
-            Entry                     = SNPIDArray[i]
-            SNPInfoDict[Entry]        = {}
-            SNPInfoDict[Entry]['chr'] = ChrArray[i]
-            SNPInfoDict[Entry]['pos'] = PosArray[i]
+            ArgSort          = scipy.argsort(TmpTmpPosArray)
+            TmpTmpSNPIDArray = TmpTmpSNPIDArray[ArgSort]
+            TmpTmpChrArray   = TmpTmpChrArray[ArgSort]
+            TmpTmpPosArray   = TmpTmpPosArray[ArgSort]
+            TmpTmpXPosArray  = TmpTmpPosArray+XMax
+            XLeft.append(float(TmpTmpXPosArray.min())+XMax)
+            XRight.append(float(TmpTmpXPosArray.max())+XMax)
+            XTicks.append(0.5*(XLeft[-1]+XRight[-1]))
+            XTickLabels.append(r'${\rm CHR'+str(Chr)+r'}$')
 
-    if(Arguments.YProperty=='PHE'):
-        XPath       = os.path.join(Arguments.SnpTestPath,Arguments.XProperty)
-        XListDir    = os.listdir(XPath)
-        MinXSpacing = iLARGE
-        XMin        = None
-        XMax        = 0
-        X           = []
-        XLeft       = []
-        XRight      = []
-        XTicks      = []
-        XTickLabels = []
-        for p in range(1): # if XProperty=='pos', all phenotypes have the same pos file content.
-            P = 'PHE'+str(p+1)+'_'
-            for c in range(Arguments.NChr):
-                C = 'CHR'+str(c+1)+'_'
-                for File in XListDir:
-                    if(re.search(C+P,File)):
-                        fr   = open(os.path.join(XPath,File),'r')
-                        FMem = []
-                        for Line in fr.readlines():
-                            FMem.append(int(Line.strip().split()[0]))
-                        fr.close()
-                        for i in range(1,len(FMem)):
-                            MinXSpacing = min(MinXSpacing,FMem[i]-FMem[i-1])
-#                        XMin = min(FMem)+XMax
-                        X.extend(list(scipy.array(FMem)+XMax))
-                        if(p==0):
-                            XLeft.append(float(min(FMem))+XMax)
-                            XRight.append(float(max(FMem))+XMax)
-                            XTicks.append(0.5*(float(min(FMem))+float(max(FMem)))+XMax)
-                            XTickLabels.append(r'${\rm '+re.sub('_','',C)+'}$')
-                        XMax = max(X)
-                        del FMem
-        X     = scipy.array(X)
-        XXMin = X.min()
-        XXMax = X.max()
+            TmpSNPIDArray = scipy.append(TmpSNPIDArray,TmpTmpSNPIDArray)
+            TmpChrArray   = scipy.append(TmpChrArray,TmpTmpChrArray)
+            TmpPosArray   = scipy.append(TmpPosArray,TmpTmpPosArray)
+            TmpXPosArray  = scipy.append(TmpXPosArray,TmpTmpXPosArray)
+            XMax          = TmpTmpXPosArray.max()
+            del TmpTmpSNPIDArray
+            del TmpTmpChrArray
+            del TmpTmpPosArray
+            del TmpTmpXPosArray
+
+        SNPIDArray = scipy.array(TmpSNPIDArray)
+        SNPIDList  = SNPIDArray.tolist()
+        ChrArray   = scipy.array(TmpChrArray)
+        PosArray   = scipy.array(TmpPosArray)
+        XPosArray  = scipy.array(TmpXPosArray)
+        del TmpSNPIDArray
+        del TmpChrArray
+        del TmpPosArray
+        del TmpXPosArray
+
+        for i in range(len(SNPIDArray)):
+            Entry                      = SNPIDArray[i]
+            SNPInfoDict[Entry]         = {}
+            SNPInfoDict[Entry]['chr']  = ChrArray[i]
+            SNPInfoDict[Entry]['pos']  = PosArray[i]
+            SNPInfoDict[Entry]['xpos'] = XPosArray[i]
+        SNPChrArray  = scipy.array([])
+        SNPPosArray  = scipy.array([])
+        SNPXPosArray = scipy.array([])
+        SNPChrArray  = scipy.append(SNPChrArray,ChrArray).astype(int)
+        SNPPosArray  = scipy.append(SNPPosArray,PosArray).astype(int)
+        SNPXPosArray = scipy.append(SNPXPosArray,XPosArray).astype(int)
+        XXMin = XPosArray.min()
+        XXMax = XPosArray.max()
+        LogString = '**** Parsed \"SNPInfo.txt\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+#    if(Arguments.YProperty=='PHE'):
+#        XPath       = os.path.join(Arguments.SnpTestPath,Arguments.XProperty)
+#        XListDir    = os.listdir(XPath)
+#        MinXSpacing = iLARGE
+#        XMin        = None
+#        XMax        = 0
+#        X           = []
+#        XLeft       = []
+#        XRight      = []
+#        XTicks      = []
+#        XTickLabels = []
+#        for p in range(1): # if XProperty=='pos', all phenotypes have the same pos file content.
+#            P = 'PHE'+str(p+1)+'_'
+#            for c in range(Arguments.NChr):
+#                C = 'CHR'+str(c+1)+'_'
+#                for File in XListDir:
+#                    if(re.search(C+P,File)):
+#                        fr   = open(os.path.join(XPath,File),'r')
+#                        FMem = []
+#                        for Line in fr.readlines():
+#                            FMem.append(int(Line.strip().split()[0]))
+#                        fr.close()
+#                        for i in range(1,len(FMem)):
+#                            MinXSpacing = min(MinXSpacing,FMem[i]-FMem[i-1])
+##                        XMin = min(FMem)+XMax
+#                        X.extend(list(scipy.array(FMem)+XMax))
+#                        if(p==0):
+#                            XLeft.append(float(min(FMem))+XMax)
+#                            XRight.append(float(max(FMem))+XMax)
+#                            XTicks.append(0.5*(float(min(FMem))+float(max(FMem)))+XMax)
+#                            XTickLabels.append(r'${\rm '+re.sub('_','',C)+'}$')
+#                        XMax = max(X)
+#                        del FMem
+#        X     = scipy.array(X)
+#        XXMin = X.min()
+#        XXMax = X.max()
 
         LogString = '**** Parsed x-axis properties ...'
         print LogString
@@ -173,7 +220,7 @@ def main(ExecutableName):
 
         ZMin        = 0.0
         ZMax        = -fLARGE
-        ZPath       = os.path.join(Arguments.SnpTestPath,Arguments.ZProperty)
+        ZPath       = os.path.join(Arguments.MAOutputPath,Arguments.ZProperty)
         ZListDir    = os.listdir(ZPath)
         if(Arguments.boReadZExtrFromFile):
             LogString = '**** Reading z-axis extrema from file \"'+os.path.join(ZPath,'Extrema.dat')+'\" ...'
@@ -184,36 +231,36 @@ def main(ExecutableName):
             fr.close()
             ZMin = float(LSplt[0])
             ZMax = float(LSplt[1])
-        else:
-            for p in range(Arguments.NPhe): # Scan for the maximum value of Z for the colorbar
-                P = 'PHE'+str(p+1)+'_'
-                Z = []
-                for c in range(Arguments.NChr):
-                    C    = 'CHR'+str(c+1)+'_'
-                    File = os.path.join(ZPath,C+P+Arguments.ZProperty+'.dat')
-                    fr   = None
-                    if(os.path.basename(File) in ZListDir):
-                        fr = open(File,'r')
-                        for Line in fr:
-                            Value = Line.strip()
-                            if((Value!='-1') or
-                               (not re.search('nan',Value))):
-                                Z.append(float(Value))
-                            else:
-                                Z.append(1.0)
-                        fr.close()
-                Z    = scipy.array(Z)
-                ZMax = max(ZMax,scipy.real(-scipy.log10(Z)).max())
-                del Z
-                LogString = '**** Determining maximal z-axis value, now at '+re.sub('_','',P)+', ZMax = '+str(ZMax)+' ...'
-                print LogString
-                Log.Write(LogString+'\n')
-            LogString = '**** Writing z-axis extrema to file \"'+os.path.join(ZPath,'Extrema.dat')+'\" ...'
-            print LogString
-            Log.Write(LogString+'\n')
-            fw = open(os.path.join(ZPath,'Extrema.dat'),'w')
-            fw.write(str(ZMin)+' '+str(ZMax)+'\n')
-            fw.close()
+#        else:
+#            for p in range(Arguments.NPhe): # Scan for the maximum value of Z for the colorbar
+#                P = 'PHE'+str(p+1)+'_'
+#                Z = []
+#                for c in range(Arguments.NChr):
+#                    C    = 'CHR'+str(c+1)+'_'
+#                    File = os.path.join(ZPath,C+P+Arguments.ZProperty+'.dat')
+#                    fr   = None
+#                    if(os.path.basename(File) in ZListDir):
+#                        fr = open(File,'r')
+#                        for Line in fr:
+#                            Value = Line.strip()
+#                            if((Value!='-1') or
+#                               (not re.search('nan',Value))):
+#                                Z.append(float(Value))
+#                            else:
+#                                Z.append(1.0)
+#                        fr.close()
+#                Z    = scipy.array(Z)
+#                ZMax = max(ZMax,scipy.real(-scipy.log10(Z)).max())
+#                del Z
+#                LogString = '**** Determining maximal z-axis value, now at '+re.sub('_','',P)+', ZMax = '+str(ZMax)+' ...'
+#                print LogString
+#                Log.Write(LogString+'\n')
+#            LogString = '**** Writing z-axis extrema to file \"'+os.path.join(ZPath,'Extrema.dat')+'\" ...'
+#            print LogString
+#            Log.Write(LogString+'\n')
+#            fw = open(os.path.join(ZPath,'Extrema.dat'),'w')
+#            fw.write(str(ZMin)+' '+str(ZMax)+'\n')
+#            fw.close()
 
         LogString = '**** Parsing in z-axis properties ...'
         print LogString
@@ -228,29 +275,64 @@ def main(ExecutableName):
 #        for p in range(0):
             P          = 'PHE'+str(p+1)+'_'
             PHE        = re.sub('_','',P)
-            LogString  = '** Now at '+PHE+' ...'
+            Mtb        = MName[MNumber.index(str(p+1))]
+            FName      = os.path.join(Arguments.MAOutputPath,'MetaAnalysis_'+Mtb+'_1.tbl')
+            if((not os.path.isfile(FName)) or
+               (not os.path.islink(FName))):
+                continue
+            LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
             print LogString
             Log.Write(LogString+'\n')
-            ZZ = []
-            for c in range(Arguments.NChr):
-                C = 'CHR'+str(c+1)+'_'
-                for File in ZListDir:
-                    if(re.search(C+P,File)):
-                        fr   = open(os.path.join(ZPath,File),'r')
-                        FMem = []
-                        for Line in fr.readlines():
-                            z = Line.strip().split()[0]
-                            if(z!='-1'):
-                                FMem.append(float(z))
-                            else:
-                                FMem.append(1.0)
-                        fr.close()
-                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
-                        ZZ.extend(list(FMem))
-                        del FMem
-            Sign  = ZZ  > -scipy.log10(5.0e-8)
-            Sugg  = ZZ >= -scipy.log10(1.0e-6)
-            Sugg *= ZZ <= -scipy.log10(5.0e-8)
+            FH     = open(FName,'r')
+            Header = FH.readline().strip().split()
+            FH.close()
+            SNPIDCol = Header.index('MarkerName')
+            PValCol  = Header.index('P-value')
+            Arrays   = scipy.loadtxt(fname=FName,
+                                     dtype=str,
+                                     skiprows=1,
+                                     usecols=[SNPIDCol,PValCol],
+                                     unpack=True)
+            RSIdArray  = Arrays[0]
+            PValArray  = Arrays[1].astype(float)
+            ZZ         = scipy.real(-scipy.log10(PValArray))
+            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
+            TmpArray,\
+            IndexArray = scipy.unique(ar=TmpArray,
+                                      return_inverse=True)
+            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
+            TmpArray,\
+            tTmpArray  = scipy.unique(ar=TmpArray,
+                                      return_inverse=True)
+            IndexArray = scipy.append(IndexArray,tTmpArray)
+            del TmpArray
+            del tTmpArray
+            IndexArray = scipy.unique(ar=IndexArray)
+#            for Entry in RSIdArray:
+#                IndexArray.append(SNPIDList.index(Entry))
+#                print Entry
+#            IndexArray = scipy.array(IndexArray)
+            X          = XPosArray[IndexArray]
+            ChromArray = ChrArray[IndexArray]
+#            for c in range(Arguments.NChr):
+#                C = 'CHR'+str(c+1)+'_'
+#                for File in ZListDir:
+#                    if(re.search(C+P,File)):
+#                        fr   = open(os.path.join(ZPath,File),'r')
+#                        FMem = []
+#                        for Line in fr.readlines():
+#                            z = Line.strip().split()[0]
+#                            if(z!='-1'):
+#                                FMem.append(float(z))
+#                            else:
+#                                FMem.append(1.0)
+#                        fr.close()
+#                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
+#                        ZZ.extend(list(FMem))
+#                        del FMem
+            Sign  = ZZ  > -scipy.log10(5.0e-8)/float(Arguments.NPhe)
+            Sugg  = ZZ >= -scipy.log10(1.0e-6)/float(Arguments.NPhe)
+            Sugg *= ZZ <= -scipy.log10(5.0e-8)/float(Arguments.NPhe)
             ZSugg[PHE] = scipy.compress(Sugg,ZZ)
             ZSign[PHE] = scipy.compress(Sign,ZZ)
             YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
@@ -258,6 +340,10 @@ def main(ExecutableName):
             XSugg[PHE] = scipy.compress(Sugg,X)
             XSign[PHE] = scipy.compress(Sign,X)
             del ZZ
+            LogString  = '** Parsed \"'+FName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
+
         del X
         del Y
 
