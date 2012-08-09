@@ -273,7 +273,6 @@ def main(ExecutableName):
 
         NoPlotList = []
 #        for p in range(0):
-#        for p in range(0,2):
         for p in range(Arguments.NPhe):
             P          = 'PHE'+str(p+1)+'_'
             PHE        = re.sub('_','',P)
@@ -341,11 +340,11 @@ def main(ExecutableName):
             Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
             Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
 
-            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
+#            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
             ZSign[PHE] = scipy.compress(Sign,ZZ)
-            YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
+#            YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
             YSign[PHE] = scipy.ones(len(ZSign[PHE]))*(p+1)
-            XSugg[PHE] = scipy.compress(Sugg,X)
+#            XSugg[PHE] = scipy.compress(Sugg,X)
             XSign[PHE] = scipy.compress(Sign,X)
             del ZZ
             LogString  = '** Parsed \"'+FName+'\" ...'
@@ -399,19 +398,20 @@ def main(ExecutableName):
 
 
 #        for p in range(0,2):
+#        for p in range(72,73):
         for p in range(Arguments.NPhe):
             if(p in NoPlotList):
                 continue
             P  = 'PHE'+str(p+1)
-            if(len(ZSugg[P])>0):
-                PylabAxis.scatter(x=XSugg[P],
-                                  y=YSugg[P],
-                                  color='black',
-                                  s=ZSugg[P]/ZMax*100.0,
-                                  marker='s',
-                                  alpha=0.15,
-                                  antialiased=True,
-                                  edgecolors='none')
+#            if(len(ZSugg[P])>0):
+#                PylabAxis.scatter(x=XSugg[P],
+#                                  y=YSugg[P],
+#                                  color='black',
+#                                  s=ZSugg[P]/ZMax*100.0,
+#                                  marker='s',
+#                                  alpha=0.15,
+#                                  antialiased=True,
+#                                  edgecolors='none')
             if(len(ZSign[P])>0):
                 PylabAxis.scatter(x=XSign[P],
                                   y=YSign[P],
