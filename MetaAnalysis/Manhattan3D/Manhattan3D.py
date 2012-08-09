@@ -53,7 +53,6 @@ def main(ExecutableName):
         HeaderList  = FH.readline().strip().split()
         FH.close()
         SNPIDArray  = None
-        SNPIDList   = None
         ChrArray    = None
         PosArray    = None
         SNPIDColumn = None
@@ -114,7 +113,6 @@ def main(ExecutableName):
             del TmpTmpXPosArray
 
         SNPIDArray = scipy.array(TmpSNPIDArray)
-        SNPIDList  = SNPIDArray.tolist()
         ChrArray   = scipy.array(TmpChrArray)
         PosArray   = scipy.array(TmpPosArray)
         XPosArray  = scipy.array(TmpXPosArray)
@@ -126,9 +124,9 @@ def main(ExecutableName):
         for i in range(len(SNPIDArray)):
             Entry                       = SNPIDArray[i]
             SNPInfoDict[Entry]          = {}
-            SNPInfoDict[Entry]['chr']   = ChrArray[i]
-            SNPInfoDict[Entry]['pos']   = PosArray[i]
-            SNPInfoDict[Entry]['xpos']  = XPosArray[i]
+#            SNPInfoDict[Entry]['chr']   = ChrArray[i]
+#            SNPInfoDict[Entry]['pos']   = PosArray[i]
+#            SNPInfoDict[Entry]['xpos']  = XPosArray[i]
             SNPInfoDict[Entry]['index'] = i
         SNPChrArray  = scipy.array([])
         SNPPosArray  = scipy.array([])
@@ -272,14 +270,18 @@ def main(ExecutableName):
         YSign = {}
         XSugg = {}
         XSign = {}
-        for p in range(Arguments.NPhe):
+
+        NoPlotList = []
 #        for p in range(0):
+#        for p in range(0,2):
+        for p in range(Arguments.NPhe):
             P          = 'PHE'+str(p+1)+'_'
             PHE        = re.sub('_','',P)
             Mtb        = MName[MNumber.index(str(p+1))]
             FName      = os.path.join(Arguments.MAOutputPath,'MetaAnalysis_'+Mtb+'_1.tbl')
             if((not os.path.isfile(FName)) or
                (not os.path.islink(FName))):
+                NoPlotList.append(p)
                 continue
             LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
             print LogString
@@ -335,9 +337,10 @@ def main(ExecutableName):
 #                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
 #                        ZZ.extend(list(FMem))
 #                        del FMem
-            Sign  = ZZ  > -scipy.log10(5.0e-8)/float(Arguments.NPhe)
-            Sugg  = ZZ >= -scipy.log10(1.0e-6)/float(Arguments.NPhe)
-            Sugg *= ZZ <= -scipy.log10(5.0e-8)/float(Arguments.NPhe)
+            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
+            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+
             ZSugg[PHE] = scipy.compress(Sugg,ZZ)
             ZSign[PHE] = scipy.compress(Sign,ZZ)
             YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
@@ -394,8 +397,11 @@ def main(ExecutableName):
         if(Arguments.YProperty=='PHE'):
             PylabAxis.set_ylabel(r'${\rm metabolite}$')
 
+
+#        for p in range(0,2):
         for p in range(Arguments.NPhe):
-#        for p in range(0):
+            if(p in NoPlotList):
+                continue
             P  = 'PHE'+str(p+1)
             if(len(ZSugg[P])>0):
                 PylabAxis.scatter(x=XSugg[P],
