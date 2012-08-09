@@ -98,8 +98,8 @@ def main(ExecutableName):
             TmpTmpChrArray   = TmpTmpChrArray[ArgSort]
             TmpTmpPosArray   = TmpTmpPosArray[ArgSort]
             TmpTmpXPosArray  = TmpTmpPosArray+XMax
-            XLeft.append(float(TmpTmpXPosArray.min())+XMax)
-            XRight.append(float(TmpTmpXPosArray.max())+XMax)
+            XLeft.append(float(TmpTmpXPosArray.min()))
+            XRight.append(float(TmpTmpXPosArray.max()))
             XTicks.append(0.5*(XLeft[-1]+XRight[-1]))
             XTickLabels.append(r'${\rm CHR'+str(Chr)+r'}$')
 
@@ -107,7 +107,7 @@ def main(ExecutableName):
             TmpChrArray   = scipy.append(TmpChrArray,TmpTmpChrArray)
             TmpPosArray   = scipy.append(TmpPosArray,TmpTmpPosArray)
             TmpXPosArray  = scipy.append(TmpXPosArray,TmpTmpXPosArray)
-            XMax          = TmpTmpXPosArray.max()
+            XMax          = TmpXPosArray.max()
             del TmpTmpSNPIDArray
             del TmpTmpChrArray
             del TmpTmpPosArray
@@ -124,11 +124,12 @@ def main(ExecutableName):
         del TmpXPosArray
 
         for i in range(len(SNPIDArray)):
-            Entry                      = SNPIDArray[i]
-            SNPInfoDict[Entry]         = {}
-            SNPInfoDict[Entry]['chr']  = ChrArray[i]
-            SNPInfoDict[Entry]['pos']  = PosArray[i]
-            SNPInfoDict[Entry]['xpos'] = XPosArray[i]
+            Entry                       = SNPIDArray[i]
+            SNPInfoDict[Entry]          = {}
+            SNPInfoDict[Entry]['chr']   = ChrArray[i]
+            SNPInfoDict[Entry]['pos']   = PosArray[i]
+            SNPInfoDict[Entry]['xpos']  = XPosArray[i]
+            SNPInfoDict[Entry]['index'] = i
         SNPChrArray  = scipy.array([])
         SNPPosArray  = scipy.array([])
         SNPXPosArray = scipy.array([])
@@ -293,25 +294,29 @@ def main(ExecutableName):
                                      skiprows=1,
                                      usecols=[SNPIDCol,PValCol],
                                      unpack=True)
-            RSIdArray  = Arrays[0]
+            RsIdArray  = Arrays[0]
             PValArray  = Arrays[1].astype(float)
             ZZ         = scipy.real(-scipy.log10(PValArray))
-            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
-            TmpArray,\
-            IndexArray = scipy.unique(ar=TmpArray,
-                                      return_inverse=True)
-            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
-            TmpArray,\
-            tTmpArray  = scipy.unique(ar=TmpArray,
-                                      return_inverse=True)
-            IndexArray = scipy.append(IndexArray,tTmpArray)
-            del TmpArray
-            del tTmpArray
-            IndexArray = scipy.unique(ar=IndexArray)
+#            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
+#            TmpArray,\
+#            IndexArray = scipy.unique(ar=TmpArray,
+#                                      return_inverse=True)
+#            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
+#            TmpArray,\
+#            tTmpArray  = scipy.unique(ar=TmpArray,
+#                                      return_inverse=True)
+#            IndexArray = scipy.append(IndexArray,tTmpArray)
+#            del TmpArray
+#            del tTmpArray
+#            IndexArray = scipy.unique(ar=IndexArray)
 #            for Entry in RSIdArray:
 #                IndexArray.append(SNPIDList.index(Entry))
 #                print Entry
 #            IndexArray = scipy.array(IndexArray)
+            IndexArray = []
+            for Entry in RsIdArray:
+                IndexArray.append(SNPInfoDict[Entry]['index'])
+            IndexArray = scipy.array(IndexArray)
             X          = XPosArray[IndexArray]
             ChromArray = ChrArray[IndexArray]
 #            for c in range(Arguments.NChr):
