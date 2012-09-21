@@ -227,9 +227,10 @@ def QCReference(DataDict={},                        # should contain keys of typ
         TotalCV = 0.0
         NTot    = 0
         for Key,Value in ConcentrationPerPlateBarCode.iteritems():
-            Std      = scipy.array(Value).std()
+            Std      = scipy.array(Value).std(ddof=1)
             Mean     = scipy.array(Value).mean()
             CV       = Std/Mean
+            print '****** ',MetaboliteName,len(Value)
             if(str(CV)==str(scipy.nan) or
                str(CV)==str(scipy.inf)): # 0/0 or x/0 (x>0) division
                 LogString  = '** Zero division for CV of \"'+MetaboliteName+'\"/'+str(Key)+' Metabolite/PlateBarCode combination ...'
@@ -243,7 +244,7 @@ def QCReference(DataDict={},                        # should contain keys of typ
             else:
                 n        = len(Value)
                 TotalCV += CV
-                NTot    += n
+                NTot    += 1
         if(not MetaboliteContainers[i].GetExcludeMetabolite()):
             MeanTotalCV = 100.0*TotalCV/float(NTot)
             if(MeanTotalCV>QCProtocol.GetRefererenceMeanCVOfAllPlatesThreshold()):
