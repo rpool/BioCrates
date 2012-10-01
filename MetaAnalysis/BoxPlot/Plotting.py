@@ -276,7 +276,8 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
                                  DataList=[],
                                  XArrayList=[],
                                  YArrayList=[],
-                                 MarkerDict={}):
+                                 MarkerDict={},
+                                 KORAScalingFactor=None):
 
     XMean   = []
     YMean   = []
@@ -287,6 +288,9 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
         FilterArray  *= (XArrayList[i]!='NA')
         XArrayList[i] = scipy.compress(FilterArray,XArrayList[i]).astype(float)
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
+        if((DataList[i]=='KORA') and
+           (KORAScalingFactor!=None)):
+            YArrayList[i] *= KORAScalingFactor
         XMean.append(scipy.mean(XArrayList[i]))
         YMedian.append(scipy.median(YArrayList[i]))
         YMean.append(scipy.mean(YArrayList[i]))
@@ -389,7 +393,8 @@ def BoxPlotSDPlusConnectingLines(MtbName=str,
                                  XArrayList=[],
                                  YArrayList=[],
                                  NArrayList=[],
-                                 MarkerDict={}):
+                                 MarkerDict={},
+                                 KORAScalingFactor=None):
 
     XMean   = []
     YMean   = []
@@ -401,6 +406,9 @@ def BoxPlotSDPlusConnectingLines(MtbName=str,
         FilterArray   *= (NArrayList[i]!='NA')
         XArrayList[i]  = scipy.compress(FilterArray,XArrayList[i]).astype(float)
         YArrayList[i]  = scipy.compress(FilterArray,YArrayList[i]).astype(float)
+        if((DataList[i]=='KORA') and
+           (KORAScalingFactor!=None)):
+            YArrayList[i] *= KORAScalingFactor
         NArrayList[i]  = scipy.compress(FilterArray,NArrayList[i]).astype(float)
         YArrayList[i] *= scipy.sqrt(NArrayList[i])
         XMean.append(scipy.mean(XArrayList[i]))
@@ -587,7 +595,8 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
                                    DataList=[],
                                    XArrayList=[],
                                    YArrayList=[],
-                                   MarkerDict={}):
+                                   MarkerDict={},
+                                   KORAScalingFactor=None):
 
     XMean   = []
     YMedian = []
@@ -598,6 +607,9 @@ def BoxPlotBetaPlusConnectingLines(MtbName=str,
         FilterArray  *= (XArrayList[i]!='NA')
         XArrayList[i] = scipy.compress(FilterArray,XArrayList[i]).astype(float)
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
+        if((DataList[i]=='KORA') and
+           (KORAScalingFactor!=None)):
+            YArrayList[i] *= KORAScalingFactor
         XMean.append(scipy.mean(XArrayList[i]))
         YMedian.append(scipy.median(YArrayList[i]))
         YMax = max(YMax,YArrayList[i].max())

@@ -53,6 +53,34 @@ def main(ExecutableName=str):
     print LogString
     Log.Write(LogString+'\n')
 
+    # Parse NTR scaling file
+    if(eval(XmlProtocol.getroot().find('Scaling').find('UseNTRScaling').text)):
+        FPath     = XmlProtocol.getroot().find('Scaling').find('Path').text
+        FName     = XmlProtocol.getroot().find('Scaling').find('Name').text
+        FileName  = os.path.join(FPath,FName)
+        LogString = '++ Parsing \"'+FileName+'\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        ScalingFile = File.File(Name=FileName,
+                                boHeader=True)
+        ScalingFile.SetFileHandle(Mode='r')
+        boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
+        if(boRemoveDuplicateLines):
+            NLinesInFile,\
+            NLinesInArray  = ScalingFile.ParseToLineArray(Delimiter=',')
+            LogString = '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+            print LogString
+            Log.Write(LogString+'\n')
+            ScalingFileDCs = ScalingFile.LineArray2DataContainers()
+        else:
+            ScalingFileDCs = ScalingFile.ParseToDataContainers()
+        ScalingFile.Close()
+        ScalingFile.Cleanup()
+        del ScalingFile
+        LogString = '-- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
     # Parse MtbNameFile
     if(eval(XmlProtocol.getroot().find('MtbNameFile').find('boUse').text)):
         FPath     = XmlProtocol.getroot().find('MtbNameFile').find('Path').text
@@ -181,6 +209,16 @@ def main(ExecutableName=str):
             print LogString
             Log.Write(LogString+'\n')
 
+        # KORA scaling by NTR summary stats
+        StdScalingFactor = None
+        if(eval(XmlProtocol.getroot().find('Scaling').find('UseNTRScaling').text)):
+            Index            = ScalingFileDCs.DataContainers['Mtb'].GetDataArray().tolist().index(MtbName)
+            StdScalingFactor = ScalingFileDCs.DataContainers['Std'].GetDataArray()[Index]
+            if(StdScalingFactor!='NA'):
+                StdScalingFactor = float(StdScalingFactor)
+            else:
+                StdScalingFactor = None
+
         LogString = '  ++ Plotting \"SE\" box plot ...'
         print LogString
         Log.Write(LogString+'\n')
@@ -205,7 +243,9 @@ def main(ExecutableName=str):
                                               DataList=CohortList,
                                               XArrayList=XArrayList,
                                               YArrayList=YArrayList,
-                                              MarkerDict=MarkerDict)
+                                              MarkerDict=MarkerDict,
+                                              KORAScalingFactor=StdScalingFactor)
+
 
         LogString = '  -- Done ...'
         print LogString
@@ -220,7 +260,8 @@ def main(ExecutableName=str):
                                               XArrayList=XArrayList,
                                               YArrayList=YArrayList,
                                               NArrayList=NArrayList,
-                                              MarkerDict=MarkerDict)
+                                              MarkerDict=MarkerDict,
+                                              KORAScalingFactor=StdScalingFactor)
 
         LogString = '  -- Done ...'
         print LogString
@@ -238,7 +279,8 @@ def main(ExecutableName=str):
                                                 DataList=CohortList,
                                                 XArrayList=XArrayList,
                                                 YArrayList=YArrayList,
-                                                MarkerDict=MarkerDict)
+                                                MarkerDict=MarkerDict,
+                                                KORAScalingFactor=StdScalingFactor)
 
         LogString = '  -- Done ...'
         print LogString
