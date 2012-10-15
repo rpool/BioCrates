@@ -190,9 +190,12 @@ def PostProcess(SampleDataDict=None,
         PlotNames  = Plotting.PlotDistributions(SampleDataDict,
                                                 AnalRanges,
                                                 'SAMPLE'+Arguments.PlotBaseName,
+                                                '.png',
+                                                300,
                                                 Log)
         SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
                                              'SAMPLE'+Arguments.SummaryPlotBaseName.split('.')[0],
+                                             '.png',
                                              Log)
 
     if(Arguments.boCorrelateCombinations):
@@ -323,9 +326,12 @@ def QCAndImpute(Arguments=argparse.Namespace,
         PlotNames  = Plotting.PlotDistributions(SampleDataDict,
                                                 AnalRanges,
                                                 'SAMPLE'+Arguments.PlotBaseName,
+                                                '.png',
+                                                300,
                                                 Log)
         SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
                                              'SAMPLE'+Arguments.SummaryPlotBaseName.split('.')[0],
+                                             '.png',
                                              Log)
         LogString = '**** Plotting reference data distributions ...'
         print LogString
@@ -333,9 +339,12 @@ def QCAndImpute(Arguments=argparse.Namespace,
         PlotNames  = Plotting.PlotDistributions(ReferenceDataDict,
                                                 AnalRanges,
                                                 'REFERENCE'+Arguments.PlotBaseName,
+                                                '.png',
+                                                300,
                                                 Log)
         SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
                                              'REFERENCE'+Arguments.SummaryPlotBaseName.split('.')[0],
+                                             '.png',
                                              Log)
 
     ReferenceQCMetaboliteContainers = []

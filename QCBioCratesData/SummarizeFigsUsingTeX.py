@@ -5,6 +5,7 @@ import Logger
 
 def SummarizePlots(PlotNames=list,
                    PlotSummaryBaseName=str,
+                   Extension='.pdf',
                    Log=Logger):
     LogString = '** Summarizing plots to \"'+PlotSummaryBaseName+'.tex\" => \"'+PlotSummaryBaseName+'.pdf\" ..'
     print LogString
@@ -37,13 +38,13 @@ def SummarizePlots(PlotNames=list,
             fw.write('\\begin{tabular}{cc}\n')
         if(len(DataFileNameListReverseCopy)==1):
             fw.write('\includegraphics[width=8cm]{'+
-                     re.sub('.dat','.pdf',DataFileNameListReverseCopy.pop())+'} \\\\\n')
+                     re.sub('.dat',Extension,DataFileNameListReverseCopy.pop())+'} \\\\\n')
             CountRows += 1
         else:
             fw.write('\includegraphics[width=8cm]{'+
-                     re.sub('.dat','.pdf',DataFileNameListReverseCopy.pop())+'} &\n'+
+                     re.sub('.dat',Extension,DataFileNameListReverseCopy.pop())+'} &\n'+
                      '\includegraphics[width=8cm]{'+
-                     re.sub('.dat','.pdf',DataFileNameListReverseCopy.pop())+'} \\\\\n')
+                     re.sub('.dat',Extension,DataFileNameListReverseCopy.pop())+'} \\\\\n')
             CountRows += 1
         if(CountRows==NRows):
             fw.write('\end{tabular}\n')
@@ -59,5 +60,5 @@ def SummarizePlots(PlotNames=list,
     del fw
 
     os.system('pdflatex '+PlotSummaryBaseName+'.tex > TeX.out 2>&1')
-    
+
     return

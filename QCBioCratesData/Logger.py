@@ -2,6 +2,8 @@ import os
 import pwd
 import platform
 import datetime
+import sys
+import pysvn
 
 class Logger:
     def __init__(self,
@@ -42,9 +44,18 @@ class Logger:
         self.StartLogString += '# platform          : '+' '.join(platform.uname())+'\n'
         self.StartLogString += '# user              : '+str(pwd.getpwuid(os.getuid())[0])+'\n'
         self.StartLogString += '# path              : '+os.getcwd()
+        self.StartLogString += '# python version    : '+str(sys.version_info)+'\n'
+        self.StartLogString += '# running module    : '+sys.argv[0]+'\n'
+        if(os.path.islink(sys.argv[0])):
+            self.StartLogString += '#  -> linking to    : '+os.path.realpath(sys.argv[0])+'\n'
+        if(os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn'))):
+            Client = pysvn.Client()
+            self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
+            del Client
         self.StartLogString += '\n'
 
         return
+
     def GetStartLogString(self):
         return self.StartLogString
     def EndLog(self):

@@ -141,8 +141,10 @@ def PylabUpdateParams():
 def PlotDistributions(DataDict=dict,
                       AnalytRanges=BioCratesAnalyticalRanges,
                       PlotBaseName=str,
+                      Extension='.pdf',
+                      Resolution=400,
                       Log=Logger):
-    LogString = '** Plotting distributions of measured metaoblites ...'
+    LogString = '** Plotting distributions of measured metabolites ...'
     print LogString
     Log.Write(LogString+'\n')
     Counter    = 0
@@ -167,7 +169,7 @@ def PlotDistributions(DataDict=dict,
             PylabFigure.clf()
             PylabAxis   = PylabFigure.add_axes(Rectangle)
 
-            PlotName  = re.sub('.pdf',str(Counter)+'.pdf',PlotBaseName)
+            PlotName  = re.sub(Extension,str(Counter)+Extension,PlotBaseName)
             PlotNames.append(PlotName)
             NBins = 30
 
@@ -177,6 +179,10 @@ def PlotDistributions(DataDict=dict,
                                          normed=True)
             POfC      = POfC/POfC.sum()
             CCentered = 0.5*(C[1:]+C[:-1])
+            MinWidth  = 1.0e500
+            for i in range(len(CCentered)-1):
+                MinWidth = min(MinWidth,abs(CCentered[i+1]-CCentered[i]))
+            CLeft = CCentered - 0.5*MinWidth
 
             LODValue = AnalytRanges.LODValueDict[str(Value.GetMetaboliteName())]
             Y = scipy.array([0.0,POfC.max()])
@@ -198,12 +204,14 @@ def PlotDistributions(DataDict=dict,
                                linewidth=0.5,
                                label=r'${\rm LLOQ}$')
 
-            PylabAxis.plot(CCentered,
-                           POfC,
-                           color='black',
-                           linestyle='-',
-                           linewidth=0.25,
-                           label=r'${\tt '+Value.GetMetaboliteConventionName()+r'}{\rm ~(raw)}$')
+            PylabAxis.bar(left=CLeft,
+                          height=POfC,
+                          width=MinWidth,
+                          bottom=0.0,
+                          color='black',
+                          linewidth=0.25,
+                          alpha=0.15,
+                          label=r'${\tt '+Value.GetMetaboliteConventionName()+r'}{\rm ~(raw)}$')
 
             Mu              = DataArray.mean()
             Sig             = DataArray.std()
@@ -238,32 +246,6 @@ def PlotDistributions(DataDict=dict,
                            color='black',
                            ls=':')
 
-#            ULOQValue = Value.GetULOQFromDocumentation()
-#            if(ULOQValue!=0.0):
-#                X = scipy.array([ULOQValue,ULOQValue])
-#                Ax.plot(X,
-#                        Y,
-#                        color='grey',
-#                        linestyle=':',
-#                        linewidth=0.5,
-#                        label=r'${\rm ULOQ}$')
-
-#            PlotDistribution(PylabAxis,
-#                             Value.GetDataArray(),
-#                             AnalytRanges.LODValueDict[str(Value.GetMetaboliteName())],
-#                             AnalytRanges.LLOQValueDict[str(Value.GetMetaboliteName())],
-#                             AnalytRanges.ULOQValueDict[str(Value.GetMetaboliteName())],
-#                             str(Value.GetMetaboliteName()),
-#                             str(Value.GetMetaboliteClass()),
-#                             r'c~\rm [\mu M]',
-#                             r'P(c)~\rm [-]',
-#                             30,
-#                             PlotName,
-#                             'black',
-#                             boFit=True,
-#                             Label=r'${\rm '+Value.GetMetaboliteName()+'}$',
-#                             boPlotAnalRanges=True)
-
             QCedDataArray = Value.GetQCedDataArray()
             if(QCedDataArray!=None):
                 DelList = []
@@ -280,12 +262,18 @@ def PlotDistributions(DataDict=dict,
                                              normed=True)
                 POfC      = POfC/POfC.sum()
                 CCentered = 0.5*(C[1:]+C[:-1])
-                PylabAxis.plot(CCentered,
-                               POfC,
-                               color='blue',
-                               linestyle='-',
-                               linewidth=0.25,
-                               label=r'${\tt '+Value.GetMetaboliteConventionName()+r'}{\rm ~(QCed)}$')
+                MinWidth  = 1.0e500
+                for i in range(len(CCentered)-1):
+                    MinWidth = min(MinWidth,abs(CCentered[i+1]-CCentered[i]))
+                CLeft = CCentered - 0.5*MinWidth
+                PylabAxis.bar(left=CLeft,
+                              height=POfC,
+                              width=MinWidth,
+                              bottom=0.0,
+                              color='blue',
+                              linewidth=0.25,
+                              alpha=0.15,
+                              label=r'${\tt '+Value.GetMetaboliteConventionName()+r'}{\rm ~(QCed)}$')
 
                 Mu              = scipy.array(QCedDataArray).mean()
                 Sig             = scipy.array(QCedDataArray).std()
@@ -320,19 +308,6 @@ def PlotDistributions(DataDict=dict,
                                color='blue',
                                ls=':')
 
-#                PlotDistribution(PylabAxis,
-#                                 QCedDataArray,
-#                                 AnalytRanges.LODValueDict[str(Value.GetMetaboliteName())],
-#                                 AnalytRanges.LLOQValueDict[str(Value.GetMetaboliteName())],
-#                                 AnalytRanges.ULOQValueDict[str(Value.GetMetaboliteName())],
-#                                 str(Value.GetMetaboliteName()),
-#                                 str(Value.GetMetaboliteClass()),
-#                                 r'c~\rm [\mu M]',
-#                                 r'P(c)~\rm [-]',
-#                                 30,
-#                                 PlotName,
-#                                 'blue',
-#                                 boFit=True)
             ImputedDataArray = Value.GetImputedDataArray()
             if(ImputedDataArray!=None):
                 POfC,C     = scipy.histogram(a=scipy.array(ImputedDataArray),
@@ -340,12 +315,18 @@ def PlotDistributions(DataDict=dict,
                                              normed=True)
                 POfC      = POfC/POfC.sum()
                 CCentered = 0.5*(C[1:]+C[:-1])
-                PylabAxis.plot(CCentered,
-                               POfC,
-                               color='red',
-                               linestyle='-',
-                               linewidth=0.25,
-                               label=r'${\tt '+Value.GetMetaboliteConventionName()+r'}{\rm ~(imputed)}$')
+                MinWidth  = 1.0e500
+                for i in range(len(CCentered)-1):
+                    MinWidth = min(MinWidth,abs(CCentered[i+1]-CCentered[i]))
+                CLeft = CCentered - 0.5*MinWidth
+                PylabAxis.bar(left=CCentered,
+                              height=POfC,
+                              width=MinWidth,
+                              bottom=0.0,
+                              color='red',
+                              linewidth=0.25,
+                              alpha=0.15,
+                              label=r'${\tt '+Value.GetMetaboliteConventionName()+r'}{\rm ~(imputed)}$')
 
                 Mu              = scipy.array(ImputedDataArray).mean()
                 Sig             = scipy.array(ImputedDataArray).std()
@@ -380,19 +361,6 @@ def PlotDistributions(DataDict=dict,
                                color='red',
                                ls=':')
 
-#                PlotDistribution(PylabAxis,
-#                                 ImputedDataArray,
-#                                 AnalytRanges.LODValueDict[str(Value.GetMetaboliteName())],
-#                                 AnalytRanges.LLOQValueDict[str(Value.GetMetaboliteName())],
-#                                 AnalytRanges.ULOQValueDict[str(Value.GetMetaboliteName())],
-#                                 str(Value.GetMetaboliteName()),
-#                                 str(Value.GetMetaboliteClass()),
-#                                 r'c~\rm [\mu M]',
-#                                 r'P(c)~\rm [-]',
-#                                 30,
-#                                 PlotName,
-#                                 'red',
-#                                 boFit=True)
             XLabel = r'c~\rm [\mu M]'
             YLabel = r'P(c)~\rm [-]'
             PylabAxis.set_xlabel(r'$'+XLabel+'$')
@@ -408,7 +376,8 @@ def PlotDistributions(DataDict=dict,
                              shadow=True,
                              loc="best")
             PylabAxis.grid(True)
-            PylabFigure.savefig(PlotName)
+            PylabFigure.savefig(PlotName,
+                                dpi=Resolution)
             PylabAxis.clear()
             pyplot.close(PylabFigure)
             del PylabFigure
