@@ -180,7 +180,22 @@ def PostProcess(SampleDataDict=None,
         SampleDataDict[Key].SetImputedDataArray(Value)
 
     if(Arguments.boNormalityTest):
+        ExcludedMtbList = []
+        fr              = open('QC.report','r')
+        boStart         = False
+        for Line in fr:
+            if(Line.strip()=='## END EXCLUDEDMETABOLITES'):
+                break
+            if(Line.strip()=='## START EXCLUDEDMETABOLITES'):
+                boStart = True
+                continue
+            if(boStart):
+                Name = Line.strip().split()
+                Name = ' '.join(Name[1:-1])
+                ExcludedMtbList.append(Name)
+        fr.close()
         NormalityTest(SampleDataDict,
+                      ExcludedMtbList,
                       Log)
 
     if(Arguments.boPlotDistributions):
@@ -304,6 +319,7 @@ def PostProcess(SampleDataDict=None,
     return
 
 def NormalityTest(DataDict=dict,
+                  ExcludedMtbList=list,
                   Log=Logger):
     LogString  = '**** Performing normality tests on the concentrations, '
     LogString += 'the ln-transformed concentrations and all possible ratios in ln-space'
@@ -317,7 +333,8 @@ def NormalityTest(DataDict=dict,
     fw = open('NormalityCheckConcentrations.csv','w')
     fw.write('metabolite,KS test statistic, KS p-value\n')
     for Value in DataDict.itervalues():
-        if(Value.GetMetaboliteName()):
+        if(Value.GetMetaboliteName() and
+           (not Value.GetMetaboliteName() in ExcludedMtbList)):
             fw.write(Value.GetMetaboliteConventionName()+',')
 
             DataArray = None
@@ -344,7 +361,8 @@ def NormalityTest(DataDict=dict,
     fw = open('NormalityCheckLnConcentrations.csv','w')
     fw.write('metabolite,KS test statistic, KS p-value\n')
     for Value in DataDict.itervalues():
-        if(Value.GetMetaboliteName()):
+        if(Value.GetMetaboliteName() and
+           (not Value.GetMetaboliteName() in ExcludedMtbList)):
             fw.write(Value.GetMetaboliteConventionName()+',')
 
             DataArray = None
@@ -373,7 +391,8 @@ def NormalityTest(DataDict=dict,
     Log.Write(LogString+'\n')
     Keys = []
     for Key in DataDict.iterkeys():
-        if(DataDict[Key].GetMetaboliteName()):
+        if(DataDict[Key].GetMetaboliteName() and
+          (not DataDict[Key].GetMetaboliteName() in ExcludedMtbList)):
             Keys.append(Key)
 
     fw = open('NormalityCheckLnRatios.csv','w')
@@ -433,12 +452,6 @@ def NormalityTest(DataDict=dict,
                 fw.write('\n')
 
     fw.close()
-
-
-#    Values = DataDict.values()
-#    for i in range(len(Values)-1):
-#        for j in range(i+1,len(Values)):
-#            Combination =
 
     return
 
