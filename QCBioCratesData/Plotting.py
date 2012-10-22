@@ -622,7 +622,7 @@ def PlotLnSpaceDistributions(DataDict=dict,
                                color='red',
                                ls=':')
 
-            XLabel = r'c~\rm [\mu M]'
+            XLabel = r'\ln{[c]}~\rm [-]'
             YLabel = r'P(c)~\rm [-]'
             PylabAxis.set_xlabel(r'$'+XLabel+'$')
             PylabAxis.set_ylabel(r'$'+YLabel+'$')

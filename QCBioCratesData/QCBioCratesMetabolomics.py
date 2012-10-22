@@ -179,6 +179,10 @@ def PostProcess(SampleDataDict=None,
     for Key,Value in CompleteDict.iteritems():
         SampleDataDict[Key].SetImputedDataArray(Value)
 
+    if(Arguments.boNormalityTest):
+        NormalityTest(SampleDataDict,
+                      Log)
+
     if(Arguments.boPlotDistributions):
         LogString = '**** Parsing analytical ranges from \"'+str(Arguments.AnalyticalRangesExcelFileName)+'\" ...'
         print LogString
@@ -187,16 +191,16 @@ def PostProcess(SampleDataDict=None,
         LogString = '**** Plotting sample data distributions ...'
         print LogString
         Log.Write(LogString+'\n')
-#        PlotNames  = Plotting.PlotDistributions(SampleDataDict,
-#                                                AnalRanges,
-#                                                'SAMPLE'+Arguments.PlotBaseName,
-#                                                '.png',
-#                                                300,
-#                                                Log)
-#        SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
-#                                             'SAMPLE'+Arguments.SummaryPlotBaseName.split('.')[0],
-#                                             '.png',
-#                                             Log)
+        PlotNames  = Plotting.PlotDistributions(SampleDataDict,
+                                                AnalRanges,
+                                                'SAMPLE'+Arguments.PlotBaseName,
+                                                '.png',
+                                                300,
+                                                Log)
+        SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
+                                             'SAMPLE'+Arguments.SummaryPlotBaseName.split('.')[0],
+                                             '.png',
+                                             Log)
         LnSpacePlotNames  = Plotting.PlotLnSpaceDistributions(SampleDataDict,
                                                               AnalRanges,
                                                               'SAMPLE_LNSPACE'+Arguments.PlotBaseName,
@@ -296,6 +300,145 @@ def PostProcess(SampleDataDict=None,
             fw.write('\n')
 
         fw.close()
+
+    return
+
+def NormalityTest(DataDict=dict,
+                  Log=Logger):
+    LogString  = '**** Performing normality tests on the concentrations, '
+    LogString += 'the ln-transformed concentrations and all possible ratios in ln-space'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    LogString = '  ** Performing normality tests on the concentrations ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    fw = open('NormalityCheckConcentrations.csv','w')
+    fw.write('metabolite,KS test statistic, KS p-value\n')
+    for Value in DataDict.itervalues():
+        if(Value.GetMetaboliteName()):
+            fw.write(Value.GetMetaboliteConventionName()+',')
+
+            DataArray = None
+            if(Value.GetImputedDataArray()!=None):
+                DataArray = scipy.real(scipy.array(Value.GetImputedDataArray()))
+            else:
+                DataArray  = scipy.real(scipy.array(Value.GetDataArray()))
+            Mu         = DataArray.mean()
+            Sd         = DataArray.std(ddof=1)
+            DataArray -= Mu
+            DataArray /= Sd
+            (DStat,
+             PVal)     = scipy.stats.kstest(DataArray,
+                                            'norm')
+            fw.write(str(DStat)+',')
+            fw.write(str(PVal))
+            fw.write('\n')
+    fw.close()
+
+    LogString = '  ** Performing normality tests on the ln-transformed concentrations ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    fw = open('NormalityCheckLnConcentrations.csv','w')
+    fw.write('metabolite,KS test statistic, KS p-value\n')
+    for Value in DataDict.itervalues():
+        if(Value.GetMetaboliteName()):
+            fw.write(Value.GetMetaboliteConventionName()+',')
+
+            DataArray = None
+            if(Value.GetImputedDataArray()!=None):
+                DataArray = scipy.real(scipy.array(Value.GetImputedDataArray()))
+            else:
+                DataArray  = scipy.real(scipy.array(Value.GetDataArray()))
+            FilterArray = (DataArray!=0.0)
+            DataArray   = scipy.compress(FilterArray,DataArray)
+            DataArray   = scipy.log(DataArray)
+
+            Mu         = DataArray.mean()
+            Sd         = DataArray.std(ddof=1)
+            DataArray -= Mu
+            DataArray /= Sd
+            (DStat,
+             PVal)     = scipy.stats.kstest(DataArray,
+                                            'norm')
+            fw.write(str(DStat)+',')
+            fw.write(str(PVal))
+            fw.write('\n')
+    fw.close()
+
+    LogString = '  ** Performing normality tests on all ratios of ln-transformed concentrations ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    Keys = []
+    for Key in DataDict.iterkeys():
+        if(DataDict[Key].GetMetaboliteName()):
+            Keys.append(Key)
+
+    fw = open('NormalityCheckLnRatios.csv','w')
+    fw.write('metaboliteratio,KS test statistic, KS p-value\n')
+    for i in range(len(Keys)-1):
+        KeyI = Keys[i]
+        for j in range(i+1,len(Keys)):
+            KeyJ = Keys[j]
+
+            RatioName  = DataDict[KeyI].GetMetaboliteConventionName()
+            RatioName += '_Over_'
+            RatioName += DataDict[KeyJ].GetMetaboliteConventionName()
+            fw.write(RatioName+',')
+
+            boPass    = True
+            DataArray = None
+            if((DataDict[KeyI].GetImputedDataArray()!=None) and
+               (DataDict[KeyJ].GetImputedDataArray()!=None)):
+                ArrayI = scipy.real(scipy.array(DataDict[KeyI].GetImputedDataArray()))
+                ArrayJ = scipy.real(scipy.array(DataDict[KeyJ].GetImputedDataArray()))
+
+                FilterArray  = (ArrayI!=0.0)
+                FilterArray *= (ArrayJ!=0.0)
+                ArrayI       = scipy.compress(FilterArray,ArrayI)
+                ArrayJ       = scipy.compress(FilterArray,ArrayJ)
+                if(len(ArrayI)>0):
+                    DataArray    = scipy.log(ArrayI)-scipy.log(ArrayJ)
+                else:
+                    boPass = False
+            else:
+                ArrayI = scipy.real(scipy.array(DataDict[KeyI].GetDataArray()))
+                ArrayJ = scipy.real(scipy.array(DataDict[KeyJ].GetDataArray()))
+
+                FilterArray  = (ArrayI!=0.0)
+                FilterArray *= (ArrayJ!=0.0)
+                ArrayI       = scipy.compress(FilterArray,ArrayI)
+                ArrayJ       = scipy.compress(FilterArray,ArrayJ)
+                if(len(ArrayI)>0):
+                    DataArray    = scipy.log(ArrayI)-scipy.log(ArrayJ)
+                else:
+                    boPass = False
+
+            if(boPass):
+                Mu         = DataArray.mean()
+                Sd         = DataArray.std(ddof=1)
+                DataArray -= Mu
+                DataArray /= Sd
+                (DStat,
+                 PVal)     = scipy.stats.kstest(DataArray,
+                                                'norm')
+                fw.write(str(DStat)+',')
+                fw.write(str(PVal))
+                fw.write('\n')
+            else:
+                fw.write('NA,')
+                fw.write('NA')
+                fw.write('\n')
+
+    fw.close()
+
+
+#    Values = DataDict.values()
+#    for i in range(len(Values)-1):
+#        for j in range(i+1,len(Values)):
+#            Combination =
 
     return
 

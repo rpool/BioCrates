@@ -126,6 +126,13 @@ def ParseArguments(Log=None):
                                 help='FLAG: Read the imputed R-object from file (input)',
                                 action='store_true',
                                 default=False)
+    ArgumentParser.add_argument('-N',
+                                '--normalitytest',
+                                dest='boNormalityTest',
+                                help='FLAG: Perform normality tests on the concentrations, the ln-transformed concentrations and all possible ratios in ln-space (input)',
+                                action='store_true',
+                                default=False)
+
 
     Arguments = ArgumentParser.parse_args()
 
