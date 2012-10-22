@@ -187,14 +187,24 @@ def PostProcess(SampleDataDict=None,
         LogString = '**** Plotting sample data distributions ...'
         print LogString
         Log.Write(LogString+'\n')
-        PlotNames  = Plotting.PlotDistributions(SampleDataDict,
-                                                AnalRanges,
-                                                'SAMPLE'+Arguments.PlotBaseName,
-                                                '.png',
-                                                300,
-                                                Log)
-        SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
-                                             'SAMPLE'+Arguments.SummaryPlotBaseName.split('.')[0],
+#        PlotNames  = Plotting.PlotDistributions(SampleDataDict,
+#                                                AnalRanges,
+#                                                'SAMPLE'+Arguments.PlotBaseName,
+#                                                '.png',
+#                                                300,
+#                                                Log)
+#        SummarizeFigsUsingTeX.SummarizePlots(PlotNames,
+#                                             'SAMPLE'+Arguments.SummaryPlotBaseName.split('.')[0],
+#                                             '.png',
+#                                             Log)
+        LnSpacePlotNames  = Plotting.PlotLnSpaceDistributions(SampleDataDict,
+                                                              AnalRanges,
+                                                              'SAMPLE_LNSPACE'+Arguments.PlotBaseName,
+                                                              '.png',
+                                                              300,
+                                                              Log)
+        SummarizeFigsUsingTeX.SummarizePlots(LnSpacePlotNames,
+                                             'SAMPLE_LNSPACE'+Arguments.SummaryPlotBaseName.split('.')[0],
                                              '.png',
                                              Log)
 
