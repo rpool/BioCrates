@@ -4,6 +4,8 @@ import pwd
 import platform
 import datetime
 import re
+import sys
+import pysvn
 
 #===============================================================================
 # This module contains the basic Logger class.
@@ -65,6 +67,13 @@ class Logger:
         self.StartLogString += '# user              : '+str(pwd.getpwuid(os.getuid())[0])+'\n'
         self.StartLogString += '# path              : '+os.getcwd()+'\n'
         self.StartLogString += '# python version    : '+str(sys.version_info)
+        self.StartLogString += '# running module    : '+sys.argv[0]+'\n'
+        if(os.path.islink(sys.argv[0])):
+            self.StartLogString += '#  -> linking to    : '+os.path.realpath(sys.argv[0])+'\n'
+        if(os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn'))):
+            Client = pysvn.Client()
+            self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
+            del Client
         self.StartLogString += '\n'
 
         return

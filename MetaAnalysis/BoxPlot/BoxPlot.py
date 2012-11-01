@@ -4,6 +4,7 @@
 import os
 import fnmatch
 import sys
+import scipy
 
 # Homebrew modules
 import Logger
@@ -209,15 +210,20 @@ def main(ExecutableName=str):
             print LogString
             Log.Write(LogString+'\n')
 
-        # KORA scaling by NTR summary stats
-        StdScalingFactor = None
+#       KORA scaling by NTR summary stats
+        KORAStdScalingFactor = None
         if(eval(XmlProtocol.getroot().find('Scaling').find('UseNTRScaling').text)):
-            Index            = ScalingFileDCs.DataContainers['Mtb'].GetDataArray().tolist().index(MtbName)
-            StdScalingFactor = ScalingFileDCs.DataContainers['Std'].GetDataArray()[Index]
-            if(StdScalingFactor!='NA'):
-                StdScalingFactor = float(StdScalingFactor)
+            Index                = ScalingFileDCs.DataContainers['Mtb'].GetDataArray().tolist().index(MtbName)
+            KORAStdScalingFactor = ScalingFileDCs.DataContainers['Std'].GetDataArray()[Index]
+            if(KORAStdScalingFactor!='NA'):
+                KORAStdScalingFactor = float(KORAStdScalingFactor)
             else:
-                StdScalingFactor = None
+                KORAStdScalingFactor = None
+
+#       TwinsUK scaling by 1/log10(e)
+        TwinsUKScalingFactor = None
+        if(eval(XmlProtocol.getroot().find('Scaling').find('UseTwinsUKScaling').text)):
+            TwinsUKScalingFactor = 1.0/scipy.log10(scipy.exp(1.0))
 
         LogString = '  ++ Plotting \"SE\" box plot ...'
         print LogString
@@ -244,7 +250,8 @@ def main(ExecutableName=str):
                                               XArrayList=XArrayList,
                                               YArrayList=YArrayList,
                                               MarkerDict=MarkerDict,
-                                              KORAScalingFactor=StdScalingFactor)
+                                              KORAScalingFactor=KORAStdScalingFactor,
+                                              TwinsUKScaling=TwinsUKScalingFactor)
 
 
         LogString = '  -- Done ...'
@@ -255,13 +262,14 @@ def main(ExecutableName=str):
         print LogString
         Log.Write(LogString+'\n')
 
-        Plotting.BoxPlotSDPlusConnectingLines(MtbName=MtbName,
-                                              DataList=CohortList,
-                                              XArrayList=XArrayList,
-                                              YArrayList=YArrayList,
-                                              NArrayList=NArrayList,
-                                              MarkerDict=MarkerDict,
-                                              KORAScalingFactor=StdScalingFactor)
+        Plotting.BoxPlotSD(MtbName=MtbName,
+                           DataList=CohortList,
+                           XArrayList=XArrayList,
+                           YArrayList=YArrayList,
+                           NArrayList=NArrayList,
+                           MarkerDict=MarkerDict,
+                           KORAScalingFactor=KORAStdScalingFactor,
+                           TwinsUKScaling=TwinsUKScalingFactor)
 
         LogString = '  -- Done ...'
         print LogString
@@ -275,12 +283,13 @@ def main(ExecutableName=str):
         for ChrtName in CohortList:
             YArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['beta'].GetDataArray())
 
-        Plotting.BoxPlotBetaPlusConnectingLines(MtbName=MtbName,
-                                                DataList=CohortList,
-                                                XArrayList=XArrayList,
-                                                YArrayList=YArrayList,
-                                                MarkerDict=MarkerDict,
-                                                KORAScalingFactor=StdScalingFactor)
+        Plotting.BoxPlotBeta(MtbName=MtbName,
+                             DataList=CohortList,
+                             XArrayList=XArrayList,
+                             YArrayList=YArrayList,
+                             MarkerDict=MarkerDict,
+                             KORAScalingFactor=KORAStdScalingFactor,
+                             TwinsUKScaling=TwinsUKScalingFactor)
 
         LogString = '  -- Done ...'
         print LogString
