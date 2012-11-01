@@ -291,10 +291,10 @@ def BoxPlotSEPlusConnectingLines(MtbName=str,
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         if((DataList[i]=='KORA') and
            (KORAScalingFactor!=None)):
-            YArrayList[i] *= KORAScalingFactor
+            YArrayList[i] = YArrayList[i]*KORAScalingFactor
         if((DataList[i]=='TwinsUK') and
            (TwinsUKScaling!=None)):
-            YArrayList[i] *= TwinsUKScaling
+            YArrayList[i] = YArrayList[i]*TwinsUKScaling
         XMean.append(scipy.mean(XArrayList[i]))
         YMedian.append(scipy.median(YArrayList[i]))
         YMean.append(scipy.mean(YArrayList[i]))
@@ -413,12 +413,12 @@ def BoxPlotSD(MtbName=str,
         YArrayList[i]  = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         if((DataList[i]=='KORA') and
            (KORAScalingFactor!=None)):
-            YArrayList[i] *= KORAScalingFactor
+            YArrayList[i] = YArrayList[i]*KORAScalingFactor
         if((DataList[i]=='TwinsUK') and
            (TwinsUKScaling!=None)):
-            YArrayList[i] *= TwinsUKScaling
-        NArrayList[i]  = scipy.compress(FilterArray,NArrayList[i]).astype(float)
-        YArrayList[i] *= scipy.sqrt(NArrayList[i])
+            YArrayList[i] = YArrayList[i]*TwinsUKScaling
+        NArrayList[i] = scipy.compress(FilterArray,NArrayList[i]).astype(float)
+        YArrayList[i] = YArrayList[i]*scipy.sqrt(NArrayList[i])
         XMean.append(scipy.mean(XArrayList[i]))
         YMedian.append(scipy.median(YArrayList[i]))
         YMean.append(scipy.mean(YArrayList[i]))
@@ -618,10 +618,10 @@ def BoxPlotBeta(MtbName=str,
         YArrayList[i] = scipy.compress(FilterArray,YArrayList[i]).astype(float)
         if((DataList[i]=='KORA') and
            (KORAScalingFactor!=None)):
-            YArrayList[i] *= KORAScalingFactor
+            YArrayList[i] = YArrayList[i]*KORAScalingFactor
         if((DataList[i]=='TwinsUK') and
            (TwinsUKScaling!=None)):
-            YArrayList[i] *= TwinsUKScaling
+            YArrayList[i] = YArrayList[i]*TwinsUKScaling
         XMean.append(scipy.mean(XArrayList[i]))
         YMedian.append(scipy.median(YArrayList[i]))
         YMax = max(YMax,YArrayList[i].max())

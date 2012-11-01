@@ -223,7 +223,7 @@ def main(ExecutableName=str):
 #       TwinsUK scaling by 1/log10(e)
         TwinsUKScalingFactor = None
         if(eval(XmlProtocol.getroot().find('Scaling').find('UseTwinsUKScaling').text)):
-            TwinsUKScalingFactor = 1.0/scipy.log10(scipy.exp(1.0))
+            TwinsUKScalingFactor = float(1.0/scipy.log10(scipy.exp(1.0)))
 
         LogString = '  ++ Plotting \"SE\" box plot ...'
         print LogString
