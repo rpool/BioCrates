@@ -144,7 +144,7 @@ def main(ExecutableName=str):
         FindREs.append(RE.text)
 
     Matches = []
-    for Root, DirNames, FileNames in os.walk(GWAOutputPath):
+    for Root, DirNames, FileNames in os.walk(GWAOutputPath,followlinks=True):
         for FileName in fnmatch.filter(FileNames,
                                        FindREs[0]):
             Matches.append(os.path.join(Root,
