@@ -252,7 +252,7 @@ def main(ExecutableName=str):
                                               MarkerDict=MarkerDict,
                                               KORAScalingFactor=KORAStdScalingFactor,
                                               TwinsUKScaling=TwinsUKScalingFactor)
-
+        del YArrayList
 
         LogString = '  -- Done ...'
         print LogString
@@ -262,6 +262,10 @@ def main(ExecutableName=str):
         print LogString
         Log.Write(LogString+'\n')
 
+        YArrayList = []
+        for ChrtName in CohortList:
+            YArrayList.append(CohortGWADCsDict[ChrtName].DataContainers['SE'].GetDataArray())
+
         Plotting.BoxPlotSD(MtbName=MtbName,
                            DataList=CohortList,
                            XArrayList=XArrayList,
@@ -270,6 +274,7 @@ def main(ExecutableName=str):
                            MarkerDict=MarkerDict,
                            KORAScalingFactor=KORAStdScalingFactor,
                            TwinsUKScaling=TwinsUKScalingFactor)
+        del YArrayList
 
         LogString = '  -- Done ...'
         print LogString
