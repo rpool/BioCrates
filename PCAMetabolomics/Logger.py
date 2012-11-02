@@ -70,7 +70,8 @@ class Logger:
         self.StartLogString += '# running module    : '+sys.argv[0]+'\n'
         if(os.path.islink(sys.argv[0])):
             self.StartLogString += '#  -> linking to    : '+os.path.realpath(sys.argv[0])+'\n'
-        if(os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn'))):
+        if((os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn'))) or
+           (os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'..','.svn')))):
             Client = pysvn.Client()
             self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
             del Client

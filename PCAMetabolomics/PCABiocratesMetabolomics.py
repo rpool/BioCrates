@@ -6,6 +6,7 @@ import fnmatch
 import sys
 import scipy
 import scipy.linalg
+import scipy.interpolate
 import re
 import matplotlib.mlab
 import pylab
@@ -67,6 +68,24 @@ def ScreeTest(Data=scipy.array):
                    'ro-',
                    linewidth=0.75,
                    markersize=2.0)
+
+    dX   = scipy.diff(SingVals)
+    dY   = scipy.diff(EigenValues)
+    dYdX = dY/dX
+#    PylabAxis.plot(SingVals[1:],
+#                   dYdX,
+#                   'g-',
+#                   linewidth=0.75,
+#                   markersize=2.0)
+    dX2    = scipy.diff(dX)
+    dY2    = scipy.diff(dY)
+    dY2dX2 = dY2/dX[1:]
+    PylabAxis.plot(SingVals[2:],
+                   dY2dX2,
+                   'b-',
+                   linewidth=0.75,
+                   markersize=2.0)
+
     PylabAxis.plot(scipy.array([0.0,SingVals.max()]),
                    scipy.array([1.0,1.0]),
                    '-',
@@ -82,6 +101,7 @@ def ScreeTest(Data=scipy.array):
     PylabAxis.grid(True)
     pylab.savefig('ScreePlot.png',
                   dpi=600)
+#    pylab.show()
 
     return
 
@@ -134,6 +154,7 @@ def main(ExecutableName=str):
     PhenotypePath       = XmlProtocol.getroot().find('PhenotypeInputPath').text.strip()
     PhenotypeExtension  = XmlProtocol.getroot().find('PhenotypeFileExt').text.strip()
     PhenotypeInputFiles = fnmatch.filter(os.listdir(PhenotypePath),'*.'+PhenotypeExtension)
+    PhenotypeInputFiles = fnmatch.filter(PhenotypeInputFiles,'*Phenotype*'+PhenotypeExtension)
     fr = open(PhenotypeInputFiles[0],'r')
     HeaderList     = fr.readline().strip().split(',')
     MetaboliteList = []
