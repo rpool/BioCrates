@@ -17,6 +17,104 @@ import ArgumentParser
 import File
 import Plotting
 
+def HornsParallalAnalysis(DataDict=dict,
+                          Log=Logger):
+    import rpy2.robjects as robjects
+    from rpy2.robjects.packages import importr
+    import rpy2.rinterface as rinterface
+
+    Paran = None
+
+    LogString  = '  ** Writing rpy2 parallel analysis output to \"'+Log.GetFileName()+'\" ...\n'
+    LogString += '  ## START rpy2 ##'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    StdOutSav     = sys.stdout
+    sys.stdout    = Log.GetFileHandle()
+    DataFrameDict = {}
+    for Key,Value in DataDict.iteritems():
+        hlen = len(Value)
+        DataFrameDict[Key] = rinterface.baseenv['as.real'](rinterface.StrSexpVector(Value[0:hlen]))
+        RDataFrame  = robjects.DataFrame(DataFrameDict)
+    Paran       = importr('paran')
+    ParanOutput = Paran.paran(RDataFrame,iterations=180)
+
+    sys.stdout  = StdOutSav
+    LogString   = '  ## END rpy2 ##'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    LogString  = '  ** Plotting parallel analysis output to \"ParanPlot.png\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    PylabParameters,\
+    Rectangle         = PylabGetParams()
+    Size              = 1.5
+    LineWidth         = 0.5
+    pylab.rcParams.update(PylabParameters)
+
+    PylabFigure = pylab.figure()
+    PylabFigure.clf()
+    PylabAxis = PylabFigure.add_axes(Rectangle)
+
+    NRetained = int(scipy.array(ParanOutput[ParanOutput.names.index('Retained')])[0])
+
+    Y = scipy.array(ParanOutput[ParanOutput.names.index('RndEv')])
+    X = scipy.arange(len(Y))+1
+    PylabAxis.plot(X,
+                   Y,
+                   'bs-',
+                   markeredgecolor='blue',
+                   linewidth=0.5,
+                   alpha=0.5,
+                   markersize=2.0)
+
+    Y = scipy.array(ParanOutput[ParanOutput.names.index('Ev')])
+    X = scipy.arange(len(Y))+1
+    PylabAxis.plot(X,
+                   Y,
+                   'ro-',
+                   markeredgecolor='red',
+                   linewidth=0.5,
+                   alpha=0.5,
+                   markersize=2.0)
+
+    Y = scipy.array(ParanOutput[ParanOutput.names.index('AdjEv')])
+    X = scipy.arange(len(Y))+1
+    PylabAxis.plot(X[:NRetained],
+                   Y[:NRetained],
+                   'ko-',
+                   linewidth=0.5,
+                   markersize=2.0)
+    PylabAxis.plot(X[NRetained:-1],
+                   Y[NRetained:-1],
+                   'ko-',
+                   markerfacecolor='None',
+                   linewidth=0.5,
+                   markersize=2.0)
+
+    PylabAxis.plot(scipy.array([0.0,X.max()]),
+                   scipy.array([1.0,1.0]),
+                   '-',
+                   color='grey',
+                   linewidth=0.5)
+
+    PylabAxis.set_xlabel(r'$\rm Principal~Component$')
+    PylabAxis.set_ylabel(r'$\rm Eigenvalue$')
+    Legend = pylab.legend([r'$\rm Random~eigenvalues$',
+                           r'$\rm Unadjusted~eigenvalues$',
+                           r'$\rm Adjusted~eigenvalues~(retained~PCs)$',
+                           r'$\rm Adjusted~eigenvalues~(unretained~PCs)$'],
+                           loc='best',
+                           fancybox=True,
+                           shadow=True)
+    PylabAxis.grid(True)
+    pylab.savefig('ParanPlot.png',
+                  dpi=600)
+
+    return NRetained
+
 def PylabGetParams():
 #   Set the plotting parameters: TeX mode, two columns per page in revtex mode/
     FigwidthPt  = 246.0 # pt (from revtex \showthe\columnwidth)
@@ -187,12 +285,55 @@ def main(ExecutableName=str):
                            unpack=True)
     SampleIdArray = Arrays[0].astype(int)
 
+    MtbName2ClassesDict = {}
+    MtbClasses          = []
+    if(eval(XmlProtocol.getroot().find('MtbClassesFile').find('boUse').text)):
+        FName = XmlProtocol.getroot().find('MtbClassesFile').find('Path').text
+        FName = os.path.join(FName,XmlProtocol.getroot().find('MtbClassesFile').find('Name').text)
+        fr = open(FName,'r')
+        for Line in fr:
+            if(Line[0]=='#'):
+                continue
+            else:
+                MtbName = Line.strip().split()[1]
+                MtbClass = Line.strip().split()[2]
+                MtbName2ClassesDict[MtbName] = MtbClass
+                MtbClasses.append(MtbClass)
+        fr.close()
+        MtbClasses = list(set(MtbClasses))
+
     PhenotypeArrayDict = {}
     RawData            = []
     for i in range(len(MetaboliteList)):
         Mtb = MetaboliteList[i]
         PhenotypeArrayDict[Mtb] = Arrays[i+1].astype(float)
         RawData.append(PhenotypeArrayDict[Mtb])
+
+    LogString = '++ Accounting for excluded metabolites in current data set ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    DelList = []
+    for Key in PhenotypeArrayDict.iterkeys():
+        if(Key in ExcludedMtbs):
+            LogString = '  ** Metabolite \"'+Key+'\" will be excluded from the data set ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            DelList.append(Key)
+    if(len(DelList)==0):
+        LogString = '  ** No metabolites will be exluded ...'
+        print LogString
+        Log.Write(LogString+'\n')
+    else:
+        LogString = '  ** '+str(len(DelList))+' metabolites will be exluded ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
+    for Entry in DelList:
+        del PhenotypeArrayDict[Entry]
+    del DelList
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
     MeanCenteredData           = []
     MeanCenteredAutoScaledData = []
@@ -278,11 +419,25 @@ def main(ExecutableName=str):
     print LogString
     Log.Write(LogString+'\n')
     LogString  = '  ** Elbow point in scree plot = '+str(ElbowPoint)+' ...\n'
-    LogString += '  ** This is defined as the point after which the numerical second derivate of the eigenvalues(#PC) goes below 0.0 ...'
+    LogString += '  ** This is defined as the point after which the numerical second derivate of the eigenvalues(#PC) goes below 0.0 ...\n'
+    LogString += '  ** The percentage explained variance for this number of PCs is '+str(round(scipy.sum(MyPCA.fracs[:ElbowPoint])*100.0,2))+'% (based upon mean centered auto scaled input data) ...'
     print LogString
     Log.Write(LogString+'\n')
     LogString  = '  ** Kaiser critrion = '+str(KaiserCriterion)+' ...\n'
-    LogString += '  ** This is defined as the point after which eigenvalues(#PC) goes below 1.0 ...'
+    LogString += '  ** This is defined as the point after which eigenvalues(#PC) goes below 1.0 ...\n'
+    LogString += '  ** The percentage explained variance for this number of PCs is '+str(round(scipy.sum(MyPCA.fracs[:KaiserCriterion])*100.0,2))+'% (based upon mean centered auto scaled input data) ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    LogString = '++ Performing Horn\'s parallel analysis to determine the number of factors needed ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    NPCs = HornsParallalAnalysis(PhenotypeArrayDict,
+                                 Log)
+    LogString = '  ** Number of retained PCs from parallel analysis = '+str(NPCs)+' ...'
     print LogString
     Log.Write(LogString+'\n')
     LogString = '-- Done ...'
