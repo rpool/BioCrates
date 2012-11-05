@@ -66,7 +66,7 @@ class Logger:
         self.StartLogString += '# platform          : '+' '.join(platform.uname())+'\n'
         self.StartLogString += '# user              : '+str(pwd.getpwuid(os.getuid())[0])+'\n'
         self.StartLogString += '# path              : '+os.getcwd()+'\n'
-        self.StartLogString += '# python version    : '+str(sys.version_info)
+        self.StartLogString += '# python version    : '+str(sys.version_info)+'\n'
         self.StartLogString += '# running module    : '+sys.argv[0]+'\n'
         if(os.path.islink(sys.argv[0])):
             self.StartLogString += '#  -> linking to    : '+os.path.realpath(sys.argv[0])+'\n'

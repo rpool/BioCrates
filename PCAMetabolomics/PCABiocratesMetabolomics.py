@@ -69,6 +69,11 @@ def ScreeTest(Data=scipy.array):
                    linewidth=0.75,
                    markersize=2.0)
 
+    for i in range(len(SingVals)):
+        if(EigenValues[i]<1.0):
+            KaiserCriterion = SingVals[i]
+            break
+
     dX   = scipy.diff(SingVals)
     dY   = scipy.diff(EigenValues)
     dYdX = dY/dX
@@ -85,6 +90,12 @@ def ScreeTest(Data=scipy.array):
                    'b-',
                    linewidth=0.75,
                    markersize=2.0)
+    ElbowPoint = None
+    for i in range(2,len(SingVals)):
+        if(dY2dX2[i]<0.0):
+            ElbowPoint = SingVals[i]
+            break
+
 
     PylabAxis.plot(scipy.array([0.0,SingVals.max()]),
                    scipy.array([1.0,1.0]),
@@ -94,7 +105,8 @@ def ScreeTest(Data=scipy.array):
                    markersize=2.0)
     PylabAxis.set_xlabel(r'$\rm Principal~Component$')
     PylabAxis.set_ylabel(r'$\rm Eigenvalue$')
-    Legend = pylab.legend([r'$\rm Eigenvalues~from~SVD$'],
+    Legend = pylab.legend([r'$\rm Eigenvalues~from~SVD$',
+                           r'$\rm Second~derivative$'],
                            loc='best',
                            fancybox=True,
                            shadow=True)
@@ -103,7 +115,8 @@ def ScreeTest(Data=scipy.array):
                   dpi=600)
 #    pylab.show()
 
-    return
+    return ElbowPoint,\
+           KaiserCriterion
 
 def main(ExecutableName=str):
 
@@ -190,6 +203,12 @@ def main(ExecutableName=str):
         MeanCenteredData.append(Array-Mean)
         MeanCenteredAutoScaledData.append(MeanCenteredData[-1]/Std)
 
+    LogString = '++ Performing PCA analysis on raw data array ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '  ++ Writing fraction explained variance results to \"RawPCA.out.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
     fw = open('RawPCA.out.csv','w')
     fw.write('PC,Frac,CummFrac\n')
     MyData = scipy.array(RawData).T
@@ -199,7 +218,19 @@ def main(ExecutableName=str):
         Sum += MyPCA.fracs[i]
         fw.write(str(i+1)+','+str(MyPCA.fracs[i])+','+str(Sum)+'\n')
     fw.close()
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
+    LogString = '++ Performing PCA analysis on mean centered data array ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '  ++ Writing fraction explained variance results to \"MeanCenteredPCA.out.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
     fw = open('MeanCenteredPCA.out.csv','w')
     fw.write('PC,Frac,CummFrac\n')
     MyData = scipy.array(MeanCenteredData).T
@@ -209,7 +240,19 @@ def main(ExecutableName=str):
         Sum += MyPCA.fracs[i]
         fw.write(str(i+1)+','+str(MyPCA.fracs[i])+','+str(Sum)+'\n')
     fw.close()
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
+    LogString = '++ Performing PCA analysis on mean centered auto scaled data array ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '  ++ Writing fraction explained variance results to \"MeanCenteredAutoScaledPCA.out.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
     fw = open('MeanCenteredAutoScaledPCA.out.csv','w')
     fw.write('PC,Frac,CummFrac\n')
     MyData = scipy.array(MeanCenteredAutoScaledData).T
@@ -219,8 +262,32 @@ def main(ExecutableName=str):
         Sum += MyPCA.fracs[i]
         fw.write(str(i+1)+','+str(MyPCA.fracs[i])+','+str(Sum)+'\n')
     fw.close()
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
-    ScreeTest(MeanCenteredAutoScaledData)
+    LogString = '++ Performing scree test and determining Kaiser criterion ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    ElbowPoint,\
+    KaiserCriterion = ScreeTest(MeanCenteredAutoScaledData)
+    LogString = '  ** Saved plot to \"ScreePlot.png\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString  = '  ** Elbow point in scree plot = '+str(ElbowPoint)+' ...\n'
+    LogString += '  ** This is defined as the point after which the numerical second derivate of the eigenvalues(#PC) goes below 0.0 ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString  = '  ** Kaiser critrion = '+str(KaiserCriterion)+' ...\n'
+    LogString += '  ** This is defined as the point after which eigenvalues(#PC) goes below 1.0 ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
 
     #===========================================================================
     # END Do the work!
