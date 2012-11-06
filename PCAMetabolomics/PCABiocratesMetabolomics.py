@@ -17,6 +17,104 @@ import ArgumentParser
 import File
 import Plotting
 
+def PlotScoresAndLoadings(Data=scipy.array,
+                          NPCs=int,
+                          PCA=matplotlib.mlab.PCA,
+                          LoadingPlotColors=list,
+                          LoadingLegendList=list,
+                          MtbName2ClassesDict=dict,
+                          MtbList=list):
+
+    U, S, V     = scipy.linalg.svd(Data,full_matrices=False)
+    EigenValues = scipy.power(S,2.0)/float(len(U))
+
+    IndexesList = []
+    for i in range(len(LoadingLegendList)):
+        IndexesList.append([])
+    for i in range(len(MtbList)):
+        LoadingLegendListIndex = LoadingLegendList.index(MtbName2ClassesDict[MtbList[i]])
+        IndexesList[LoadingLegendListIndex].append(i)
+
+    for i in range(NPCs-1):
+        for j in range(i+1,NPCs):
+            pylab.close()
+
+            PylabParameters,\
+            Rectangle         = PylabGetParams()
+            Size              = 1.0
+            LineWidth         = 0.5
+            pylab.rcParams.update(PylabParameters)
+
+            Fig = pylab.figure(figsize=(14.0*0.394,7.0*0.394))
+            Fig.clf()
+            Ax1 = Fig.add_subplot(121)
+            Ax2 = Fig.add_subplot(122)
+
+            Ax1.scatter(PCA.Y[:,i],
+                        PCA.Y[:,j],
+                        s=Size,
+                        alpha=0.75,
+                        color='grey')
+
+            XLine  = scipy.array([PCA.Y[:,i].min(),PCA.Y[:,i].max()])
+            XLine /= PCA.Y[:,i].max()-PCA.Y[:,i].min()
+            XLine *= EigenValues[i]
+            YLine = scipy.array([PCA.Y[:,j].min(),PCA.Y[:,j].max()])
+            YLine /= PCA.Y[:,j].max()-PCA.Y[:,j].min()
+            YLine *= EigenValues[j]
+            Ax1.plot(XLine,
+                     scipy.array([0.0,0.0]),
+                     'k-',
+                     lw=LineWidth)
+            Ax1.plot(scipy.array([0.0,0.0]),
+                     YLine,
+                     'k-',
+                     lw=LineWidth)
+            Ax1.set_xlabel(r'$\rm Scores~PC'+str(i+1)+r'~('+str(round(PCA.fracs[i]*100.0,2))+r'\%)$',size=4)
+            Ax1.set_ylabel(r'$\rm Scores~PC'+str(j+1)+r'~('+str(round(PCA.fracs[j]*100.0,2))+r'\%)$',size=4)
+            for tick in Ax1.xaxis.get_major_ticks():
+                tick.label.set_fontsize(4)
+            for tick in Ax1.yaxis.get_major_ticks():
+                tick.label.set_fontsize(4)
+            Ax1.grid(True)
+
+            for I in range(len(LoadingLegendList)):
+                Ax2.scatter(PCA.Wt[scipy.array(IndexesList[I]),i],
+                            PCA.Wt[scipy.array(IndexesList[I]),j],
+                            color=LoadingPlotColors[I],
+                            s=Size,
+                            alpha=0.75)
+        #    for i in range(len(LoadingLegendList)-1)
+        #        Ax2.scatter(PCA.Wt[:,0],
+        #                    PCA.Wt[:,1],
+        #                    color=LoadingPlotColors,
+        #                    s=Size,
+        #                    alpha=0.5) # dummy plots for legend
+
+            LegendList = []
+            for Entry in LoadingLegendList:
+                LegendList.append(r'$\rm '+r'~'.join(Entry.split())+r'$')
+
+            Ax2.legend(LegendList,
+                       loc='best',
+                       fancybox=True,
+                       shadow=True)
+
+            Ax2.set_xlabel(r'$\rm Loadings~PC'+str(i+1)+r'~('+str(round(PCA.fracs[i]*100.0,2))+r'\%)$',size=4)
+            Ax2.set_ylabel(r'$\rm Loadings~PC'+str(j+1)+r'~('+str(round(PCA.fracs[j]*100.0,2))+r'\%)$',size=4)
+            for tick in Ax2.xaxis.get_major_ticks():
+                tick.label.set_fontsize(4)
+            for tick in Ax2.yaxis.get_major_ticks():
+                tick.label.set_fontsize(4)
+
+            Ax2.grid(True)
+
+            PlotName = 'ScoresAndLoadingsPC'+str(i+1)+'_PC'+str(j+1)+'.png'
+            Fig.subplots_adjust(wspace=0.4)
+            Fig.savefig(PlotName,dpi=1000)
+
+    return
+
 def HornsParallalAnalysis(DataDict=dict,
                           Log=Logger):
     import rpy2.robjects as robjects
@@ -38,7 +136,8 @@ def HornsParallalAnalysis(DataDict=dict,
         DataFrameDict[Key] = rinterface.baseenv['as.real'](rinterface.StrSexpVector(Value[0:hlen]))
         RDataFrame  = robjects.DataFrame(DataFrameDict)
     Paran       = importr('paran')
-    ParanOutput = Paran.paran(RDataFrame,iterations=180)
+#    ParanOutput = Paran.paran(RDataFrame,iterations=180) # for speed
+    ParanOutput = Paran.paran(RDataFrame) # default number of iterations
 
     sys.stdout  = StdOutSav
     LogString   = '  ## END rpy2 ##'
@@ -148,7 +247,7 @@ def PylabGetParams():
 
 def ScreeTest(Data=scipy.array):
     U, S, V     = scipy.linalg.svd(Data)
-    EigenValues = scipy.power(S,2.0) / scipy.sum(S)
+    EigenValues = scipy.power(S,2.0)/float(len(U))
 
     PylabParameters,\
     Rectangle         = PylabGetParams()
@@ -301,6 +400,11 @@ def main(ExecutableName=str):
                 MtbClasses.append(MtbClass)
         fr.close()
         MtbClasses = list(set(MtbClasses))
+    MtbClassColors = ['black',
+                      'red',
+                      'blue',
+                      'green',
+                      'purple']
 
     PhenotypeArrayDict = {}
     RawData            = []
@@ -414,7 +518,7 @@ def main(ExecutableName=str):
     print LogString
     Log.Write(LogString+'\n')
     ElbowPoint,\
-    KaiserCriterion = ScreeTest(MeanCenteredAutoScaledData)
+    KaiserCriterion = ScreeTest(MyData)
     LogString = '  ** Saved plot to \"ScreePlot.png\" ...'
     print LogString
     Log.Write(LogString+'\n')
@@ -440,6 +544,21 @@ def main(ExecutableName=str):
     LogString = '  ** Number of retained PCs from parallel analysis = '+str(NPCs)+' ...'
     print LogString
     Log.Write(LogString+'\n')
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    LogString = '++ 2D-plotting scores and loadings for all combinations of the retained number of PCs...'
+    print LogString
+    Log.Write(LogString+'\n')
+    PlotScoresAndLoadings(MyData,
+#                          13,
+                          NPCs,
+                          MyPCA,
+                          MtbClassColors,
+                          MtbClasses,
+                          MtbName2ClassesDict,
+                          MetaboliteList)
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')
