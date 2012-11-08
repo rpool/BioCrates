@@ -137,7 +137,7 @@ def main(ExecutableName=str):
     MetalHeader += '\n'
 
     MetalFooter  = '# Analysis\n'
-    MetalFooter += 'ANALYZE\n'
+    MetalFooter += 'ANALYZE HETEROGENEITY\n'
     MetalFooter += '\n'
     MetalFooter += '# Exit\n'
     MetalFooter += 'QUIT\n'
@@ -173,16 +173,25 @@ def main(ExecutableName=str):
             fw.write('#Set Options for describing input files\n')
             fw.write('MARKERLABEL SNPID\n')
             fw.write('PVALUELABEL pval\n')
+            fw.write('STDERRLABEL SE\n')
             fw.write('EFFECTLABEL beta\n')
             fw.write('WEIGHTLABEL n_total\n')
             fw.write('ALLELELABELS coded_all noncoded_all\n')
+            fw.write('FREQLABEL AF_coded_all\n')
             fw.write('STRANDLABEL strand_genome\n')
             fw.write('# Strand information\n')
             fw.write('USESTRAND ON\n')
             fw.write('# Column counting per line\n')
             fw.write('COLUMNCOUNTING STRICT\n')
-#            fw.write('# Set Scheme\n')
-#            fw.write('SCHEME SAMPLESIZE\n')
+            fw.write('# Track allele frequencies\n')
+            fw.write('AVERAGEFREQ ON\n')
+            fw.write('MINMAXFREQ ON\n')
+            if(XmlProtocol.getroot().find('MetalScheme').text.strip()=='SAMPLESIZE'):
+                fw.write('# Set Scheme\n')
+                fw.write('SCHEME SAMPLESIZE\n')
+            elif(XmlProtocol.getroot().find('MetalScheme').text.strip()=='STDERR'):
+                fw.write('# Set Scheme\n')
+                fw.write('SCHEME STDERR\n')
             fw.write('#Process file; assuming that it has been unzipped using e.g. \"gzip -dc\"\n')
             fw.write('PROCESSFILE '+FileName+'\n')
             fw.write('\n')
