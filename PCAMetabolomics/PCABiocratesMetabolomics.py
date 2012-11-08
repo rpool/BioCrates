@@ -78,12 +78,16 @@ def PlotScoresAndLoadings(Data=scipy.array,
                 tick.label.set_fontsize(4)
             Ax1.grid(True)
 
+            print PCA.Wt, scipy.shape(PCA.Wt)
+            print PCA.Wt[0,0]
+            sys.exit()
             for I in range(len(LoadingLegendList)):
                 Ax2.scatter(PCA.Wt[scipy.array(IndexesList[I]),i],
                             PCA.Wt[scipy.array(IndexesList[I]),j],
                             color=LoadingPlotColors[I],
                             s=Size,
                             alpha=0.75)
+
         #    for i in range(len(LoadingLegendList)-1)
         #        Ax2.scatter(PCA.Wt[:,0],
         #                    PCA.Wt[:,1],
@@ -136,8 +140,8 @@ def HornsParallalAnalysis(DataDict=dict,
         DataFrameDict[Key] = rinterface.baseenv['as.real'](rinterface.StrSexpVector(Value[0:hlen]))
         RDataFrame  = robjects.DataFrame(DataFrameDict)
     Paran       = importr('paran')
-#    ParanOutput = Paran.paran(RDataFrame,iterations=180) # for speed
-    ParanOutput = Paran.paran(RDataFrame) # default number of iterations
+    ParanOutput = Paran.paran(RDataFrame,iterations=180) # for speed
+#    ParanOutput = Paran.paran(RDataFrame) # default number of iterations
 
     sys.stdout  = StdOutSav
     LogString   = '  ## END rpy2 ##'
@@ -541,7 +545,8 @@ def main(ExecutableName=str):
     Log.Write(LogString+'\n')
     NPCs = HornsParallalAnalysis(PhenotypeArrayDict,
                                  Log)
-    LogString = '  ** Number of retained PCs from parallel analysis = '+str(NPCs)+' ...'
+    LogString  = '  ** Number of retained PCs from parallel analysis = '+str(NPCs)+' ...\n'
+    LogString += '  ** The percentage explained variance for this number of PCs is '+str(round(scipy.sum(MyPCA.fracs[:NPCs])*100.0,2))+'% (based upon mean centered auto scaled input data) ...'
     print LogString
     Log.Write(LogString+'\n')
     LogString = '-- Done ...'
