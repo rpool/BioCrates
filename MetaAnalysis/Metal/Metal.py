@@ -147,6 +147,16 @@ def main(ExecutableName=str):
         ScriptName = MtbName+'_MetalScript.txt'
         fw         = open(ScriptName,'w')
         fw.write(MetalHeader)
+        fw.write('# Track allele frequencies\n')
+        fw.write('AVERAGEFREQ ON\n')
+        fw.write('MINMAXFREQ ON\n')
+
+        if(XmlProtocol.getroot().find('MetalScheme').text.strip()=='SAMPLESIZE'):
+            fw.write('# Set Scheme\n')
+            fw.write('SCHEME SAMPLESIZE\n')
+        elif(XmlProtocol.getroot().find('MetalScheme').text.strip()=='STDERR'):
+            fw.write('# Set Scheme\n')
+            fw.write('SCHEME STDERR\n')
 
         LogString = '++ Generating a \"metal\" script for metabolite\"'+MtbName+'\": \"'+ScriptName+'\" ...'
         print LogString
@@ -186,17 +196,6 @@ def main(ExecutableName=str):
             fw.write('#Process file; assuming that it has been unzipped using e.g. \"gzip -dc\"\n')
             fw.write('PROCESSFILE '+FileName+'\n')
             fw.write('\n')
-
-        fw.write('# Track allele frequencies\n')
-        fw.write('AVERAGEFREQ ON\n')
-        fw.write('MINMAXFREQ ON\n')
-
-        if(XmlProtocol.getroot().find('MetalScheme').text.strip()=='SAMPLESIZE'):
-            fw.write('# Set Scheme\n')
-            fw.write('SCHEME SAMPLESIZE\n')
-        elif(XmlProtocol.getroot().find('MetalScheme').text.strip()=='STDERR'):
-            fw.write('# Set Scheme\n')
-            fw.write('SCHEME STDERR\n')
 
         fw.write('# Outfile\n')
         fw.write('OUTFILE MetaAnalysis_'+MtbName+'_ .tbl\n')
