@@ -183,9 +183,6 @@ def main(ExecutableName=str):
             fw.write('USESTRAND ON\n')
             fw.write('# Column counting per line\n')
             fw.write('COLUMNCOUNTING STRICT\n')
-            fw.write('# Track allele frequencies\n')
-            fw.write('AVERAGEFREQ ON\n')
-            fw.write('MINMAXFREQ ON\n')
             if(XmlProtocol.getroot().find('MetalScheme').text.strip()=='SAMPLESIZE'):
                 fw.write('# Set Scheme\n')
                 fw.write('SCHEME SAMPLESIZE\n')
@@ -195,6 +192,10 @@ def main(ExecutableName=str):
             fw.write('#Process file; assuming that it has been unzipped using e.g. \"gzip -dc\"\n')
             fw.write('PROCESSFILE '+FileName+'\n')
             fw.write('\n')
+
+        fw.write('# Track allele frequencies\n')
+        fw.write('AVERAGEFREQ ON\n')
+        fw.write('MINMAXFREQ ON\n')
 
         fw.write('# Outfile\n')
         fw.write('OUTFILE MetaAnalysis_'+MtbName+'_ .tbl\n')
