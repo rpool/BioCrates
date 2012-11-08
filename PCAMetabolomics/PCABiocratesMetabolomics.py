@@ -157,8 +157,8 @@ def HornsParallalAnalysis(DataDict=dict,
         DataFrameDict[Key] = rinterface.baseenv['as.real'](rinterface.StrSexpVector(Value[0:hlen]))
         RDataFrame  = robjects.DataFrame(DataFrameDict)
     Paran       = importr('paran')
-    ParanOutput = Paran.paran(RDataFrame,iterations=180) # for speed
-#    ParanOutput = Paran.paran(RDataFrame) # default number of iterations
+#    ParanOutput = Paran.paran(RDataFrame,iterations=180) # for speed
+    ParanOutput = Paran.paran(RDataFrame) # default number of iterations
 
     sys.stdout  = StdOutSav
     LogString   = '  ## END rpy2 ##'
