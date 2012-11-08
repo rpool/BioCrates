@@ -41,7 +41,7 @@ def PlotScoresAndLoadings(Data=scipy.array,
 
             PylabParameters,\
             Rectangle         = PylabGetParams()
-            Size              = 1.0
+            Size              = 1.5
             LineWidth         = 0.5
             pylab.rcParams.update(PylabParameters)
 
@@ -54,6 +54,8 @@ def PlotScoresAndLoadings(Data=scipy.array,
                         PCA.Y[:,j],
                         s=Size,
                         alpha=0.75,
+                        facecolor='None',
+                        linewidth=0.75,
                         color='grey')
 
             XLine  = scipy.array([PCA.Y[:,i].min(),PCA.Y[:,i].max()])
@@ -76,18 +78,18 @@ def PlotScoresAndLoadings(Data=scipy.array,
                 tick.label.set_fontsize(4)
             for tick in Ax1.yaxis.get_major_ticks():
                 tick.label.set_fontsize(4)
-            Ax1.grid(True)
 
-            print PCA.Wt, scipy.shape(PCA.Wt)
-            print PCA.Wt[0,0]
-            sys.exit()
+            Ax1.grid(True)
+            Ax1.set_axisbelow(True)
+
             for I in range(len(LoadingLegendList)):
-                Ax2.scatter(PCA.Wt[scipy.array(IndexesList[I]),i],
-                            PCA.Wt[scipy.array(IndexesList[I]),j],
+                Ax2.scatter(PCA.Wt[i,scipy.array(IndexesList[I])],
+                            PCA.Wt[j,scipy.array(IndexesList[I])],
                             color=LoadingPlotColors[I],
                             s=Size,
+                            facecolor='None',
+                            linewidth=0.75,
                             alpha=0.75)
-
         #    for i in range(len(LoadingLegendList)-1)
         #        Ax2.scatter(PCA.Wt[:,0],
         #                    PCA.Wt[:,1],
@@ -102,7 +104,21 @@ def PlotScoresAndLoadings(Data=scipy.array,
             Ax2.legend(LegendList,
                        loc='best',
                        fancybox=True,
-                       shadow=True)
+                       shadow=True,
+                       scatterpoints=1)
+
+            Ax2.plot(Ax2.get_xlim(),
+                     scipy.array([0.0,0.0]),
+                     '-',
+                     color='grey',
+                     lw=LineWidth,
+                     zorder=0)
+            Ax2.plot(scipy.array([0.0,0.0]),
+                     Ax2.get_ylim(),
+                     '-',
+                     color='grey',
+                     lw=LineWidth,
+                     zorder=0)
 
             Ax2.set_xlabel(r'$\rm Loadings~PC'+str(i+1)+r'~('+str(round(PCA.fracs[i]*100.0,2))+r'\%)$',size=4)
             Ax2.set_ylabel(r'$\rm Loadings~PC'+str(j+1)+r'~('+str(round(PCA.fracs[j]*100.0,2))+r'\%)$',size=4)
@@ -112,6 +128,7 @@ def PlotScoresAndLoadings(Data=scipy.array,
                 tick.label.set_fontsize(4)
 
             Ax2.grid(True)
+            Ax2.set_axisbelow(True)
 
             PlotName = 'ScoresAndLoadingsPC'+str(i+1)+'_PC'+str(j+1)+'.png'
             Fig.subplots_adjust(wspace=0.4)
@@ -557,8 +574,8 @@ def main(ExecutableName=str):
     print LogString
     Log.Write(LogString+'\n')
     PlotScoresAndLoadings(MyData,
-#                          13,
-                          NPCs,
+                          13,
+#                          NPCs,
                           MyPCA,
                           MtbClassColors,
                           MtbClasses,
