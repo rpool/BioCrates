@@ -323,6 +323,11 @@ def main(ExecutableName):
                                          unpack=True)
                 RsIdArray  = Arrays[0]
                 PValArray  = Arrays[1].astype(float)
+                ZZ         = scipy.real(-scipy.log10(PValArray))
+                if(type(RsIdArray)==scipy.string_):
+                    RsIdArray = scipy.array([RsIdArray])
+                    PValArray = scipy.array([PValArray])
+                    ZZ         = scipy.real(-scipy.log10(PValArray))
                 ColorList  = []
                 for RsId in RsIdArray:
                     if(RsId in Gene2RsIdDict[Gene]):
@@ -330,10 +335,6 @@ def main(ExecutableName):
                     else:
                         ColorList.append('white')
                 ZZ         = scipy.real(-scipy.log10(PValArray))
-                if(type(RsIdArray)==scipy.string_):
-                    RsIdArray = scipy.array([RsIdArray])
-                    PValArray = scipy.array([PValArray])
-                    ZZ         = scipy.real(-scipy.log10(PValArray))
     #            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
     #            TmpArray,\
     #            IndexArray = scipy.unique(ar=TmpArray,
@@ -391,138 +392,139 @@ def main(ExecutableName):
     #        del X
     #        del Y
 
-            LogString = '**** Generating 3D-Manhattan plot ...'
-            print LogString
-            Log.Write(LogString+'\n')
+        LogString = '**** Generating 3D-Manhattan plot ...'
+        print LogString
+        Log.Write(LogString+'\n')
 
-    #       Lay-out stuff
-            figwidth_pt   = 1422.0 # pt (from revtex \showthe\columnwidth)
-            inches_per_pt = 1.0/72.27
-            figwidth      = figwidth_pt*inches_per_pt
-            golden_mean   = (scipy.sqrt(5.0)-1.0)/2.0 # Aesthetic ratio
-            figheight     = figwidth*golden_mean
-            fig_size      = [figwidth,figheight]
-            params        = {'backend': 'pdf',
-                             'patch.antialiased': True,
-                             'axes.labelsize': 28,
-                             'axes.linewidth': 0.5,
-                             'grid.color': '0.75',
-                             'grid.linewidth': 0.25,
-                             'grid.linestyle': ':',
-                             'axes.axisbelow': False,
-                             'text.fontsize': 24,
-                             'legend.fontsize': 20,
-                             'xtick.labelsize': 22,
-                             'ytick.labelsize': 22,
-                             'text.usetex': True,
-                             'figure.figsize': fig_size}
-            left   = 0.06
-            bottom = 0.125
-            width  = 0.88-left
-            height = 0.95-bottom
+#       Lay-out stuff
+        figwidth_pt   = 1422.0 # pt (from revtex \showthe\columnwidth)
+        inches_per_pt = 1.0/72.27
+        figwidth      = figwidth_pt*inches_per_pt
+        golden_mean   = (scipy.sqrt(5.0)-1.0)/2.0 # Aesthetic ratio
+        figheight     = figwidth*golden_mean
+        fig_size      = [figwidth,figheight]
+        params        = {'backend': 'pdf',
+                         'patch.antialiased': True,
+                         'axes.labelsize': 28,
+                         'axes.linewidth': 0.5,
+                         'grid.color': '0.75',
+                         'grid.linewidth': 0.25,
+                         'grid.linestyle': ':',
+                         'axes.axisbelow': False,
+                         'text.fontsize': 24,
+                         'legend.fontsize': 20,
+                         'xtick.labelsize': 22,
+                         'ytick.labelsize': 22,
+                         'text.usetex': True,
+                         'figure.figsize': fig_size}
+        left   = 0.06
+        bottom = 0.125
+        width  = 0.88-left
+        height = 0.95-bottom
 
-            pylab.rcParams.update(params)
+        pylab.rcParams.update(params)
 
-            PylabFigure = pylab.figure()
-            PylabFigure.clf()
+        PylabFigure = pylab.figure()
+        PylabFigure.clf()
 
-            Rectangle   = [left, bottom, width, height]
-            PylabAxis   = PylabFigure.add_axes(Rectangle)
-            if(Arguments.XProperty=='pos'):
-                PylabAxis.set_xlabel(r'${\rm position}$')
-            if(Arguments.YProperty=='PHE'):
-                PylabAxis.set_ylabel(r'${\rm metabolite}$')
+        Rectangle   = [left, bottom, width, height]
+        PylabAxis   = PylabFigure.add_axes(Rectangle)
+        if(Arguments.XProperty=='pos'):
+            PylabAxis.set_xlabel(r'${\rm position}$')
+        if(Arguments.YProperty=='PHE'):
+            PylabAxis.set_ylabel(r'${\rm metabolite}$')
 
 
-    #        for p in range(0,2):
-    #        for p in range(72,73):
-            for p in range(Arguments.NPhe):
-                if(p in NoPlotList):
-                    continue
-                P  = 'PHE'+str(p+1)
-    #            if(len(ZSugg[P])>0):
-    #                PylabAxis.scatter(x=XSugg[P],
-    #                                  y=YSugg[P],
-    #                                  color='black',
-    #                                  s=ZSugg[P]/ZMax*100.0,
-    #                                  marker='s',
-    #                                  alpha=0.15,
-    #                                  antialiased=True,
-    #                                  edgecolors='none')
-                if((ZSign.has_key(P)) and
-                   (len(ZSign[P])>0)):
-                    PylabAxis.scatter(x=XSign[P],
-                                      y=YSign[P],
-                                      color=Color[P],
-                                      s=ZSign[P]/ZMax*100.0,
-                                      marker='o',
-                                      alpha=0.15,
-                                      antialiased=True,
-                                      edgecolors='none',
-                                      label=r'$\rm '+Gene+r'$')
-            PlotFile  = 'Manhattan3D.pdf'
-            LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
-            print LogString
-            Log.Write(LogString+'\n')
-            XXRange  = float(XXMax)-float(XXMin)
-            XXOffset = XXRange*0.005
-            PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
-            PylabAxis.set_ylim([0,YMax+2])
-            for Key,Value in ClassRange.iteritems():
-                PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
-                               scipy.ones(2)*Value[0]-0.5,
-                               lw=0.25,
-                               color='black')
-                PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
-                               scipy.ones(2)*Value[1]+0.5,
-                               lw=0.25,
-                               color='black')
-                PylabAxis.text(float(XXMax)+XXOffset,
-                               float(Value[0]+Value[1])*0.5,
-                               r'${\rm '+Key+'}$',
-                               verticalalignment='center')
-            for Entry in XLeft:
-                PylabAxis.plot(scipy.array([Entry,Entry]),
-                               scipy.array(PylabAxis.get_ylim()),
-                               lw=0.25,
-                               color='black')
-            for Entry in XRight:
-                PylabAxis.plot(scipy.array([Entry,Entry]),
-                               scipy.array(PylabAxis.get_ylim()),
-                               lw=0.25,
-                               color='black')
+#        for p in range(0,2):
+#        for p in range(72,73):
+        for p in range(Arguments.NPhe):
+            if(p in NoPlotList):
+                continue
+            P  = 'PHE'+str(p+1)
+#            if(len(ZSugg[P])>0):
+#                PylabAxis.scatter(x=XSugg[P],
+#                                  y=YSugg[P],
+#                                  color='black',
+#                                  s=ZSugg[P]/ZMax*100.0,
+#                                  marker='s',
+#                                  alpha=0.15,
+#                                  antialiased=True,
+#                                  edgecolors='none')
+            if((ZSign.has_key(P)) and
+               (len(ZSign[P])>0)):
+                PylabAxis.scatter(x=XSign[P],
+                                  y=YSign[P],
+                                  color=Color[P],
+                                  s=ZSign[P]/ZMax*100.0,
+                                  marker='o',
+                                  alpha=0.15,
+                                  antialiased=True,
+                                  edgecolors='none',
+                                  label=r'$\rm '+Gene+r'$')
+        PlotFile  = 'Manhattan3D.pdf'
+        LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        XXRange  = float(XXMax)-float(XXMin)
+        XXOffset = XXRange*0.005
+        PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
+        PylabAxis.set_ylim([0,YMax+2])
+        for Key,Value in ClassRange.iteritems():
+            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
+                           scipy.ones(2)*Value[0]-0.5,
+                           lw=0.25,
+                           color='black')
+            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
+                           scipy.ones(2)*Value[1]+0.5,
+                           lw=0.25,
+                           color='black')
+            PylabAxis.text(float(XXMax)+XXOffset,
+                           float(Value[0]+Value[1])*0.5,
+                           r'${\rm '+Key+'}$',
+                           verticalalignment='center')
+        for Entry in XLeft:
+            PylabAxis.plot(scipy.array([Entry,Entry]),
+                           scipy.array(PylabAxis.get_ylim()),
+                           lw=0.25,
+                           color='black')
+        for Entry in XRight:
+            PylabAxis.plot(scipy.array([Entry,Entry]),
+                           scipy.array(PylabAxis.get_ylim()),
+                           lw=0.25,
+                           color='black')
 
-            for p in range(Arguments.NPhe):
-                if(len(MInclude)>0):
-                    if(MInclude[p]=='False'):
-                        PylabAxis.plot(scipy.array(PylabAxis.get_xlim()),
-                                       scipy.array([float(p+1),float(p+1)]),
-                                       color='blue',
-                                       ls='-',
-                                       lw=4.25,
-                                       alpha=0.125,
-                                       zorder=0)
+        for p in range(Arguments.NPhe):
+            if(len(MInclude)>0):
+                if(MInclude[p]=='False'):
+                    PylabAxis.plot(scipy.array(PylabAxis.get_xlim()),
+                                   scipy.array([float(p+1),float(p+1)]),
+                                   color='blue',
+                                   ls='-',
+                                   lw=4.25,
+                                   alpha=0.125,
+                                   zorder=0)
 
-    #        PylabAxis.set_ylim([0,164])
-            PylabAxis.spines['right'].set_visible(False)
-            PylabAxis.spines['top'].set_visible(False)
-            PylabAxis.xaxis.set_ticks_position('bottom')
-            PylabAxis.yaxis.set_ticks_position('left')
-            PylabAxis.xaxis.set_ticks(XTicks)
-            PylabAxis.xaxis.set_ticklabels(XTickLabels)
-            for Label in PylabAxis.xaxis.get_ticklabels():
-                Label.set_rotation(90)
-            Handles,Labels = PylabAxis.get_legend_handles_labels()
-            PylabAxis.legend([Handles[0]],
-                             [Labels[0]],
-                             fancybox=True,
-                             shadow=True,
-                             loc='lower left',
-                             numpoints=1,
-                             scatterpoints=1)
+#        PylabAxis.set_ylim([0,164])
+        PylabAxis.spines['right'].set_visible(False)
+        PylabAxis.spines['top'].set_visible(False)
+        PylabAxis.xaxis.set_ticks_position('bottom')
+        PylabAxis.yaxis.set_ticks_position('left')
+        PylabAxis.xaxis.set_ticks(XTicks)
+        PylabAxis.xaxis.set_ticklabels(XTickLabels)
+        for Label in PylabAxis.xaxis.get_ticklabels():
+            Label.set_rotation(90)
+        Handles,Labels = PylabAxis.get_legend_handles_labels()
+        PylabAxis.legend([Handles[0]],
+                         [Labels[0]],
+                         fancybox=True,
+                         shadow=True,
+                         loc='lower left',
+                         numpoints=1,
+                         scatterpoints=1)
 
-            pylab.savefig(re.sub('.pdf','_'+Gene+'.pdf',PlotFile))
-            pylab.close()
+#            pylab.savefig(re.sub('.pdf','_'+Gene+'.pdf',PlotFile))
+        pylab.savefig(re.sub(PlotFile))
+        pylab.close()
     else:
         print '!! NOT IMPLEMENTED YET !!'
 
