@@ -523,7 +523,7 @@ def main(ExecutableName):
 #                         scatterpoints=1)
 
 #            pylab.savefig(re.sub('.pdf','_'+Gene+'.pdf',PlotFile))
-        pylab.savefig(re.sub(PlotFile))
+        pylab.savefig(PlotFile)
         pylab.close()
     else:
         print '!! NOT IMPLEMENTED YET !!'
