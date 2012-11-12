@@ -333,7 +333,7 @@ def main(ExecutableName):
                     if(RsId in Gene2RsIdDict[Gene]):
                         ColorList.append('red')
                     else:
-                        ColorList.append('white')
+                        ColorList.append('black')
                 ZZ         = scipy.real(-scipy.log10(PValArray))
     #            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
     #            TmpArray,\
@@ -513,14 +513,14 @@ def main(ExecutableName):
         PylabAxis.xaxis.set_ticklabels(XTickLabels)
         for Label in PylabAxis.xaxis.get_ticklabels():
             Label.set_rotation(90)
-        Handles,Labels = PylabAxis.get_legend_handles_labels()
-        PylabAxis.legend([Handles[0]],
-                         [Labels[0]],
-                         fancybox=True,
-                         shadow=True,
-                         loc='lower left',
-                         numpoints=1,
-                         scatterpoints=1)
+#        Handles,Labels = PylabAxis.get_legend_handles_labels()
+#        PylabAxis.legend([Handles[0]],
+#                         [Labels[0]],
+#                         fancybox=True,
+#                         shadow=True,
+#                         loc='lower left',
+#                         numpoints=1,
+#                         scatterpoints=1)
 
 #            pylab.savefig(re.sub('.pdf','_'+Gene+'.pdf',PlotFile))
         pylab.savefig(re.sub(PlotFile))
