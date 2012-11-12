@@ -15,6 +15,20 @@ fLARGE = 1.0e500
 
 def main(ExecutableName):
 
+    Gene2RsIdDict = {}
+    RsId2GeneDict = {}
+    fr = open('AllAlphaNFHitsSheetUCSCGeneAnot.txt','r')
+    fr.readline()
+    for Line in fr:
+        LSplit = Line.strip().split()
+        if(not Gene2RsIdDict.has_key(LSplit[1])):
+            Gene2RsIdDict[LSplit[1]] = []
+        Gene2RsIdDict[LSplit[1]].append(LSplit[0])
+        if(not RsId2GeneDict.has_key(LSplit[0])):
+            RsId2GeneDict[LSplit[0]] = []
+        RsId2GeneDict[LSplit[0]].append(LSplit[1])
+    fr.close()
+
     ArgParser,\
     Arguments   = ArgumentParser.ParseArguments()
 
@@ -148,7 +162,6 @@ def main(ExecutableName):
 #        XMax        = 0
 #        X           = []
 #        XLeft       = []
-#        XRight      = []
 #        XTicks      = []
 #        XTickLabels = []
 #        for p in range(1): # if XProperty=='pos', all phenotypes have the same pos file content.
@@ -191,14 +204,16 @@ def main(ExecutableName):
         print LogString
         Log.Write(LogString+'\n')
 
-        MNumber = None
-        MName   = None
-        MClass  = None
+        MNumber  = None
+        MName    = None
+        MClass   = None
+        MInclude = None
         if(Arguments.MetabolitClassesFileName!=''):
-            MNumber = []
-            MName   = []
-            MClass  = []
-            fr      = open(Arguments.MetabolitClassesFileName,'r')
+            MNumber  = []
+            MName    = []
+            MClass   = []
+            MInclude = []
+            fr       = open(Arguments.MetabolitClassesFileName,'r')
             for Line in fr.readlines():
                 if(Line[0]=="#"):
                     continue
@@ -206,6 +221,8 @@ def main(ExecutableName):
                 MNumber.append(LStrp[0])
                 MName.append(LStrp[1])
                 MClass.append(LStrp[2])
+                if(len(LStrp)>3):
+                    MInclude.append(LStrp[3])
             fr.close()
             Classes    = list(set(MClass))
             ClassDict  = {}
@@ -270,200 +287,242 @@ def main(ExecutableName):
         YSign = {}
         XSugg = {}
         XSign = {}
+        Color = {}
 
         NoPlotList = []
 #        for p in range(0):
 #        for p in range(72,73):
-        for p in range(Arguments.NPhe):
-            P          = 'PHE'+str(p+1)+'_'
-            PHE        = re.sub('_','',P)
-            Mtb        = MName[MNumber.index(str(p+1))]
-            FName      = os.path.join(Arguments.MAOutputPath,'MetaAnalysis_'+Mtb+'_1.tbl')
-            if((not os.path.isfile(FName)) or
-               (not os.path.islink(FName))):
-                NoPlotList.append(p)
-                continue
-            LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
+#        for Gene in ['FADS2']:
+        for Gene in Gene2RsIdDict.iterkeys():
+            for p in range(Arguments.NPhe):
+                P          = 'PHE'+str(p+1)+'_'
+                PHE        = re.sub('_','',P)
+                Mtb        = MName[MNumber.index(str(p+1))]
+                FName      = os.path.join(Arguments.MAOutputPath,'AlphaNfFilteredMetaAnalysis_'+Mtb+'_1.tbl')
+                if((not os.path.isfile(FName)) or
+                   (not os.path.islink(FName))):
+                    NoPlotList.append(p)
+                    continue
+                LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
+                print LogString
+                Log.Write(LogString+'\n')
+                FH     = open(FName,'r')
+                Header = FH.readline().strip().split()
+                CountLines = 0
+                for Line in FH:
+                    CountLines += 1
+                FH.close()
+                if(CountLines==0):
+                    continue
+                SNPIDCol = Header.index('MarkerName')
+                PValCol  = Header.index('P-value')
+                Arrays   = scipy.loadtxt(fname=FName,
+                                         dtype=str,
+                                         skiprows=1,
+                                         usecols=[SNPIDCol,PValCol],
+                                         unpack=True)
+                RsIdArray  = Arrays[0]
+                PValArray  = Arrays[1].astype(float)
+                ColorList  = []
+                for RsId in RsIdArray:
+                    if(RsId in Gene2RsIdDict[Gene]):
+                        ColorList.append('red')
+                    else:
+                        ColorList.append('white')
+                ZZ         = scipy.real(-scipy.log10(PValArray))
+                if(type(RsIdArray)==scipy.string_):
+                    RsIdArray = scipy.array([RsIdArray])
+                    PValArray = scipy.array([PValArray])
+                    ZZ         = scipy.real(-scipy.log10(PValArray))
+    #            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
+    #            TmpArray,\
+    #            IndexArray = scipy.unique(ar=TmpArray,
+    #                                      return_inverse=True)
+    #            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
+    #            TmpArray,\
+    #            tTmpArray  = scipy.unique(ar=TmpArray,
+    #                                      return_inverse=True)
+    #            IndexArray = scipy.append(IndexArray,tTmpArray)
+    #            del TmpArray
+    #            del tTmpArray
+    #            IndexArray = scipy.unique(ar=IndexArray)
+    #            for Entry in RSIdArray:
+    #                IndexArray.append(SNPIDList.index(Entry))
+    #                print Entry
+    #            IndexArray = scipy.array(IndexArray)
+                IndexArray = []
+                for Entry in RsIdArray:
+                    IndexArray.append(SNPInfoDict[Entry]['index'])
+                IndexArray = scipy.array(IndexArray)
+                X          = XPosArray[IndexArray]
+                ChromArray = ChrArray[IndexArray]
+    #            for c in range(Arguments.NChr):
+    #                C = 'CHR'+str(c+1)+'_'
+    #                for File in ZListDir:
+    #                    if(re.search(C+P,File)):
+    #                        fr   = open(os.path.join(ZPath,File),'r')
+    #                        FMem = []
+    #                        for Line in fr.readlines():
+    #                            z = Line.strip().split()[0]
+    #                            if(z!='-1'):
+    #                                FMem.append(float(z))
+    #                            else:
+    #                                FMem.append(1.0)
+    #                        fr.close()
+    #                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
+    #                        ZZ.extend(list(FMem))
+    #                        del FMem
+                Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+                Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
+                Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+
+    #            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
+                ZSign[PHE] = scipy.compress(Sign,ZZ)
+    #            YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
+                YSign[PHE] = scipy.ones(len(ZSign[PHE]))*(p+1)
+    #            XSugg[PHE] = scipy.compress(Sugg,X)
+                XSign[PHE] = scipy.compress(Sign,X)
+                Color[PHE] = scipy.compress(Sign,scipy.array(ColorList)).tolist()
+                del ZZ
+                LogString  = '** Parsed \"'+FName+'\" ...'
+                print LogString
+                Log.Write(LogString+'\n')
+
+    #        del X
+    #        del Y
+
+            LogString = '**** Generating 3D-Manhattan plot ...'
             print LogString
             Log.Write(LogString+'\n')
-            FH     = open(FName,'r')
-            Header = FH.readline().strip().split()
-            FH.close()
-            SNPIDCol = Header.index('MarkerName')
-            PValCol  = Header.index('P-value')
-            Arrays   = scipy.loadtxt(fname=FName,
-                                     dtype=str,
-                                     skiprows=1,
-                                     usecols=[SNPIDCol,PValCol],
-                                     unpack=True)
-            RsIdArray  = Arrays[0]
-            PValArray  = Arrays[1].astype(float)
-            ZZ         = scipy.real(-scipy.log10(PValArray))
-#            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
-#            TmpArray,\
-#            IndexArray = scipy.unique(ar=TmpArray,
-#                                      return_inverse=True)
-#            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
-#            TmpArray,\
-#            tTmpArray  = scipy.unique(ar=TmpArray,
-#                                      return_inverse=True)
-#            IndexArray = scipy.append(IndexArray,tTmpArray)
-#            del TmpArray
-#            del tTmpArray
-#            IndexArray = scipy.unique(ar=IndexArray)
-#            for Entry in RSIdArray:
-#                IndexArray.append(SNPIDList.index(Entry))
-#                print Entry
-#            IndexArray = scipy.array(IndexArray)
-            IndexArray = []
-            for Entry in RsIdArray:
-                IndexArray.append(SNPInfoDict[Entry]['index'])
-            IndexArray = scipy.array(IndexArray)
-            X          = XPosArray[IndexArray]
-            ChromArray = ChrArray[IndexArray]
-#            for c in range(Arguments.NChr):
-#                C = 'CHR'+str(c+1)+'_'
-#                for File in ZListDir:
-#                    if(re.search(C+P,File)):
-#                        fr   = open(os.path.join(ZPath,File),'r')
-#                        FMem = []
-#                        for Line in fr.readlines():
-#                            z = Line.strip().split()[0]
-#                            if(z!='-1'):
-#                                FMem.append(float(z))
-#                            else:
-#                                FMem.append(1.0)
-#                        fr.close()
-#                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
-#                        ZZ.extend(list(FMem))
-#                        del FMem
-            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
-            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
-            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
 
-#            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
-            ZSign[PHE] = scipy.compress(Sign,ZZ)
-#            YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
-            YSign[PHE] = scipy.ones(len(ZSign[PHE]))*(p+1)
-#            XSugg[PHE] = scipy.compress(Sugg,X)
-            XSign[PHE] = scipy.compress(Sign,X)
-            del ZZ
-            LogString  = '** Parsed \"'+FName+'\" ...'
+    #       Lay-out stuff
+            figwidth_pt   = 1422.0 # pt (from revtex \showthe\columnwidth)
+            inches_per_pt = 1.0/72.27
+            figwidth      = figwidth_pt*inches_per_pt
+            golden_mean   = (scipy.sqrt(5.0)-1.0)/2.0 # Aesthetic ratio
+            figheight     = figwidth*golden_mean
+            fig_size      = [figwidth,figheight]
+            params        = {'backend': 'pdf',
+                             'patch.antialiased': True,
+                             'axes.labelsize': 28,
+                             'axes.linewidth': 0.5,
+                             'grid.color': '0.75',
+                             'grid.linewidth': 0.25,
+                             'grid.linestyle': ':',
+                             'axes.axisbelow': False,
+                             'text.fontsize': 24,
+                             'legend.fontsize': 20,
+                             'xtick.labelsize': 22,
+                             'ytick.labelsize': 22,
+                             'text.usetex': True,
+                             'figure.figsize': fig_size}
+            left   = 0.06
+            bottom = 0.125
+            width  = 0.88-left
+            height = 0.95-bottom
+
+            pylab.rcParams.update(params)
+
+            PylabFigure = pylab.figure()
+            PylabFigure.clf()
+
+            Rectangle   = [left, bottom, width, height]
+            PylabAxis   = PylabFigure.add_axes(Rectangle)
+            if(Arguments.XProperty=='pos'):
+                PylabAxis.set_xlabel(r'${\rm position}$')
+            if(Arguments.YProperty=='PHE'):
+                PylabAxis.set_ylabel(r'${\rm metabolite}$')
+
+
+    #        for p in range(0,2):
+    #        for p in range(72,73):
+            for p in range(Arguments.NPhe):
+                if(p in NoPlotList):
+                    continue
+                P  = 'PHE'+str(p+1)
+    #            if(len(ZSugg[P])>0):
+    #                PylabAxis.scatter(x=XSugg[P],
+    #                                  y=YSugg[P],
+    #                                  color='black',
+    #                                  s=ZSugg[P]/ZMax*100.0,
+    #                                  marker='s',
+    #                                  alpha=0.15,
+    #                                  antialiased=True,
+    #                                  edgecolors='none')
+                if((ZSign.has_key(P)) and
+                   (len(ZSign[P])>0)):
+                    PylabAxis.scatter(x=XSign[P],
+                                      y=YSign[P],
+                                      color=Color[P],
+                                      s=ZSign[P]/ZMax*100.0,
+                                      marker='o',
+                                      alpha=0.15,
+                                      antialiased=True,
+                                      edgecolors='none',
+                                      label=r'$\rm '+Gene+r'$')
+            PlotFile  = 'Manhattan3D.pdf'
+            LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
             print LogString
             Log.Write(LogString+'\n')
+            XXRange  = float(XXMax)-float(XXMin)
+            XXOffset = XXRange*0.005
+            PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
+            PylabAxis.set_ylim([0,YMax+2])
+            for Key,Value in ClassRange.iteritems():
+                PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
+                               scipy.ones(2)*Value[0]-0.5,
+                               lw=0.25,
+                               color='black')
+                PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
+                               scipy.ones(2)*Value[1]+0.5,
+                               lw=0.25,
+                               color='black')
+                PylabAxis.text(float(XXMax)+XXOffset,
+                               float(Value[0]+Value[1])*0.5,
+                               r'${\rm '+Key+'}$',
+                               verticalalignment='center')
+            for Entry in XLeft:
+                PylabAxis.plot(scipy.array([Entry,Entry]),
+                               scipy.array(PylabAxis.get_ylim()),
+                               lw=0.25,
+                               color='black')
+            for Entry in XRight:
+                PylabAxis.plot(scipy.array([Entry,Entry]),
+                               scipy.array(PylabAxis.get_ylim()),
+                               lw=0.25,
+                               color='black')
 
-        del X
-        del Y
+            for p in range(Arguments.NPhe):
+                if(len(MInclude)>0):
+                    if(MInclude[p]=='False'):
+                        PylabAxis.plot(scipy.array(PylabAxis.get_xlim()),
+                                       scipy.array([float(p+1),float(p+1)]),
+                                       color='blue',
+                                       ls='-',
+                                       lw=4.25,
+                                       alpha=0.125,
+                                       zorder=0)
 
-        LogString = '**** Generating 3D-Manhattan plot ...'
-        print LogString
-        Log.Write(LogString+'\n')
+    #        PylabAxis.set_ylim([0,164])
+            PylabAxis.spines['right'].set_visible(False)
+            PylabAxis.spines['top'].set_visible(False)
+            PylabAxis.xaxis.set_ticks_position('bottom')
+            PylabAxis.yaxis.set_ticks_position('left')
+            PylabAxis.xaxis.set_ticks(XTicks)
+            PylabAxis.xaxis.set_ticklabels(XTickLabels)
+            for Label in PylabAxis.xaxis.get_ticklabels():
+                Label.set_rotation(90)
+            Handles,Labels = PylabAxis.get_legend_handles_labels()
+            PylabAxis.legend([Handles[0]],
+                             [Labels[0]],
+                             fancybox=True,
+                             shadow=True,
+                             loc='lower left',
+                             numpoints=1,
+                             scatterpoints=1)
 
-#       Lay-out stuff
-        figwidth_pt   = 1422.0 # pt (from revtex \showthe\columnwidth)
-        inches_per_pt = 1.0/72.27
-        figwidth      = figwidth_pt*inches_per_pt
-        golden_mean   = (scipy.sqrt(5.0)-1.0)/2.0 # Aesthetic ratio
-        figheight     = figwidth*golden_mean
-        fig_size      = [figwidth,figheight]
-        params        = {'backend': 'pdf',
-                         'patch.antialiased': True,
-                         'axes.labelsize': 18,
-                         'axes.linewidth': 0.5,
-                         'grid.color': '0.75',
-                         'grid.linewidth': 0.25,
-                         'grid.linestyle': ':',
-                         'axes.axisbelow': False,
-                         'text.fontsize': 14,
-                         'legend.fontsize': 14,
-                         'xtick.labelsize': 14,
-                         'ytick.labelsize': 14,
-                         'text.usetex': True,
-                         'figure.figsize': fig_size}
-        left   = 0.06
-        bottom = 0.10
-        width  = 0.92-left
-        height = 0.95-bottom
-
-        pylab.rcParams.update(params)
-
-        PylabFigure = pylab.figure()
-        PylabFigure.clf()
-
-        Rectangle   = [left, bottom, width, height]
-        PylabAxis   = PylabFigure.add_axes(Rectangle)
-        if(Arguments.XProperty=='pos'):
-            PylabAxis.set_xlabel(r'${\rm position}$')
-        if(Arguments.YProperty=='PHE'):
-            PylabAxis.set_ylabel(r'${\rm metabolite}$')
-
-
-#        for p in range(0,2):
-#        for p in range(72,73):
-        for p in range(Arguments.NPhe):
-            if(p in NoPlotList):
-                continue
-            P  = 'PHE'+str(p+1)
-#            if(len(ZSugg[P])>0):
-#                PylabAxis.scatter(x=XSugg[P],
-#                                  y=YSugg[P],
-#                                  color='black',
-#                                  s=ZSugg[P]/ZMax*100.0,
-#                                  marker='s',
-#                                  alpha=0.15,
-#                                  antialiased=True,
-#                                  edgecolors='none')
-            if(len(ZSign[P])>0):
-                PylabAxis.scatter(x=XSign[P],
-                                  y=YSign[P],
-                                  color='black',
-                                  s=ZSign[P]/ZMax*100.0,
-                                  marker='o',
-                                  alpha=0.15,
-                                  antialiased=True,
-                                  edgecolors='none')
-        PlotFile  = 'Manhattan3D.pdf'
-        LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
-        print LogString
-        Log.Write(LogString+'\n')
-        XXRange  = float(XXMax)-float(XXMin)
-        XXOffset = XXRange*0.005
-        PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
-        PylabAxis.set_ylim([0,YMax+2])
-        for Key,Value in ClassRange.iteritems():
-            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
-                           scipy.ones(2)*Value[0]-0.5,
-                           lw=0.25,
-                           color='black')
-            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
-                           scipy.ones(2)*Value[1]+0.5,
-                           lw=0.25,
-                           color='black')
-            PylabAxis.text(float(XXMax)+XXOffset,
-                           float(Value[0]+Value[1])*0.5,
-                           r'${\rm '+Key+'}$',
-                           verticalalignment='center')
-        for Entry in XLeft:
-            PylabAxis.plot(scipy.array([Entry,Entry]),
-                           scipy.array(PylabAxis.get_ylim()),
-                           lw=0.25,
-                           color='black')
-        for Entry in XRight:
-            PylabAxis.plot(scipy.array([Entry,Entry]),
-                           scipy.array(PylabAxis.get_ylim()),
-                           lw=0.25,
-                           color='black')
-
-#        PylabAxis.set_ylim([0,164])
-        PylabAxis.spines['right'].set_visible(False)
-        PylabAxis.spines['top'].set_visible(False)
-        PylabAxis.xaxis.set_ticks_position('bottom')
-        PylabAxis.yaxis.set_ticks_position('left')
-        PylabAxis.xaxis.set_ticks(XTicks)
-        PylabAxis.xaxis.set_ticklabels(XTickLabels)
-        for Label in PylabAxis.xaxis.get_ticklabels():
-            Label.set_rotation(90)
-        pylab.savefig(PlotFile)
+            pylab.savefig(re.sub('.pdf','_'+Gene+'.pdf',PlotFile))
+            pylab.close()
     else:
         print '!! NOT IMPLEMENTED YET !!'
 
