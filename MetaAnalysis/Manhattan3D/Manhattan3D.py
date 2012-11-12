@@ -461,8 +461,8 @@ def main(ExecutableName):
                                   marker='o',
                                   alpha=0.15,
                                   antialiased=True,
-                                  edgecolors='none',
-                                  label=r'$\rm '+Gene+r'$')
+                                  edgecolors='none')#,
+#                                  label=r'$\rm '+Gene+r'$')
         PlotFile  = 'Manhattan3D.pdf'
         LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
         print LogString
