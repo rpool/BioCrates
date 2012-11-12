@@ -293,101 +293,103 @@ def main(ExecutableName):
 #        for p in range(0):
 #        for p in range(72,73):
 #        for Gene in ['FADS2']:
-        for Gene in Gene2RsIdDict.iterkeys():
-            for p in range(Arguments.NPhe):
-                P          = 'PHE'+str(p+1)+'_'
-                PHE        = re.sub('_','',P)
-                Mtb        = MName[MNumber.index(str(p+1))]
-                FName      = os.path.join(Arguments.MAOutputPath,'AlphaNfFilteredMetaAnalysis_'+Mtb+'_1.tbl')
-                if((not os.path.isfile(FName)) or
-                   (not os.path.islink(FName))):
-                    NoPlotList.append(p)
-                    continue
-                LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
-                print LogString
-                Log.Write(LogString+'\n')
-                FH     = open(FName,'r')
-                Header = FH.readline().strip().split()
-                CountLines = 0
-                for Line in FH:
-                    CountLines += 1
-                FH.close()
-                if(CountLines==0):
-                    continue
-                SNPIDCol = Header.index('MarkerName')
-                PValCol  = Header.index('P-value')
-                Arrays   = scipy.loadtxt(fname=FName,
-                                         dtype=str,
-                                         skiprows=1,
-                                         usecols=[SNPIDCol,PValCol],
-                                         unpack=True)
-                RsIdArray  = Arrays[0]
-                PValArray  = Arrays[1].astype(float)
+#        for Gene in Gene2RsIdDict.iterkeys():
+        for p in range(Arguments.NPhe):
+            P          = 'PHE'+str(p+1)+'_'
+            PHE        = re.sub('_','',P)
+            Mtb        = MName[MNumber.index(str(p+1))]
+            FName      = os.path.join(Arguments.MAOutputPath,'AlphaNfFilteredMetaAnalysis_'+Mtb+'_1.tbl')
+            if((not os.path.isfile(FName)) or
+               (not os.path.islink(FName))):
+                NoPlotList.append(p)
+                continue
+            LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            FH     = open(FName,'r')
+            Header = FH.readline().strip().split()
+            CountLines = 0
+            for Line in FH:
+                CountLines += 1
+            FH.close()
+            if(CountLines==0):
+                continue
+            SNPIDCol = Header.index('MarkerName')
+            PValCol  = Header.index('P-value')
+            Arrays   = scipy.loadtxt(fname=FName,
+                                     dtype=str,
+                                     skiprows=1,
+                                     usecols=[SNPIDCol,PValCol],
+                                     unpack=True)
+            RsIdArray  = Arrays[0]
+            PValArray  = Arrays[1].astype(float)
+            ZZ         = scipy.real(-scipy.log10(PValArray))
+            if(type(RsIdArray)==scipy.string_):
+                RsIdArray = scipy.array([RsIdArray])
+                PValArray = scipy.array([PValArray])
                 ZZ         = scipy.real(-scipy.log10(PValArray))
-                if(type(RsIdArray)==scipy.string_):
-                    RsIdArray = scipy.array([RsIdArray])
-                    PValArray = scipy.array([PValArray])
-                    ZZ         = scipy.real(-scipy.log10(PValArray))
-                ColorList  = []
-                for RsId in RsIdArray:
-                    if(RsId in Gene2RsIdDict[Gene]):
-                        ColorList.append('red')
-                    else:
-                        ColorList.append('black')
-                ZZ         = scipy.real(-scipy.log10(PValArray))
-    #            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
-    #            TmpArray,\
-    #            IndexArray = scipy.unique(ar=TmpArray,
-    #                                      return_inverse=True)
-    #            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
-    #            TmpArray,\
-    #            tTmpArray  = scipy.unique(ar=TmpArray,
-    #                                      return_inverse=True)
-    #            IndexArray = scipy.append(IndexArray,tTmpArray)
-    #            del TmpArray
-    #            del tTmpArray
-    #            IndexArray = scipy.unique(ar=IndexArray)
-    #            for Entry in RSIdArray:
-    #                IndexArray.append(SNPIDList.index(Entry))
-    #                print Entry
-    #            IndexArray = scipy.array(IndexArray)
-                IndexArray = []
-                for Entry in RsIdArray:
-                    IndexArray.append(SNPInfoDict[Entry]['index'])
-                IndexArray = scipy.array(IndexArray)
-                X          = XPosArray[IndexArray]
-                ChromArray = ChrArray[IndexArray]
-    #            for c in range(Arguments.NChr):
-    #                C = 'CHR'+str(c+1)+'_'
-    #                for File in ZListDir:
-    #                    if(re.search(C+P,File)):
-    #                        fr   = open(os.path.join(ZPath,File),'r')
-    #                        FMem = []
-    #                        for Line in fr.readlines():
-    #                            z = Line.strip().split()[0]
-    #                            if(z!='-1'):
-    #                                FMem.append(float(z))
-    #                            else:
-    #                                FMem.append(1.0)
-    #                        fr.close()
-    #                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
-    #                        ZZ.extend(list(FMem))
-    #                        del FMem
-                Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
-                Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
-                Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+            ColorList  = []
+#            if(RsId2GeneDict.has_key[Rsid])
+            for RsId in RsIdArray:
+#                if(RsId in Gene2RsIdDict[Gene]):
+                if(RsId2GeneDict.has_key(RsId)):
+                    ColorList.append('red')
+                else:
+                    ColorList.append('black')
+            ZZ         = scipy.real(-scipy.log10(PValArray))
+#            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
+#            TmpArray,\
+#            IndexArray = scipy.unique(ar=TmpArray,
+#                                      return_inverse=True)
+#            TmpArray   = scipy.append(RSIdArray,SNPIDArray)
+#            TmpArray,\
+#            tTmpArray  = scipy.unique(ar=TmpArray,
+#                                      return_inverse=True)
+#            IndexArray = scipy.append(IndexArray,tTmpArray)
+#            del TmpArray
+#            del tTmpArray
+#            IndexArray = scipy.unique(ar=IndexArray)
+#            for Entry in RSIdArray:
+#                IndexArray.append(SNPIDList.index(Entry))
+#                print Entry
+#            IndexArray = scipy.array(IndexArray)
+            IndexArray = []
+            for Entry in RsIdArray:
+                IndexArray.append(SNPInfoDict[Entry]['index'])
+            IndexArray = scipy.array(IndexArray)
+            X          = XPosArray[IndexArray]
+            ChromArray = ChrArray[IndexArray]
+#            for c in range(Arguments.NChr):
+#                C = 'CHR'+str(c+1)+'_'
+#                for File in ZListDir:
+#                    if(re.search(C+P,File)):
+#                        fr   = open(os.path.join(ZPath,File),'r')
+#                        FMem = []
+#                        for Line in fr.readlines():
+#                            z = Line.strip().split()[0]
+#                            if(z!='-1'):
+#                                FMem.append(float(z))
+#                            else:
+#                                FMem.append(1.0)
+#                        fr.close()
+#                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
+#                        ZZ.extend(list(FMem))
+#                        del FMem
+            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
+            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
 
-    #            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
-                ZSign[PHE] = scipy.compress(Sign,ZZ)
-    #            YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
-                YSign[PHE] = scipy.ones(len(ZSign[PHE]))*(p+1)
-    #            XSugg[PHE] = scipy.compress(Sugg,X)
-                XSign[PHE] = scipy.compress(Sign,X)
-                Color[PHE] = scipy.compress(Sign,scipy.array(ColorList)).tolist()
-                del ZZ
-                LogString  = '** Parsed \"'+FName+'\" ...'
-                print LogString
-                Log.Write(LogString+'\n')
+#            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
+            ZSign[PHE] = scipy.compress(Sign,ZZ)
+#            YSugg[PHE] = scipy.ones(len(ZSugg[PHE]))*(p+1)
+            YSign[PHE] = scipy.ones(len(ZSign[PHE]))*(p+1)
+#            XSugg[PHE] = scipy.compress(Sugg,X)
+            XSign[PHE] = scipy.compress(Sign,X)
+            Color[PHE] = scipy.compress(Sign,scipy.array(ColorList)).tolist()
+            del ZZ
+            LogString  = '** Parsed \"'+FName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
 
     #        del X
     #        del Y
