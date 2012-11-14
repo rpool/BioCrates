@@ -469,10 +469,19 @@ def main(ExecutableName):
 #                                  zs=ZSign[P]/ZMax*100.0,
                                   color=Color[P],
                                   marker='o',
-                                  alpha=0.15,
+                                  alpha=0.5,
                                   antialiased=True,
                                   edgecolors='none')#,
 #                                  label=r'$\rm '+Gene+r'$')
+                PylabAxis.scatter(xs=XSign[P],
+                                  ys=YSign[P],
+                                  zs=0.0,
+                                  color='black',
+                                  s=0.5,
+                                  marker='o',
+                                  alpha=0.25,
+                                  antialiased=True,
+                                  edgecolors='none')
 
 #        XI   = scipy.linspace(min(XS),max(XS),endpoint=True,num=1000)
 #        print len(XI)
