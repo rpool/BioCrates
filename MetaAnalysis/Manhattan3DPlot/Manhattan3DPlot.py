@@ -575,13 +575,14 @@ def main(ExecutableName):
         print XTicks
         print len(XTicks)
         Ticks = []
-        Ticks.append(XTicks[0])
-        Ticks.append(XTicks[9])
-        Ticks.append(XTicks[-1])
+        for T in XTicks:
+            Ticks.append(T)
         Labels = []
-        Labels.append(XTickLabels[0])
-        Labels.append(XTickLabels[9])
-        Labels.append(XTickLabels[-1])
+        for L in XTickLabels:
+            Labels.append('')
+        Labels[0]  = XTickLabels[0]
+        Labels[9]  = XTickLabels[9]
+        Labels[-1] = XTickLabels[-1]
 #        for t in range(len(XTickLabels)):
 #            XTickLabels[t] = ''
         PylabAxis.w_xaxis.set_ticklabels(Labels)
