@@ -563,6 +563,8 @@ def main(ExecutableName):
 #            YTickLabels[t] = ''
 #        PylabAxis.w_yaxis.set_ticklabels(YTickLabels)
 #        PylabAxis.w_yaxis.set_major_locator(ticker.FixedLocator(YTicks))
+        print PylabAxis.w_xaxis.get_ticklabels()
+        print len(PylabAxis.w_xaxis.get_ticklabels())
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
 
