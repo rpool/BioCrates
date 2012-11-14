@@ -458,7 +458,7 @@ def main(ExecutableName):
                                   color=Color[P],
                                   s=ZSign[P]/ZMax*100.0,
                                   marker='o',
-                                  alpha=0.15,
+                                  alpha=0.5,
                                   antialiased=True,
                                   edgecolors='none')#,
 #                                  label=r'$\rm '+Gene+r'$')
@@ -494,16 +494,16 @@ def main(ExecutableName):
                            lw=0.25,
                            color='black')
 
-        for p in range(Arguments.NPhe):
-            if(len(MInclude)>0):
-                if(MInclude[p]=='False'):
-                    PylabAxis.plot(scipy.array(PylabAxis.get_xlim()),
-                                   scipy.array([float(p+1),float(p+1)]),
-                                   color='blue',
-                                   ls='-',
-                                   lw=4.25,
-                                   alpha=0.125,
-                                   zorder=0)
+#        for p in range(Arguments.NPhe):
+#            if(len(MInclude)>0):
+#                if(MInclude[p]=='False'):
+#                    PylabAxis.plot(scipy.array(PylabAxis.get_xlim()),
+#                                   scipy.array([float(p+1),float(p+1)]),
+#                                   color='blue',
+#                                   ls='-',
+#                                   lw=4.25,
+#                                   alpha=0.125,
+#                                   zorder=0)
 
 #        PylabAxis.set_ylim([0,164])
         PylabAxis.spines['right'].set_visible(False)
