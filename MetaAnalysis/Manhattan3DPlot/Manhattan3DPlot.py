@@ -566,13 +566,13 @@ def main(ExecutableName):
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
 
         PylabAxis.set_zlim3d([0.0,PylabAxis.get_zlim3d()[-1]])
-        ZTicks      = PylabAxis.zaxis.get_ticks()
-        ZTickLabels = PylabAxis.zaxis.get_ticklabels()
-        ZTickLabels = list(ZTickLabels)
-        for t in range(len(ZTickLabels)):
-            ZTickLabels[t] = r'${'+str(ZTickLabels[t])+r'}$'
-        PylabAxis.w_zaxis.set_ticklabels(ZTickLabels)
-        PylabAxis.w_zaxis.set_major_locator(ticker.FixedLocator(ZTicks))
+#        ZTicks      = PylabAxis.zaxis.get_ticks()
+#        ZTickLabels = PylabAxis.zaxis.get_ticklabels()
+#        ZTickLabels = list(ZTickLabels)
+#        for t in range(len(ZTickLabels)):
+#            ZTickLabels[t] = r'${'+str(ZTickLabels[t])+r'}$'
+#        PylabAxis.w_zaxis.set_ticklabels(ZTickLabels)
+#        PylabAxis.w_zaxis.set_major_locator(ticker.FixedLocator(ZTicks))
 #        for Label in PylabAxis.xaxis.get_ticklabels():
 #            Label.set_rotation(90)
 #        Handles,Labels = PylabAxis.get_legend_handles_labels()
