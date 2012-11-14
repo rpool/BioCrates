@@ -439,9 +439,9 @@ def main(ExecutableName):
 #        PylabAxis   = PylabFigure.add_axes(Rectangle)
         PylabAxis   = PylabFigure.add_subplot(111,projection='3d')
         if(Arguments.XProperty=='pos'):
-            PylabAxis.set_xlabel(r'${\rm chromosome}$')
+            PylabAxis.set_xlabel('chromosome')
         if(Arguments.YProperty=='PHE'):
-            PylabAxis.set_ylabel(r'${\rm metabolite}$')
+            PylabAxis.set_ylabel('metabolite')
 
 
 #        for p in range(0,2):
@@ -525,7 +525,7 @@ def main(ExecutableName):
             PylabAxis.text(float(XXMax)+XXOffset,
                            float(Value[0]+Value[1])*0.5,
                            0.0,
-                           r'${\rm '+Key+'}$',
+                           Key,
                            verticalalignment='center')
         for Entry in XLeft:
             PylabAxis.plot(scipy.array([Entry,Entry]),
@@ -555,13 +555,13 @@ def main(ExecutableName):
 #        PylabAxis.xaxis.set_ticks_position('bottom')
 #        PylabAxis.yaxis.set_ticks_position('left')
 #        PylabAxis.w_xaxis.set_ticks(XTicks)
-        YTicks      = PylabAxis.get_yticks()
-        YTickLabels = PylabAxis.get_yticklabels()
-        YTickLabels = list(YTickLabels)
-        for t in range(len(YTickLabels)):
-            YTickLabels[t] = ''
-        PylabAxis.w_yaxis.set_ticklabels(YTickLabels)
-        PylabAxis.w_yaxis.set_major_locator(ticker.FixedLocator(YTicks))
+#        YTicks      = PylabAxis.get_yticks()
+#        YTickLabels = PylabAxis.get_yticklabels()
+#        YTickLabels = list(YTickLabels)
+#        for t in range(len(YTickLabels)):
+#            YTickLabels[t] = ''
+#        PylabAxis.w_yaxis.set_ticklabels(YTickLabels)
+#        PylabAxis.w_yaxis.set_major_locator(ticker.FixedLocator(YTicks))
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
 
