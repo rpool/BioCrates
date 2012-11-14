@@ -439,7 +439,7 @@ def main(ExecutableName):
 #        PylabAxis   = PylabFigure.add_axes(Rectangle)
         PylabAxis   = PylabFigure.add_subplot(111,projection='3d')
         if(Arguments.XProperty=='pos'):
-            PylabAxis.set_xlabel(r'${\rm chromosomal position}$')
+            PylabAxis.set_xlabel(r'${\rm chromosomal~position}$')
         if(Arguments.YProperty=='PHE'):
             PylabAxis.set_ylabel(r'${\rm metabolite}$')
 
@@ -555,8 +555,23 @@ def main(ExecutableName):
 #        PylabAxis.xaxis.set_ticks_position('bottom')
 #        PylabAxis.yaxis.set_ticks_position('left')
 #        PylabAxis.w_xaxis.set_ticks(XTicks)
+        YTicks      = PylabAxis.w_yaxis.get_ticks()
+        YTickLabels = PylabAxis.w_yaxis.get_tickslabels()
+        YTickLabels = list(YTickLabels)
+        for t in range(len(YTickLabels)):
+            YTickLabels[t] = ''
+        PylabAxis.w_yaxis.set_ticklabels(YTickLabels)
+        PylabAxis.w_yaxis.set_major_locator(ticker.FixedLocator(YTicks))
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
+        PylabAxis.set_zlim([0.0,PylabAxis.get_zlim()[-1]])
+        ZTicks      = PylabAxis.w_zaxis.get_ticks()
+        ZTickLabels = PylabAxis.w_zaxis.get_tickslabels()
+        ZTickLabels = list(ZTickLabels)
+        for t in range(len(ZTickLabels)):
+            ZTickLabels[t] = r'${'+str(ZTickLabels[t])+r'}$'
+        PylabAxis.w_zaxis.set_ticklabels(ZTickLabels)
+        PylabAxis.w_zaxis.set_major_locator(ticker.FixedLocator(ZTicks))
 #        for Label in PylabAxis.xaxis.get_ticklabels():
 #            Label.set_rotation(90)
 #        Handles,Labels = PylabAxis.get_legend_handles_labels()
