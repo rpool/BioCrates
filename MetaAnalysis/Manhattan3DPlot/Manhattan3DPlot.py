@@ -439,7 +439,7 @@ def main(ExecutableName):
 #        PylabAxis   = PylabFigure.add_axes(Rectangle)
         PylabAxis   = PylabFigure.add_subplot(111,projection='3d')
         if(Arguments.XProperty=='pos'):
-            PylabAxis.set_xlabel(r'${\rm chromosomal~position}$')
+            PylabAxis.set_xlabel(r'${\rm chromosome}$')
         if(Arguments.YProperty=='PHE'):
             PylabAxis.set_ylabel(r'${\rm metabolite}$')
 
