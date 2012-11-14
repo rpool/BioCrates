@@ -564,7 +564,8 @@ def main(ExecutableName):
         PylabAxis.w_yaxis.set_major_locator(ticker.FixedLocator(YTicks))
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
-        PylabAxis.set_zlim([0.0,PylabAxis.get_zlim()[-1]])
+
+        PylabAxis.set_zlim3d([0.0,PylabAxis.get_zlim()[-1]])
         ZTicks      = PylabAxis.get_zticks()
         ZTickLabels = PylabAxis.get_zticklabels()
         ZTickLabels = list(ZTickLabels)
