@@ -515,7 +515,7 @@ def main(ExecutableName):
         Log.Write(LogString+'\n')
         XXRange  = float(XXMax)-float(XXMin)
         XXOffset = XXRange*0.005
-        PylabAxis.w_xaxis.set_lim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
+        PylabAxis.set_xlim3d([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
 #        PylabAxis.set_ylim([0,YMax+2])
 #        for Key,Value in ClassRange.iteritems():
 #            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
