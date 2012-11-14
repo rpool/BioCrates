@@ -460,18 +460,19 @@ def main(ExecutableName):
 
             if((ZSign.has_key(P)) and
                (len(ZSign[P])>0)):
-                XS.extend(XSign[P].tolist())
-                YS.extend(YSign[P].tolist())
-                ZS.extend(ZSign[P].tolist())
-#                PylabAxis.scatter(xs=XSign[P],
-#                                  ys=YSign[P],
+#                XS.extend(XSign[P].tolist())
+#                YS.extend(YSign[P].tolist())
+#                ZS.extend(ZSign[P].tolist())
+                PylabAxis.scatter(xs=XSign[P],
+                                  ys=YSign[P],
+                                  zs=ZSign[P],
 #                                  zs=ZSign[P]/ZMax*100.0,
-#                                  color=Color[P],
-#                                  marker='o',
-#                                  alpha=0.15,
-#                                  antialiased=True,
-#                                  edgecolors='none')#,
-##                                  label=r'$\rm '+Gene+r'$')
+                                  color=Color[P],
+                                  marker='o',
+                                  alpha=0.15,
+                                  antialiased=True,
+                                  edgecolors='none')#,
+#                                  label=r'$\rm '+Gene+r'$')
 
 #        XI   = scipy.linspace(min(XS),max(XS),endpoint=True,num=1000)
 #        print len(XI)
@@ -488,9 +489,9 @@ def main(ExecutableName):
 #                               rstride=8,
 #                               cstride=8,
 #                               alpha=0.3)
-        PylabAxis.plot_wireframe(XS,
-                               YS,
-                               ZS)
+#        PylabAxis.plot_wireframe(XS,
+#                               YS,
+#                               ZS)
         PlotFile  = 'Manhattan3D.pdf'
         LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
         print LogString
