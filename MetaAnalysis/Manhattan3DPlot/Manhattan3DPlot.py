@@ -117,7 +117,8 @@ def main(ExecutableName):
             XLeft.append(float(TmpTmpXPosArray.min()))
             XRight.append(float(TmpTmpXPosArray.max()))
             XTicks.append(0.5*(XLeft[-1]+XRight[-1]))
-            XTickLabels.append(r'${\rm CHR'+str(Chr)+r'}$')
+#            XTickLabels.append(r'${\rm CHR'+str(Chr)+r'}$')
+            XTickLabels.append(r'${ '+str(Chr)+r'}$')
 
             TmpSNPIDArray = scipy.append(TmpSNPIDArray,TmpTmpSNPIDArray)
             TmpChrArray   = scipy.append(TmpChrArray,TmpTmpChrArray)
@@ -438,7 +439,7 @@ def main(ExecutableName):
 #        PylabAxis   = PylabFigure.add_axes(Rectangle)
         PylabAxis   = PylabFigure.add_subplot(111,projection='3d')
         if(Arguments.XProperty=='pos'):
-            PylabAxis.set_xlabel(r'${\rm position}$')
+            PylabAxis.set_xlabel(r'${\rm chromosomal position}$')
         if(Arguments.YProperty=='PHE'):
             PylabAxis.set_ylabel(r'${\rm metabolite}$')
 
@@ -506,28 +507,31 @@ def main(ExecutableName):
         LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
         print LogString
         Log.Write(LogString+'\n')
-#        XXRange  = float(XXMax)-float(XXMin)
-#        XXOffset = XXRange*0.005
-#        PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
-#        PylabAxis.set_ylim([0,YMax+2])
-#        for Key,Value in ClassRange.iteritems():
-#            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
-#                           scipy.ones(2)*Value[0]-0.5,
-#                           lw=0.25,
-#                           color='black')
-#            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
-#                           scipy.ones(2)*Value[1]+0.5,
-#                           lw=0.25,
-#                           color='black')
-#            PylabAxis.text(float(XXMax)+XXOffset,
-#                           float(Value[0]+Value[1])*0.5,
-#                           r'${\rm '+Key+'}$',
-#                           verticalalignment='center')
-#        for Entry in XLeft:
-#            PylabAxis.plot(scipy.array([Entry,Entry]),
-#                           scipy.array(PylabAxis.get_ylim()),
-#                           lw=0.25,
-#                           color='black')
+        XXRange  = float(XXMax)-float(XXMin)
+        XXOffset = XXRange*0.005
+        PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
+        PylabAxis.set_ylim([0,YMax+2])
+        for Key,Value in ClassRange.iteritems():
+            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
+                           scipy.ones(2)*Value[0]-0.5,
+                           0.0,
+                           lw=0.25,
+                           color='black')
+            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
+                           scipy.ones(2)*Value[1]+0.5,
+                           0.0,
+                           lw=0.25,
+                           color='black')
+            PylabAxis.text(float(XXMax)+XXOffset,
+                           float(Value[0]+Value[1])*0.5,
+                           0.0,
+                           r'${\rm '+Key+'}$',
+                           verticalalignment='center')
+        for Entry in XLeft:
+            PylabAxis.plot(scipy.array([Entry,Entry]),
+                           scipy.array(PylabAxis.get_ylim()),
+                           lw=0.25,
+                           color='black')
 #        for Entry in XRight:
 #            PylabAxis.plot(scipy.array([Entry,Entry]),
 #                           scipy.array(PylabAxis.get_ylim()),
