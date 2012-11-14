@@ -569,8 +569,10 @@ def main(ExecutableName):
         print len(XTickLabels)
         print XTicks
         print len(XTicks)
+        print PylabAxis.w_xaxis.get_ticks()
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
+
 
 #        PylabAxis.set_zlim3d([0.0,PylabAxis.get_zlim3d()[-1]])
 #        ZTicks      = PylabAxis.zaxis.get_ticks()
