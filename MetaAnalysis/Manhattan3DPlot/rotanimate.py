@@ -7,7 +7,7 @@ import numpy as np
 
 ##### TO CREATE A SERIES OF PICTURES
 
-def make_views(ax,angles,elevation=None, width=4, height = 3,
+def make_views(ax,angles,elevation=None, width=10, height = 7,
                 prefix='tmprot_',**kwargs):
     """
     Makes png pictures of the given 3d ax, with different angles.
@@ -23,6 +23,7 @@ def make_views(ax,angles,elevation=None, width=4, height = 3,
 
     files = []
     ax.figure.set_size_inches(width,height)
+    ax.figure.set_dpi(300)
 
     for i,angle in enumerate(angles):
 
