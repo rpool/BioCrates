@@ -567,6 +567,8 @@ def main(ExecutableName):
         print len(PylabAxis.w_xaxis.get_ticklabels())
         print XTickLabels
         print len(XTickLabels)
+        print XTicks
+        print len(XTicks)
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
 
