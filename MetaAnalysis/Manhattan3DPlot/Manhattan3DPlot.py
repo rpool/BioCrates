@@ -131,6 +131,9 @@ def main(ExecutableName):
             del TmpTmpChrArray
             del TmpTmpPosArray
             del TmpTmpXPosArray
+        XTicks.append(XRight[-1])
+#        XTickLabels.append(r'${\rm CHR'+str(Chr)+r'}$')
+        XTickLabels.append(str(23))
 
         SNPIDArray = scipy.array(TmpSNPIDArray)
         ChrArray   = scipy.array(TmpChrArray)
@@ -571,8 +574,8 @@ def main(ExecutableName):
         print len(XTickLabels)
         print XTicks
         print len(XTicks)
-        for t in range(len(XTickLabels)):
-            XTickLabels[t] = ''
+#        for t in range(len(XTickLabels)):
+#            XTickLabels[t] = ''
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
 
@@ -600,7 +603,7 @@ def main(ExecutableName):
 #        pylab.savefig(PlotFile)
 #        pylab.show()
 #        pylab.close()
-        angles = scipy.linspace(0,360,201)[:-1] # A list of 20 angles between 0 and 360
+        angles = scipy.linspace(315,(315+360),201)[:-1] # A list of 20 angles between 0 and 360
         # create an animated gif (20ms between frames)
         rotanimate(PylabAxis, angles,'movie.gif',delay=20)
         # create a movie with 10 frames per seconds and 'quality' 2000
