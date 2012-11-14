@@ -574,10 +574,18 @@ def main(ExecutableName):
         print len(XTickLabels)
         print XTicks
         print len(XTicks)
+        Ticks = []
+        Ticks.append(XTicks[0])
+        Ticks.append(XTicks[9])
+        Ticks.append(XTicks[-1])
+        Labels = []
+        Labels.append(XTickLabels[0])
+        Labels.append(XTickLabels[9])
+        Labels.append(XTickLabels[-1])
 #        for t in range(len(XTickLabels)):
 #            XTickLabels[t] = ''
-        PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
-        PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
+        PylabAxis.w_xaxis.set_ticklabels(Labels)
+        PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(Ticks))
 
 
 #        PylabAxis.set_zlim3d([0.0,PylabAxis.get_zlim3d()[-1]])
