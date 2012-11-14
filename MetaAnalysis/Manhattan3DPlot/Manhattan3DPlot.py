@@ -549,8 +549,8 @@ def main(ExecutableName):
 #        PylabAxis.spines['top'].set_visible(False)
 #        PylabAxis.xaxis.set_ticks_position('bottom')
 #        PylabAxis.yaxis.set_ticks_position('left')
-        PylabAxis.xaxis.set_ticks(XTicks)
-        PylabAxis.xaxis.set_ticklabels(XTickLabels)
+        PylabAxis.w_xaxis.set_ticks(XTicks)
+        PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
 #        for Label in PylabAxis.xaxis.get_ticklabels():
 #            Label.set_rotation(90)
 #        Handles,Labels = PylabAxis.get_legend_handles_labels()
