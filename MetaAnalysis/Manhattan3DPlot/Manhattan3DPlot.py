@@ -555,8 +555,8 @@ def main(ExecutableName):
 #        PylabAxis.xaxis.set_ticks_position('bottom')
 #        PylabAxis.yaxis.set_ticks_position('left')
 #        PylabAxis.w_xaxis.set_ticks(XTicks)
-        YTicks      = PylabAxis.w_yaxis.get_ticks()
-        YTickLabels = PylabAxis.w_yaxis.get_tickslabels()
+        YTicks      = PylabAxis.get_yticks()
+        YTickLabels = PylabAxis.get_yticklabels()
         YTickLabels = list(YTickLabels)
         for t in range(len(YTickLabels)):
             YTickLabels[t] = ''
@@ -565,8 +565,8 @@ def main(ExecutableName):
         PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
         PylabAxis.set_zlim([0.0,PylabAxis.get_zlim()[-1]])
-        ZTicks      = PylabAxis.w_zaxis.get_ticks()
-        ZTickLabels = PylabAxis.w_zaxis.get_tickslabels()
+        ZTicks      = PylabAxis.get_zticks()
+        ZTickLabels = PylabAxis.get_zticklabels()
         ZTickLabels = list(ZTickLabels)
         for t in range(len(ZTickLabels)):
             ZTickLabels[t] = r'${'+str(ZTickLabels[t])+r'}$'
