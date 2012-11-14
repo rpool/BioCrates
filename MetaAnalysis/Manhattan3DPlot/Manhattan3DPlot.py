@@ -13,6 +13,8 @@ import ArgumentParser
 import Logger
 import fnmatch
 
+from rotanimate import *
+
 iLARGE = 1e500
 fLARGE = 1.0e500
 
@@ -596,8 +598,15 @@ def main(ExecutableName):
 
 #            pylab.savefig(re.sub('.pdf','_'+Gene+'.pdf',PlotFile))
 #        pylab.savefig(PlotFile)
-        pylab.show()
+#        pylab.show()
 #        pylab.close()
+        angles = scipy.linspace(0,360,201)[:-1] # A list of 20 angles between 0 and 360
+        # create an animated gif (20ms between frames)
+        rotanimate(PylabAxis, angles,'movie.gif',delay=20)
+        # create a movie with 10 frames per seconds and 'quality' 2000
+        rotanimate(PylabAxis, angles,'movie.mp4',fps=10,bitrate=2000)
+#        # create an ogv movie
+#        rotanimate(ax, angles, 'movie.ogv',fps=10)
     else:
         print '!! NOT IMPLEMENTED YET !!'
 
