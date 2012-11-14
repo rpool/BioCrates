@@ -131,9 +131,9 @@ def main(ExecutableName):
             del TmpTmpChrArray
             del TmpTmpPosArray
             del TmpTmpXPosArray
-        XTicks.append(XRight[-1])
+#        XTicks.append(XRight[-1])
 #        XTickLabels.append(r'${\rm CHR'+str(Chr)+r'}$')
-        XTickLabels.append(str(23))
+#        XTickLabels.append(str(23))
 
         SNPIDArray = scipy.array(TmpSNPIDArray)
         ChrArray   = scipy.array(TmpChrArray)
@@ -513,9 +513,9 @@ def main(ExecutableName):
         LogString = '**** Writing plot to \"'+PlotFile+'\" ...'
         print LogString
         Log.Write(LogString+'\n')
-#        XXRange  = float(XXMax)-float(XXMin)
-#        XXOffset = XXRange*0.005
-#        PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
+        XXRange  = float(XXMax)-float(XXMin)
+        XXOffset = XXRange*0.005
+        PylabAxis.set_xlim([float(XXMin)-XXOffset,float(XXMax)+XXOffset])
 #        PylabAxis.set_ylim([0,YMax+2])
 #        for Key,Value in ClassRange.iteritems():
 #            PylabAxis.plot(scipy.array([float(XXMin)-XXOffset,float(XXMax)+XXOffset]),
