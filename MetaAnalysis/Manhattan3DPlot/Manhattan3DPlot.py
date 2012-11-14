@@ -551,9 +551,14 @@ def main(ExecutableName):
 #        PylabAxis.xaxis.set_ticks_position('bottom')
 #        PylabAxis.yaxis.set_ticks_position('left')
 #        PylabAxis.w_xaxis.set_ticks(XTicks)
-#        PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
+        PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
+        PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(XTicks))
+        Counter = 0
+        for tl in PylabAxis.w_xaxis.get_ticklabels(): # re-create what autofmt_xdate but with w_xaxis
+            tl.set_label(XTickLabels[Counter])
+#            tl.set_ha('right')
+#            tl.set_rotation(30)
 #        PylabAxis.w_xaxis.set_ticklabels(XTickLabels)
-        pylab.xticks(XTicks,XTickLabels)
 #        for Label in PylabAxis.xaxis.get_ticklabels():
 #            Label.set_rotation(90)
 #        Handles,Labels = PylabAxis.get_legend_handles_labels()
