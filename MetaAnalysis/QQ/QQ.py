@@ -740,7 +740,7 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
 #           The 1's are for df=1
             PValExpArray  = scipy.stats.chi2.sf(scipy.stats.chi2.rvs(1,\
                                                                       size=len(PValObsArray)),\
-                                                1,)
+                                                1)
             LPValExpArray = -scipy.log10(PValExpArray)
 
             LogString = '++ Plotting QQ plots in \"p-value\" mode ...'
