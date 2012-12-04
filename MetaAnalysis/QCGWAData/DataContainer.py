@@ -143,7 +143,7 @@ class DataContainers:
         for i in range(len(HeaderList)):
             Entry    = HeaderList[i]
             ColumnId = Header2ColumnDict[Entry]
-            if(not self.DataContainers.has_key([ColumnId])):
+            if(not self.DataContainers.has_key(ColumnId)):
                 DelList.append(i)
         DelList.sort()
         DelList.reverse()
