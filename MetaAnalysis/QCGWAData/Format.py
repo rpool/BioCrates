@@ -521,11 +521,11 @@ class Format:
                 if((ConditionList[i][0]=='[') and
                    (ConditionList[i][-1]==']')):
                     RegExp = re.compile(ConditionList[i])
-                    VMatch = scipy.vectorize(lambda x:bool(RegExp.match(x)))
+                    VSearch = scipy.vectorize(lambda x:bool(RegExp.search(x)))
                     if(i==0):
-                        FilterArray = VMatch(DCs.DataContainers['AF_coded_all'].GetDataArray())
+                        FilterArray = VSearch(DCs.DataContainers['AF_coded_all'].GetDataArray())
                     else:
-                        TmpFilterArray = VMatch(DCs.DataContainers['AF_coded_all'].GetDataArray())
+                        TmpFilterArray = VSearch(DCs.DataContainers['AF_coded_all'].GetDataArray())
                         FilterArray    = (FilterArray | TmpFilterArray)
                 else:
                     if(i==0):

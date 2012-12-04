@@ -139,6 +139,18 @@ class DataContainers:
                                 HeaderList=[],
                                 Header2ColumnDict={}):
 
+        DelList = []
+        for i in range(len(HeaderList)):
+            Entry    = HeaderList[i]
+            ColumnId = Header2ColumnDict[Entry]
+            if(not self.DataContainers.has_key([ColumnId])):
+                DelList.append(i)
+        DelList.sort()
+        DelList.reverse()
+        for Index in DelList:
+            del HeaderList[Index]
+
+
         if(not os.path.isdir(OutPath)):
             os.mkdir(OutPath)
         FilePath = os.path.join(OutPath,FileName)
