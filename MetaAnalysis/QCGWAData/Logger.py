@@ -83,7 +83,7 @@ class Logger:
                     if(Line[:3]=='dir'):
                         break
                 Version              = Lines[l+1].strip()
-                self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
+                self.StartLogString += '# svn revision      : '+Version+'\n'
 
         self.StartLogString += '\n'
 
