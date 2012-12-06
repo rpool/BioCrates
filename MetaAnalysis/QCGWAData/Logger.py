@@ -75,12 +75,14 @@ class Logger:
                 self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
                 del Client
             except ImportError:
-                fr = open(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn','entries'),'r')
-                for Line in fr:
+                fr    = open(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn','entries'),'r')
+                Lines = fr.readlines()
+                fr.close()
+                for l in range(len(Lines)):
+                    Line = Lines[l]
                     if(Line[:3]=='dir'):
                         break
-                Version = fr.readline().strip()
-                fr.close()
+                Version              = Lines[l+1].strip()
                 self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
 
         self.StartLogString += '\n'
