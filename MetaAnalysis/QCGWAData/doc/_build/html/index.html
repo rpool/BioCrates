@@ -199,6 +199,43 @@ optional arguments:
      &lt;Delimiter&gt;,&lt;/Delimiter&gt;
  &lt;/HapMap&gt;</pre>
 </div>
+</div>
+<div class="section" id="the-extrainfofiles-block">
+<h2>The <tt class="docutils literal"><span class="pre">ExtraInfoFiles</span></tt> block<a class="headerlink" href="#the-extrainfofiles-block" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><strong>ExtraInfoFiles</strong>::</dt>
+<dd><dl class="first docutils">
+<dt>&lt;ExtraInfoFiles&gt;</dt>
+<dd><dl class="first docutils">
+<dt>&lt;ExtraInfoFile1&gt;</dt>
+<dd>&lt;boUse&gt;True&lt;/boUse&gt;
+&lt;Path&gt;/<a class="reference external" href="mailto:mnt/ntr&#46;biocrates&#37;&#52;&#48;fluke&#46;psy&#46;vu&#46;nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK">mnt/ntr<span>&#46;</span>biocrates<span>&#64;</span>fluke<span>&#46;</span>psy<span>&#46;</span>vu<span>&#46;</span>nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK</a>/Data&lt;/Path&gt;
+&lt;Name&gt;QUAL1-biocrates.csv.gz&lt;/Name&gt;</dd>
+</dl>
+<p>&lt;/ExtraInfoFile1&gt;
+&lt;ExtraInfoFile2&gt;</p>
+<blockquote>
+<div>&lt;boUse&gt;True&lt;/boUse&gt;
+&lt;Path&gt;/<a class="reference external" href="mailto:mnt/ntr&#46;biocrates&#37;&#52;&#48;fluke&#46;psy&#46;vu&#46;nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK">mnt/ntr<span>&#46;</span>biocrates<span>&#64;</span>fluke<span>&#46;</span>psy<span>&#46;</span>vu<span>&#46;</span>nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK</a>/Data&lt;/Path&gt;
+&lt;Name&gt;QUAL2-biocrates.csv.gz&lt;/Name&gt;</div></blockquote>
+<p>&lt;/ExtraInfoFile2&gt;
+&lt;ExtraInfoFile3&gt;</p>
+<blockquote>
+<div>&lt;boUse&gt;True&lt;/boUse&gt;
+&lt;Path&gt;/<a class="reference external" href="mailto:mnt/ntr&#46;biocrates&#37;&#52;&#48;fluke&#46;psy&#46;vu&#46;nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK">mnt/ntr<span>&#46;</span>biocrates<span>&#64;</span>fluke<span>&#46;</span>psy<span>&#46;</span>vu<span>&#46;</span>nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK</a>/Data&lt;/Path&gt;
+&lt;Name&gt;QUAL3-biocrates.csv.gz&lt;/Name&gt;</div></blockquote>
+<p>&lt;/ExtraInfoFile3&gt;
+&lt;ExtraInfoFile4&gt;</p>
+<blockquote>
+<div>&lt;boUse&gt;True&lt;/boUse&gt;
+&lt;Path&gt;/<a class="reference external" href="mailto:mnt/ntr&#46;biocrates&#37;&#52;&#48;fluke&#46;psy&#46;vu&#46;nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK">mnt/ntr<span>&#46;</span>biocrates<span>&#64;</span>fluke<span>&#46;</span>psy<span>&#46;</span>vu<span>&#46;</span>nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK</a>/Data&lt;/Path&gt;
+&lt;Name&gt;QUAL4-biocrates.csv.gz&lt;/Name&gt;</div></blockquote>
+<p class="last">&lt;/ExtraInfoFile4&gt;</p>
+</dd>
+</dl>
+<p class="last">&lt;/ExtraInfoFiles&gt;</p>
+</dd>
+</dl>
 <div class="toctree-wrapper compound">
 <ul class="simple">
 </ul>
@@ -209,10 +246,7 @@ optional arguments:
 <h1>QCGWAData Module<a class="headerlink" href="#qcgwadata-module" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2><a class="reference internal" href="#module-QCGWAData" title="QCGWAData"><tt class="xref py py-mod docutils literal"><span class="pre">QCGWAData</span></tt></a> Module<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-QCGWAData"></span><p>This is the main module of QCGWA and should be used as an executable.</p>
-<p><em>Module author: René Pool &lt;<a class="reference external" href="mailto:r&#46;pool&#37;&#52;&#48;vu&#46;nl">r<span>&#46;</span>pool<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;</em></p>
-<p id="module-QCGWA"><em>Platforms: </em>Linux</p>
-<dl class="function">
+<span class="target" id="module-QCGWAData"></span><dl class="function">
 <dt id="QCGWAData.main">
 <tt class="descclassname">QCGWAData.</tt><tt class="descname">main</tt><big>(</big><em>ExecutableName=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/QCGWAData.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#QCGWAData.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the main function. It is called by invocation of this module.</p>
@@ -238,7 +272,7 @@ optional arguments:
 <p><em>Module author: René Pool &lt;<a class="reference external" href="mailto:r&#46;pool&#37;&#52;&#48;vu&#46;nl">r<span>&#46;</span>pool<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;</em></p>
 <dl class="function">
 <dt id="ArgumentParser.LogArguments">
-<tt class="descclassname">ArgumentParser.</tt><tt class="descname">LogArguments</tt><big>(</big><em>Log=&lt;module 'Logger' from '/home/rpool/workspace/BioCrates/MetaAnalysis/QCGWAData/Logger.pyc'&gt;</em>, <em>ArgParser=&lt;class 'argparse.ArgumentParser'&gt;</em>, <em>Arguments=&lt;class 'argparse.Namespace'&gt;</em><big>)</big><a class="reference internal" href="_modules/ArgumentParser.html#LogArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ArgumentParser.LogArguments" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ArgumentParser.</tt><tt class="descname">LogArguments</tt><big>(</big><em>Log=&lt;module 'Logger' from '/home/r.pool/workspace/BioCrates/MetaAnalysis/QCGWAData/Logger.pyc'&gt;</em>, <em>ArgParser=&lt;class 'argparse.ArgumentParser'&gt;</em>, <em>Arguments=&lt;class 'argparse.Namespace'&gt;</em><big>)</big><a class="reference internal" href="_modules/ArgumentParser.html#LogArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ArgumentParser.LogArguments" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function handles the argument logging to stdout and to file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -605,7 +639,8 @@ optional arguments:
 <li><a class="reference internal" href="#the-gwaoutputpath-block">The <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt> block</a></li>
 <li><a class="reference internal" href="#the-workingpath-block">The <tt class="docutils literal"><span class="pre">WorkingPath</span></tt> block</a></li>
 <li><a class="reference internal" href="#the-format-block">The <tt class="docutils literal"><span class="pre">Format</span></tt> block</a></li>
-<li><a class="reference internal" href="#the-hapmap-block">The <tt class="docutils literal"><span class="pre">HapMap</span></tt> block</a><ul>
+<li><a class="reference internal" href="#the-hapmap-block">The <tt class="docutils literal"><span class="pre">HapMap</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-extrainfofiles-block">The <tt class="docutils literal"><span class="pre">ExtraInfoFiles</span></tt> block</a><ul>
 </ul>
 </li>
 </ul>

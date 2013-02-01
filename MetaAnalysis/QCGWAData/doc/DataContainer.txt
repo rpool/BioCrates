@@ -7,5 +7,4 @@ DataContainer Module
 .. automodule:: DataContainer
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:

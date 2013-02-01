@@ -7,5 +7,4 @@ Logger Module
 .. automodule:: Logger
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:

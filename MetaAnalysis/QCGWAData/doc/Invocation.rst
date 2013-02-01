@@ -156,7 +156,7 @@ If one wants to map the SNPs listed in a GWAS file to a specific Hapmap build/re
 The ``ExtraInfoFiles`` block
 ----------------------------
 
-
+**ExtraInfoFiles**::
     <ExtraInfoFiles>
         <ExtraInfoFile1>
             <boUse>True</boUse>

@@ -7,5 +7,4 @@ QCGWAData Module
 .. automodule:: QCGWAData
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:

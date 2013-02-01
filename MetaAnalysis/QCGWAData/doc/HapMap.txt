@@ -7,5 +7,4 @@ HapMap Module
 .. automodule:: HapMap
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:

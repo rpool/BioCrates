@@ -176,6 +176,34 @@ If one wants to map the SNPs listed in a GWAS file to a specific Hapmap build/re
         <Delimiter>,</Delimiter>
     </HapMap> 
 
+The ``ExtraInfoFiles`` block
+----------------------------
+
+**ExtraInfoFiles**::
+    <ExtraInfoFiles>
+        <ExtraInfoFile1>
+            <boUse>True</boUse>
+            <Path>/mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data</Path>
+            <Name>QUAL1-biocrates.csv.gz</Name>
+        </ExtraInfoFile1>
+        <ExtraInfoFile2>
+            <boUse>True</boUse>
+            <Path>/mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data</Path>
+            <Name>QUAL2-biocrates.csv.gz</Name>
+        </ExtraInfoFile2>
+        <ExtraInfoFile3>
+            <boUse>True</boUse>
+            <Path>/mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data</Path>
+            <Name>QUAL3-biocrates.csv.gz</Name>
+        </ExtraInfoFile3>
+        <ExtraInfoFile4>
+            <boUse>True</boUse>
+            <Path>/mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data</Path>
+            <Name>QUAL4-biocrates.csv.gz</Name>
+        </ExtraInfoFile4>
+    </ExtraInfoFiles>
+
+
 .. toctree::
    :maxdepth: 2
 
@@ -189,7 +217,6 @@ QCGWAData Module
 .. automodule:: QCGWAData
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:
 
 ArgumentParser Module
@@ -201,7 +228,6 @@ ArgumentParser Module
 .. automodule:: ArgumentParser
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:
 
 Logger Module
@@ -213,7 +239,6 @@ Logger Module
 .. automodule:: Logger
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:
 
 DataContainer Module
@@ -225,6 +250,5 @@ DataContainer Module
 .. automodule:: DataContainer
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:
 

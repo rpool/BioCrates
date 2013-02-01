@@ -7,5 +7,4 @@ File Module
 .. automodule:: File
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:

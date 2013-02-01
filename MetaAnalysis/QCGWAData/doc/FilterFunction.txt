@@ -7,5 +7,4 @@ FilterFunction Module
 .. automodule:: FilterFunction
     :members:
     :undoc-members:
-    :inherited-members:
     :show-inheritance:
