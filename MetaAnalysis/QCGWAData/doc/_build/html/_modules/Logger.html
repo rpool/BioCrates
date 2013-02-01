@@ -1,0 +1,196 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Logger &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Logger</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pwd</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pysvn</span>
+
+<span class="c">#===============================================================================</span>
+<span class="c"># This module contains the basic Logger class.</span>
+<span class="c"># Its members and member modules should speak for themselves, if not a</span>
+<span class="c"># comment is provided.</span>
+<span class="c">#===============================================================================</span>
+
+<div class="viewcode-block" id="Logger"><a class="viewcode-back" href="../index.html#Logger.Logger">[docs]</a><span class="k">class</span> <span class="nc">Logger</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                 <span class="n">Extension</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LogFileName</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">Extension</span><span class="o">!=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">LogFileName</span> <span class="o">=</span> <span class="n">FileName</span><span class="o">+</span><span class="s">&#39;.&#39;</span><span class="o">+</span><span class="n">Extension</span><span class="o">+</span><span class="s">&#39;.log&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">LogFileName</span> <span class="o">=</span> <span class="n">FileName</span><span class="o">+</span><span class="s">&#39;.log&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartDate</span>      <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span>   <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFileHandle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLog</span><span class="p">()</span>
+
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="Logger.InitFileHandle"><a class="viewcode-back" href="../index.html#Logger.Logger.InitFileHandle">[docs]</a>    <span class="k">def</span> <span class="nf">InitFileHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ListDir</span>        <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+<span class="c">#       The following is done to prevent previous log files to be overwritten.</span>
+<span class="c">#       NOTE: Counting goes until 9, so the *.log9 file will be overwritten in</span>
+<span class="c">#       case it is present!</span>
+        <span class="n">LogCounterList</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">File</span> <span class="ow">in</span> <span class="n">ListDir</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetFileName</span><span class="p">(),</span><span class="n">File</span><span class="p">)):</span>
+                <span class="n">LogCounterList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">File</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">MaxCounter</span>        <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">LogCounterList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LogFileName</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">MaxCounter</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span>   <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LogFileName</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="Logger.GetFileHandle"><a class="viewcode-back" href="../index.html#Logger.Logger.GetFileHandle">[docs]</a>    <span class="k">def</span> <span class="nf">GetFileHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span></div>
+<div class="viewcode-block" id="Logger.GetFileName"><a class="viewcode-back" href="../index.html#Logger.Logger.GetFileName">[docs]</a>    <span class="k">def</span> <span class="nf">GetFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">LogFileName</span></div>
+<div class="viewcode-block" id="Logger.GetStartDate"><a class="viewcode-back" href="../index.html#Logger.Logger.GetStartDate">[docs]</a>    <span class="k">def</span> <span class="nf">GetStartDate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StartDate</span></div>
+<div class="viewcode-block" id="Logger.StartLog"><a class="viewcode-back" href="../index.html#Logger.Logger.StartLog">[docs]</a>    <span class="k">def</span> <span class="nf">StartLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">StartDate</span>      <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartDate</span> <span class="o">=</span> <span class="n">StartDate</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span>  <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;#############</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# START LOG #</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;#############</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# STARTED AT:</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# date (yyyy-mm-dd) : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">StartDate</span><span class="o">.</span><span class="n">date</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# time (hh:mm:ss)   : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">StartDate</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# platform          : &#39;</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">platform</span><span class="o">.</span><span class="n">uname</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# user              : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getuid</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# path              : &#39;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# python version    : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# running module    : &#39;</span><span class="o">+</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;#  -&gt; linking to    : &#39;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span><span class="s">&#39;.svn&#39;</span><span class="p">))):</span>
+            <span class="n">Client</span> <span class="o">=</span> <span class="n">pysvn</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;# svn revision      : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Client</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span><span class="o">.</span><span class="n">revision</span><span class="o">.</span><span class="n">number</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+            <span class="k">del</span> <span class="n">Client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="Logger.GetStartLogString"><a class="viewcode-back" href="../index.html#Logger.Logger.GetStartLogString">[docs]</a>    <span class="k">def</span> <span class="nf">GetStartLogString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StartLogString</span></div>
+<div class="viewcode-block" id="Logger.EndLog"><a class="viewcode-back" href="../index.html#Logger.Logger.EndLog">[docs]</a>    <span class="k">def</span> <span class="nf">EndLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">EndDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span>  <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;###########</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;# END LOG #</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;###########</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;# FINISHED AT:</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;# date (yyyy-mm-dd) : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">EndDate</span><span class="o">.</span><span class="n">date</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;# time (hh:mm:ss)   : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">EndDate</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span> <span class="o">+=</span> <span class="s">&#39;# elapsed (s)       : &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">((</span><span class="n">EndDate</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">StartDate</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span> <span class="c"># Report total time.</span>
+
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="Logger.GetEndLogString"><a class="viewcode-back" href="../index.html#Logger.Logger.GetEndLogString">[docs]</a>    <span class="k">def</span> <span class="nf">GetEndLogString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLog</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">EndLogString</span></div>
+<div class="viewcode-block" id="Logger.Write"><a class="viewcode-back" href="../index.html#Logger.Logger.Write">[docs]</a>    <span class="k">def</span> <span class="nf">Write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="n">String</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="Logger.Close"><a class="viewcode-back" href="../index.html#Logger.Logger.Close">[docs]</a>    <span class="k">def</span> <span class="nf">Close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EndLog</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

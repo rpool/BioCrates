@@ -1,0 +1,11 @@
+Merge Module
+============
+
+:mod:`Merge` Module
+-------------------
+
+.. automodule:: Merge
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:

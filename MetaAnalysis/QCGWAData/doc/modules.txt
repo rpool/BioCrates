@@ -1,0 +1,18 @@
+QCGWAData Modules
+=================
+
+.. toctree::
+   :maxdepth: 4
+
+   ArgumentParser
+   Checks
+   DataContainer
+   File
+   FilterFunction
+   Filters
+   Format
+   HapMap
+   Logger
+   Merge
+   Plotting
+   QCGWAData

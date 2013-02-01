@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+This module contains the basic DataContainer and DataContainers classes.
+
+.. moduleauthor:: René Pool <r.pool@vu.nl>
+
+"""
 import re
 import scipy
 import collections
@@ -12,6 +19,9 @@ import Logger
 #===============================================================================
 
 class DataContainer:
+    """
+    Class **DataContainer**
+    """
     def __init__(self):
         self.DataName           = None
         self.DataArray          = None
@@ -22,45 +32,95 @@ class DataContainer:
         return
 
     def GetMaxNDuplicates(self):
+        """
+        Returns the maximum number of duplicate lines found in an input file.
+        """
         return self.MaxNDuplicates
 
     def SetDataName(self,
                     Name=str):
+        """
+        Sets the DataContainer name.
+        """
         self.DataName = Name
         return
 
     def GetDataName(self):
+        """
+        Returns the DataContainer name.
+        """
         return self.DataName
 
     def InitDataArray(self):
+        """
+        Initializes the DataArray
+        """
         self.DataArray = []
         return
 
     def ReplaceDataArray(self,
                          DataArray=scipy.array):
+        """
+        Replaces the DataArray by the input array.
+
+        :param DataArray: Array that replaces the old value
+        :type DataArray: scipy.array
+        :returns: nothing
+        """
         self.DataArray = DataArray
         return
 
     def ReplaceDataArrayEntryAtIndex(self,
                                      Index=int,
                                      Value=str):
+        """
+        Replaces element *Index* of DataArray by the input *Value*.
+
+        :param Index: Index of the element that will be replaced
+        :type Index: int
+        :param Value: New value of *DataArray[Index]*
+        :type Value: str
+        :returns: nothing
+        """
         self.DataArray[Index] = Value
         return
 
     def AppendToArray(self,
                       Entry=str):
+        """
+        Appends an element to the DataArray
+
+        :param Entry: Value of the appended element
+        :type Entry: str
+        :returns: nothing
+        """
         self.DataArray.append(Entry)
         return
 
     def CastDataArrayToScipy(self):
+        """
+        Type casts the DataArray to type `scipy.array`.
+        """
         self.DataArray = scipy.array(self.GetDataArray())
 
     def GetDataArray(self):
+        """
+        Returns the DataArray.
+        """
         return self.DataArray
 
     def RenameFieldsInDataArray(self,
                                 Source=str,
                                 Dest=str):
+        """
+        Renames DataArray elements that are equal to *Source* to *Dest*
+
+        :param Source: Source value
+        :type Source: str
+        :param Dest: Replacement value
+        :type Dest: str
+        :returns: nothing
+        """
         DataArray      = self.GetDataArray()
         ExtractedArray = scipy.where(DataArray==Source)[0]
         for Index in ExtractedArray:
@@ -69,12 +129,26 @@ class DataContainer:
         return
 
     def RenameColumnOfDataArray(self,
-                                Source,
-                                Dest):
+                                Source=str,
+                                Dest=str):
+        """
+        Renames the DataContainer name from *Source* to *Dest*.
+
+        :param Source: Source value
+        :type Source: str
+        :param Dest: Replacement value
+        :type Dest: str
+        :returns: nothing
+        """
         self.SetDataName(Dest)
         return
 
     def FindDuplicates(self):
+        """
+        Finds duplicate entries in DataArray.
+
+        :returns: A dictionary of duplicates
+        """
         self.CounterDict   = collections.defaultdict(int)
         DuplicateIndexDict = collections.defaultdict(list)
         for i in range(len(self.GetDataArray())):
@@ -92,10 +166,20 @@ class DataContainer:
         return self.DuplicateDict
 
     def GetDuplicateIndexDict(self):
+        """
+        Returns the duplicate index list.
+        """
         return self.DuplicateIndexDict
 
     def RemoveDuplicates(self,
                          DuplicateIndexDict={}):
+        """
+        Removes the duplicates listed in *DuplicateIndexDict*.
+
+        :param DuplicateIndexDict: The dictionary of the indices of the duplicates
+        :type DuplicateIndexDict: dict
+        :returns: The number of removed lines (*int*)
+        """
         DataArray = self.GetDataArray()
         NRemoved  = len(DataArray)
         DelList   = []
@@ -112,10 +196,16 @@ class DataContainer:
         return NRemoved
 
     def InitEntry2IndexDict(self):
+        """
+        Initializes Entry2IndexDict.
+        """
         self.Entry2IndexDict = {}
         return
 
     def SetEntry2IndexDict(self):
+        """
+        Sets Entry2IndexDict.
+        """
         if(self.GetEntry2IndexDict()==None):
             self.InitEntry2IndexDict()
         for i in range(len(self.GetDataArray())):
@@ -124,6 +214,9 @@ class DataContainer:
         return
 
     def GetEntry2IndexDict(self):
+        """
+        Returns Entry2IndexDict.
+        """
         return self.Entry2IndexDict
 
 class DataContainers:

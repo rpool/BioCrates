@@ -1,0 +1,11 @@
+Plotting Module
+===============
+
+:mod:`Plotting` Module
+----------------------
+
+.. automodule:: Plotting
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:

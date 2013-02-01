@@ -1,0 +1,140 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>FilterFunction &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for FilterFunction</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+
+<div class="viewcode-block" id="FilterFunction"><a class="viewcode-back" href="../index.html#FilterFunction.FilterFunction">[docs]</a><span class="k">class</span> <span class="nc">FilterFunction</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">OperatorString</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                 <span class="n">CompareString</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                 <span class="n">CompareType</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span>   <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TypeDict</span>       <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorString</span> <span class="o">=</span> <span class="n">OperatorString</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CompareString</span>  <span class="o">=</span> <span class="n">CompareString</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CompareType</span>    <span class="o">=</span> <span class="n">CompareType</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetOperatorDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetTypeDict</span><span class="p">()</span>
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="FilterFunction.Run"><a class="viewcode-back" href="../index.html#FilterFunction.FilterFunction.Run">[docs]</a>    <span class="k">def</span> <span class="nf">Run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">Operator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetOperatorDict</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">OperatorString</span><span class="p">]</span>
+        <span class="n">Type</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetTypeDict</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">CompareType</span><span class="p">]</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">(</span><span class="n">DataArray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">Type</span><span class="p">),</span><span class="n">Type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CompareString</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">FilterArray</span>
+</div>
+<div class="viewcode-block" id="FilterFunction.SetTypeDict"><a class="viewcode-back" href="../index.html#FilterFunction.FilterFunction.SetTypeDict">[docs]</a>    <span class="k">def</span> <span class="nf">SetTypeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TypeDict</span>          <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TypeDict</span><span class="p">[</span><span class="s">&#39;float&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TypeDict</span><span class="p">[</span><span class="s">&#39;int&#39;</span><span class="p">]</span>   <span class="o">=</span> <span class="nb">int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TypeDict</span><span class="p">[</span><span class="s">&#39;str&#39;</span><span class="p">]</span>   <span class="o">=</span> <span class="nb">str</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="FilterFunction.GetTypeDict"><a class="viewcode-back" href="../index.html#FilterFunction.FilterFunction.GetTypeDict">[docs]</a>    <span class="k">def</span> <span class="nf">GetTypeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">TypeDict</span>
+</div>
+<div class="viewcode-block" id="FilterFunction.SetOperatorDict"><a class="viewcode-back" href="../index.html#FilterFunction.FilterFunction.SetOperatorDict">[docs]</a>    <span class="k">def</span> <span class="nf">SetOperatorDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span>       <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span><span class="p">[</span><span class="s">&#39;NE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">ne</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span><span class="p">[</span><span class="s">&#39;EQ&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">eq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span><span class="p">[</span><span class="s">&#39;GT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span><span class="p">[</span><span class="s">&#39;LT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">lt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span><span class="p">[</span><span class="s">&#39;GE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">ge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span><span class="p">[</span><span class="s">&#39;LE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="FilterFunction.GetOperatorDict"><a class="viewcode-back" href="../index.html#FilterFunction.FilterFunction.GetOperatorDict">[docs]</a>    <span class="k">def</span> <span class="nf">GetOperatorDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">OperatorDict</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1046 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>QCGWAData &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for QCGWAData</h1><div class="highlight"><pre>
+<span class="c">#! /usr/bin/env python</span>
+<span class="c"># python modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+
+<span class="c"># Homebrew modules</span>
+<span class="kn">import</span> <span class="nn">Logger</span>
+<span class="kn">import</span> <span class="nn">ArgumentParser</span>
+<span class="kn">import</span> <span class="nn">File</span>
+<span class="kn">import</span> <span class="nn">HapMap</span>
+<span class="kn">import</span> <span class="nn">Format</span>
+<span class="kn">import</span> <span class="nn">Merge</span>
+<span class="kn">import</span> <span class="nn">Checks</span>
+<span class="kn">import</span> <span class="nn">Filters</span>
+<span class="kn">import</span> <span class="nn">DataContainer</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../index.html#QCGWAData.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">ExecutableName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># START Initialization</span>
+    <span class="c">#===========================================================================</span>
+    <span class="n">ArgParser</span><span class="p">,</span>\
+    <span class="n">Arguments</span>   <span class="o">=</span> <span class="n">ArgumentParser</span><span class="o">.</span><span class="n">ParseArguments</span><span class="p">()</span>
+
+    <span class="n">Ext</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">Log</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">Logger</span><span class="p">(</span><span class="n">ExecutableName</span><span class="p">,</span>
+                        <span class="n">Ext</span><span class="p">)</span>
+    <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;## START TIMESTAMP</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">LogString</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Log</span><span class="o">.</span><span class="n">GetStartDate</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;## END TIMESTAMP&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="n">Log</span><span class="o">.</span><span class="n">GetStartLogString</span><span class="p">()</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">ArgumentParser</span><span class="o">.</span><span class="n">LogArguments</span><span class="p">(</span><span class="n">Log</span><span class="p">,</span>
+                                <span class="n">ArgParser</span><span class="p">,</span>
+                                <span class="n">Arguments</span><span class="p">)</span>
+    <span class="c">#===========================================================================</span>
+    <span class="c"># END Initialization</span>
+    <span class="c">#===========================================================================</span>
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># START Do the work!</span>
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Parse Arguments.ProtocolFile</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;++ Parsing </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="n">Arguments</span><span class="o">.</span><span class="n">ProtocolFile</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> ...&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">ProtocolFile</span> <span class="o">=</span> <span class="n">File</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">Name</span><span class="o">=</span><span class="n">Arguments</span><span class="o">.</span><span class="n">ProtocolFile</span><span class="p">,</span>
+                             <span class="n">boHeader</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">XmlProtocol</span>  <span class="o">=</span> <span class="n">ProtocolFile</span><span class="o">.</span><span class="n">ParseAsXml</span><span class="p">()</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;-- Done ...&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="n">CommentsPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span><span class="s">&#39;Comments&#39;</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">CommentsPath</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">CommentsPath</span><span class="p">)</span>
+
+
+    <span class="c"># HapMap stuff</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;++ Setting up </span><span class="se">\&quot;</span><span class="s">HapMap</span><span class="se">\&quot;</span><span class="s"> data structure ...&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="n">HM</span> <span class="o">=</span> <span class="n">HapMap</span><span class="o">.</span><span class="n">HapMap</span><span class="p">()</span>
+    <span class="n">HM</span><span class="o">.</span><span class="n">ProcessXml</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                  <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;HapMap&#39;</span><span class="p">,</span>
+                  <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">)</span>
+    <span class="n">HM</span><span class="o">.</span><span class="n">CheckIfFileExists</span><span class="p">(</span><span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                         <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">HM</span><span class="o">.</span><span class="n">ParseDestFile</span><span class="p">(</span><span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                     <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">HM</span><span class="o">.</span><span class="n">ProcessLineArray</span><span class="p">()</span>
+
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;-- Done ...&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="c"># Perform file format check on extra info file</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;++ Running file format check on extra info files ...&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">ExtraInfoFormat</span> <span class="o">=</span> <span class="n">Format</span><span class="o">.</span><span class="n">Format</span><span class="p">()</span>
+    <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">CheckIfFilesExist</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                      <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;ExtraInfoFiles&#39;</span><span class="p">,</span>
+                                      <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">)</span>
+    <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">SetDelimiter</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                 <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">)</span>
+    <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">SetSplitFunction</span><span class="p">(</span><span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">)</span>
+    <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">SetColumnFormat</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                    <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">)</span>
+    <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">AppendFilesToExtraInfoFiles</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">)</span>
+    <span class="n">boRemoveDuplicateLines</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Format&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;boRemoveDuplicateLines&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">Delimiter</span>              <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Format&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;ExtraInfoDelimiter&#39;</span><span class="p">)</span><span class="o">!=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">Delimiter</span> <span class="o">=</span> <span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Format&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;ExtraInfoDelimiter&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+    <span class="n">ExtraInfoDCsDict</span>       <span class="o">=</span> <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">ParseExtraInfoFiles</span><span class="p">(</span><span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                                                 <span class="n">boRemoveDuplicateLines</span><span class="o">=</span><span class="n">boRemoveDuplicateLines</span><span class="p">,</span>
+                                                                 <span class="n">Delimiter</span><span class="o">=</span><span class="n">Delimiter</span><span class="p">)</span>
+
+    <span class="n">ExtraInfoChecksDict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">ExtraInfoDCsDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+        <span class="n">ExtraInfoChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Checks</span><span class="o">.</span><span class="n">Checks</span><span class="p">()</span>
+
+    <span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">CheckFormat</span><span class="p">(</span><span class="n">DCsDict</span><span class="o">=</span><span class="n">ExtraInfoDCsDict</span><span class="p">,</span>
+                                <span class="n">ChecksDict</span><span class="o">=</span><span class="n">ExtraInfoChecksDict</span><span class="p">,</span>
+                                <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                <span class="n">Path</span><span class="o">=</span><span class="n">CommentsPath</span><span class="p">,</span>
+                                <span class="n">FilePreExtName</span><span class="o">=</span><span class="s">&#39;CheckFormatExtraInfoFiles&#39;</span><span class="p">,</span>
+                                <span class="n">FileType</span><span class="o">=</span><span class="s">&#39;extra info files&#39;</span><span class="p">,</span>
+                                <span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;ExtraInfoColumns&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">ExtraInfoDCsDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+        <span class="n">ExtraInfoDCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetEntry2IndexDict</span><span class="p">()</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;-- Done ...&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="c"># Parse MtbNames file and fill MtbNames DataArray</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbNameFile&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;boUse&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)):</span>
+        <span class="n">FPath</span>     <span class="o">=</span> <span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbNameFile&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Path&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">FName</span>     <span class="o">=</span> <span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbNameFile&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">FileName</span>  <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">FPath</span><span class="p">,</span><span class="n">FName</span><span class="p">)</span>
+        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;++ Parsing </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="n">FileName</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">MtbNameFile</span> <span class="o">=</span> <span class="n">File</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">Name</span><span class="o">=</span><span class="n">FileName</span><span class="p">,</span>
+                                <span class="n">boHeader</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">MtbNameFile</span><span class="o">.</span><span class="n">SetFileHandle</span><span class="p">(</span><span class="n">Mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">boRemoveDuplicateLines</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Format&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;boRemoveDuplicateLines&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">boRemoveDuplicateLines</span><span class="p">):</span>
+            <span class="n">NLinesInFile</span><span class="p">,</span>\
+            <span class="n">NLinesInArray</span>  <span class="o">=</span> <span class="n">MtbNameFile</span><span class="o">.</span><span class="n">ParseToLineArray</span><span class="p">()</span>
+            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;  ** Removed &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">NLinesInFile</span><span class="o">-</span><span class="n">NLinesInArray</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; duplicate lines!&#39;</span>
+            <span class="k">print</span> <span class="n">LogString</span>
+            <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">MtbNameFileDCs</span> <span class="o">=</span> <span class="n">MtbNameFile</span><span class="o">.</span><span class="n">LineArray2DataContainers</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">MtbNameFileDCs</span> <span class="o">=</span> <span class="n">MtbNameFile</span><span class="o">.</span><span class="n">ParseToDataContainers</span><span class="p">()</span>
+        <span class="n">MtbNameFile</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+        <span class="n">MtbNameFile</span><span class="o">.</span><span class="n">Cleanup</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">MtbNameFile</span>
+        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;-- Done ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;++ Processing GWA output files corresponding to </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span>\
+                    <span class="n">FileName</span><span class="o">+</span>\
+                    <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">GWADataPath</span>    <span class="o">=</span> <span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;GWAOutputPath&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">GWADataListDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">GWADataPath</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">N</span> <span class="ow">in</span> <span class="n">MtbNameFileDCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">():</span> <span class="c"># first column, no header</span>
+            <span class="n">GWADataFile</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">Index</span>       <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADataListDir</span><span class="p">)):</span>
+                <span class="n">F</span>      <span class="o">=</span> <span class="n">GWADataListDir</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">FSplit</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FSplit</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="n">CompareName</span> <span class="o">=</span> <span class="n">FSplit</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="c"># if file names are correctly formatted</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">CompareName</span><span class="o">==</span><span class="n">N</span><span class="p">):</span>
+                        <span class="n">GWADataFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GWADataPath</span><span class="p">,</span><span class="n">F</span><span class="p">)</span>
+                        <span class="n">Index</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">Index</span><span class="o">!=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="k">del</span> <span class="n">GWADataListDir</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span>
+
+            <span class="n">GWAChecksDict</span>  <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">GWAFiltersDict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">GWADataFile</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;  ** Did not find a GWA output file for metabolite </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span>\
+                             <span class="n">N</span><span class="o">+</span>\
+                             <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">!</span><span class="se">\n</span><span class="s">&#39;</span>
+                <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;  ** Setting all QC check outcomes to </span><span class="se">\&quot;</span><span class="s">False</span><span class="se">\&quot;</span><span class="s"> or </span><span class="se">\&quot;</span><span class="s">Unknown</span><span class="se">\&quot;</span><span class="s"> for this metabolite!&#39;</span>
+                <span class="k">print</span> <span class="n">LogString</span>
+                <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">Checks</span><span class="o">.</span><span class="n">Checks</span><span class="p">()</span>
+                <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Filters</span><span class="o">.</span><span class="n">Filters</span><span class="p">()</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvHeader</span><span class="p">()</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvHeader</span><span class="p">(</span><span class="s">&#39;Header.csv&#39;</span><span class="p">)</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvComments</span><span class="p">(</span><span class="s">&#39;COMMENTS per variable&#39;</span><span class="p">)</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvComments</span><span class="p">(</span><span class="s">&#39;Comments.csv&#39;</span><span class="p">)</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;  ** Found the GWA output file for metabolite </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span>\
+                             <span class="n">N</span><span class="o">+</span>\
+                             <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                <span class="k">print</span> <span class="n">LogString</span>
+                <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">GWADataFile</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">GWADataFile</span><span class="p">)):</span>
+                    <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;  ** This file is a regular file or a symbolic link to one!&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;  ++ Running file format check on </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="n">GWADataFile</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">  ...&#39;</span>
+                <span class="k">print</span> <span class="n">LogString</span>
+                <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                <span class="n">GWAFormat</span> <span class="o">=</span> <span class="n">Format</span><span class="o">.</span><span class="n">Format</span><span class="p">()</span>
+                <span class="n">GWAFormat</span><span class="o">.</span><span class="n">SetGWADataFileName</span><span class="p">(</span><span class="n">Name</span><span class="o">=</span><span class="n">GWADataFile</span><span class="p">)</span>
+                <span class="n">GWAFormat</span><span class="o">.</span><span class="n">SetDelimiter</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                       <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                       <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;  &#39;</span><span class="p">)</span>
+                <span class="n">GWAFormat</span><span class="o">.</span><span class="n">SetSplitFunction</span><span class="p">(</span><span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                           <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;  &#39;</span><span class="p">)</span>
+                <span class="n">GWAFormat</span><span class="o">.</span><span class="n">SetColumnFormat</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                          <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                          <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;  &#39;</span><span class="p">)</span>
+                <span class="n">boRemoveDuplicateLines</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Format&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;boRemoveDuplicateLines&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="n">GWADCsDict</span> <span class="o">=</span> <span class="n">GWAFormat</span><span class="o">.</span><span class="n">ParseGWADataFile</span><span class="p">(</span><span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                                        <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;  &#39;</span><span class="p">,</span>
+                                                        <span class="n">boRemoveDuplicateLines</span><span class="o">=</span><span class="n">boRemoveDuplicateLines</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">GWADCsDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Checks</span><span class="o">.</span><span class="n">Checks</span><span class="p">()</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">SetMtbnameOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvHeader</span><span class="p">()</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvHeader</span><span class="p">(</span><span class="s">&#39;Header.csv&#39;</span><span class="p">)</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvComments</span><span class="p">(</span><span class="s">&#39;COMMENTS per variable&#39;</span><span class="p">)</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvComments</span><span class="p">(</span><span class="s">&#39;Comments.csv&#39;</span><span class="p">)</span>
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Filters</span><span class="o">.</span><span class="n">Filters</span><span class="p">()</span>
+
+                <span class="n">GWAFormat</span><span class="o">.</span><span class="n">CheckFormat</span><span class="p">(</span><span class="n">DCsDict</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">,</span>
+                                      <span class="n">ChecksDict</span><span class="o">=</span><span class="n">GWAChecksDict</span><span class="p">,</span>
+                                      <span class="n">Log</span><span class="o">=</span><span class="n">Log</span><span class="p">,</span>
+                                      <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;  &#39;</span><span class="p">,</span>
+                                      <span class="n">Path</span><span class="o">=</span><span class="n">CommentsPath</span><span class="p">,</span>
+                                      <span class="n">FilePreExtName</span><span class="o">=</span><span class="s">&#39;CheckFormat_&#39;</span><span class="o">+</span><span class="n">N</span><span class="p">,</span>
+                                      <span class="n">FileType</span><span class="o">=</span><span class="s">&#39;GWA data file&#39;</span><span class="p">,</span>
+                                      <span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                      <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span>
+                <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">SetMaxNDuplicateSNPs</span><span class="p">(</span><span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetMaxNDuplicateSNPs</span><span class="p">())</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAFormat</span><span class="o">.</span><span class="n">GetboColumnFormatOK</span><span class="p">()):</span>
+                    <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in the column naming!</span><span class="se">\n</span><span class="s">&#39;</span>
+                    <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      ** Set the proper renaming rules in </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="n">Arguments</span><span class="o">.</span><span class="n">ProtocolFile</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">!</span><span class="se">\n</span><span class="s">&#39;</span>
+                    <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! EXITING !!&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">boPass</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">for</span> <span class="n">ColumnId</span> <span class="ow">in</span> <span class="n">GWAFormat</span><span class="o">.</span><span class="n">GetboFieldFormatOKDict</span><span class="p">()</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAFormat</span><span class="o">.</span><span class="n">GetboFieldFormatOKDict</span><span class="p">()[</span><span class="n">ColumnId</span><span class="p">]):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in the field formatting of column </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="n">ColumnId</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      ** Set the proper renaming rules in </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="n">Arguments</span><span class="o">.</span><span class="n">ProtocolFile</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">boPass</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">boPass</span><span class="p">):</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      !! EXITING !!&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ExtraInfoFormat</span><span class="o">.</span><span class="n">GetExtraInfoFiles</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Merging ExtraInfo columns to GWA data file ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span> <span class="o">=</span> <span class="n">Merge</span><span class="o">.</span><span class="n">MergeWithExtraInfo</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                          <span class="n">SourceDCsDict</span><span class="o">=</span><span class="n">ExtraInfoDCsDict</span><span class="p">,</span>
+                                                          <span class="n">DestDCsDict</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">,</span>
+                                                          <span class="n">SourceColumnTag</span><span class="o">=</span><span class="s">&#39;SNPID&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                <span class="n">boDryRun</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">for</span> <span class="n">XmlTag</span> <span class="ow">in</span> <span class="n">XmlProtocol</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">):</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">XmlTag</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;DryRunFilters&#39;</span><span class="p">)</span><span class="o">!=</span><span class="bp">None</span><span class="p">):</span>
+                        <span class="n">boDryRun</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">break</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">boDryRun</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">GWADCsDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Dry-running filters ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ++ QCing column </span><span class="se">\&quot;</span><span class="s">n_total</span><span class="se">\&quot;</span><span class="s"> (DRY-RUN FILTER) ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                        <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterNTotals</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                              <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                              <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;n_total&#39;</span><span class="p">,</span>
+                                                                              <span class="n">boDryRun</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                            <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;n_total&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                            <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                            <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                                <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                            <span class="k">print</span> <span class="n">LogString</span>
+                            <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;DryRunFilter_NTotal_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                              <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;n_total&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      -- Done ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ++ QCing column </span><span class="se">\&quot;</span><span class="s">SE</span><span class="se">\&quot;</span><span class="s"> (DRY-RUN FILTER) ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                        <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterSEs</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                          <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                          <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;SE&#39;</span><span class="p">,</span>
+                                                                          <span class="n">boDryRun</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                            <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;SE&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                            <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                            <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                                <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                            <span class="k">print</span> <span class="n">LogString</span>
+                            <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;DryRunFilter_SE_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                              <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;SE&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      -- Done ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ++ QCing column </span><span class="se">\&quot;</span><span class="s">beta</span><span class="se">\&quot;</span><span class="s"> (DRY-RUN FILTER) ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                        <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterBetas</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                            <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                            <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;beta&#39;</span><span class="p">,</span>
+                                                                            <span class="n">boDryRun</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                            <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;beta&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                            <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                            <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                                <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                            <span class="k">print</span> <span class="n">LogString</span>
+                            <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;DryRunFilter_Beta_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                              <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;beta&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      -- Done ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+
+                <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">GWADCsDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">SetInitialArrayLength</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()))</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">chr</span><span class="se">\&quot;</span><span class="s"> (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckChromosomesOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                 <span class="n">DataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;chr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                                 <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;chr&#39;</span><span class="p">)):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in column </span><span class="se">\&quot;</span><span class="s">chr</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Column </span><span class="se">\&quot;</span><span class="s">chr</span><span class="se">\&quot;</span><span class="s"> is OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing all columns: removing rows containing duplicate SNPs (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetMaxNDuplicateSNPs</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">RemoveDuplicateSNPs</span><span class="p">(</span><span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">])</span>
+                        <span class="n">String</span> <span class="o">=</span> <span class="s">&#39;      ** Removed &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetNDeletedDuplicateSNPs</span><span class="p">())</span><span class="o">+</span>\
+                                    <span class="s">&#39; row(s) containing duplicate SNPs!&#39;</span>
+                        <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCustomFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;Filter_SnpIdUnique_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                                    <span class="n">String</span><span class="o">=</span><span class="n">String</span><span class="p">)</span>
+
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">String</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Removed 0 rows containing duplicate SNPs!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">SetboDuplicateSNPWarning</span><span class="p">()</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetboDuplicateSNPWarning</span><span class="p">()):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** WARNING: REMOVED MORE THAN 100 duplicate SNPs!!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">SE</span><span class="se">\&quot;</span><span class="s"> (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                    <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterSEs</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                      <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                      <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;SE&#39;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                        <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;SE&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;Filter_SE_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                          <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;SE&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">beta</span><span class="se">\&quot;</span><span class="s"> (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                    <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterBetas</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                        <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                        <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;beta&#39;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                        <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;beta&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;Filter_Beta_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                          <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;beta&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Mapping GWA data to HapMap build &#39;</span><span class="o">+</span>\
+                                <span class="n">HM</span><span class="o">.</span><span class="n">GetDestBuild</span><span class="p">()</span><span class="o">+</span>\
+                                <span class="s">&#39; (release &#39;</span><span class="o">+</span>\
+                                <span class="n">HM</span><span class="o">.</span><span class="n">GetDestRelease</span><span class="p">()</span><span class="o">+</span>\
+                                <span class="s">&#39;; &#39;</span><span class="o">+</span><span class="n">HM</span><span class="o">.</span><span class="n">GetDestRefPanel</span><span class="p">()</span><span class="o">+</span>\
+                                <span class="s">&#39;) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">HM</span><span class="o">.</span><span class="n">Map</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">])</span>
+
+                    <span class="n">RprtName</span> <span class="o">=</span> <span class="s">&#39;MapHM_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ++ Generating report &#39;</span><span class="o">+</span><span class="n">RprtName</span><span class="o">+</span><span class="s">&#39; in directory </span><span class="se">\&quot;</span><span class="s">HapMap</span><span class="se">\&quot;</span><span class="s"> ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">HM</span><span class="o">.</span><span class="n">Report</span><span class="p">(</span><span class="n">ReportName</span><span class="o">=</span><span class="n">RprtName</span><span class="p">,</span>
+                              <span class="n">SNPIDArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">HM</span><span class="o">.</span><span class="n">Clean</span><span class="p">()</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">n_total</span><span class="se">\&quot;</span><span class="s"> (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                    <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterNTotals</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                          <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                          <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;n_total&#39;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                        <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;n_total&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;Filter_NTotal_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                          <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;n_total&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Adding column </span><span class="se">\&quot;</span><span class="s">PValTTest</span><span class="se">\&quot;</span><span class="s"> to DataContainers ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValTTest&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValTTest&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="s">&#39;PValTtest&#39;</span><span class="p">)</span>
+                    <span class="n">DataArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;beta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">DataArray</span> <span class="o">/=</span> <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">NTotArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;n_total&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+                    <span class="n">PValArray</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">sf</span><span class="p">,</span>
+                                    <span class="n">scipy</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                                    <span class="n">NTotArray</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+                    <span class="n">PValArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">PValArray</span><span class="p">)</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValTTest&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">PValArray</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">PValTTest</span><span class="se">\&quot;</span><span class="s"> against reported column </span><span class="se">\&quot;</span><span class="s">pval</span><span class="se">\&quot;</span><span class="s"> (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckTTestOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                           <span class="n">DataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;pval&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                           <span class="n">CheckDataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValTTest&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                           <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;pval&#39;</span><span class="p">,</span>
+<span class="c">#                                                           boPlot=False,</span>
+                                                           <span class="n">boPlot</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                           <span class="n">MtbName</span><span class="o">=</span><span class="n">N</span><span class="p">)):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in column </span><span class="se">\&quot;</span><span class="s">pval</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Column </span><span class="se">\&quot;</span><span class="s">pval</span><span class="se">\&quot;</span><span class="s"> is OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Adding column </span><span class="se">\&quot;</span><span class="s">PValWald</span><span class="se">\&quot;</span><span class="s"> to DataContainers ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValWald&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValWald&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="s">&#39;PValWald&#39;</span><span class="p">)</span>
+                    <span class="n">DataArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">DataArray</span><span class="p">,</span><span class="mf">2.0</span><span class="p">))</span>
+                    <span class="n">PValArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">DataArray</span><span class="p">,</span>\
+                                                     <span class="mi">1</span><span class="p">)</span> <span class="c"># df=1</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValWald&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">PValArray</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">PValArray</span>
+                    <span class="k">del</span> <span class="n">DataArray</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">PValWald</span><span class="se">\&quot;</span><span class="s"> against reported column </span><span class="se">\&quot;</span><span class="s">pval</span><span class="se">\&quot;</span><span class="s"> (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckNTotalOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                            <span class="n">DataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;pval&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                            <span class="n">CheckDataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValWald&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                            <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;pval&#39;</span><span class="p">,</span>
+<span class="c">#                                                            boPlot=False,</span>
+                                                            <span class="n">boPlot</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                            <span class="n">MtbName</span><span class="o">=</span><span class="n">N</span><span class="p">)):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in column </span><span class="se">\&quot;</span><span class="s">pval</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Column </span><span class="se">\&quot;</span><span class="s">pval</span><span class="se">\&quot;</span><span class="s"> is OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">chr</span><span class="se">\&quot;</span><span class="s"> (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                    <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterChrs</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                       <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                       <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;chr&#39;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                        <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;chr&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">oevar_imp</span><span class="se">\&quot;</span><span class="s"> against column </span><span class="se">\&quot;</span><span class="s">imputed</span><span class="se">\&quot;</span><span class="s"> (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckImpQualOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                             <span class="n">ImpQArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;oevar_imp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                             <span class="n">ImputedArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;imputed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                             <span class="n">ImpQColumnTag</span><span class="o">=</span><span class="s">&#39;oevar_imp&#39;</span><span class="p">,</span>
+                                                             <span class="n">ImputedColumnTag</span><span class="o">=</span><span class="s">&#39;imputed&#39;</span><span class="p">)):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in columns </span><span class="se">\&quot;</span><span class="s">oevar_imp</span><span class="se">\&quot;</span><span class="s"> and </span><span class="se">\&quot;</span><span class="s">imputed</span><span class="se">\&quot;</span><span class="s"> !&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Columns </span><span class="se">\&quot;</span><span class="s">oevar_imp</span><span class="se">\&quot;</span><span class="s"> and </span><span class="se">\&quot;</span><span class="s">imputed</span><span class="se">\&quot;</span><span class="s"> are OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">n_total</span><span class="se">\&quot;</span><span class="s"> against column </span><span class="se">\&quot;</span><span class="s">imputed</span><span class="se">\&quot;</span><span class="s"> (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckNTotImpOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                             <span class="n">NTotalArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;n_total&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                             <span class="n">ImputedArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;imputed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                             <span class="n">NTotalColumnTag</span><span class="o">=</span><span class="s">&#39;n_total&#39;</span><span class="p">,</span>
+                                                             <span class="n">ImputedColumnTag</span><span class="o">=</span><span class="s">&#39;imputed&#39;</span><span class="p">)):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in columns </span><span class="se">\&quot;</span><span class="s">n_total</span><span class="se">\&quot;</span><span class="s"> and </span><span class="se">\&quot;</span><span class="s">imputed</span><span class="se">\&quot;</span><span class="s"> !&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Columns </span><span class="se">\&quot;</span><span class="s">n_total</span><span class="se">\&quot;</span><span class="s"> and </span><span class="se">\&quot;</span><span class="s">imputed</span><span class="se">\&quot;</span><span class="s"> are OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">AF_coded_all</span><span class="se">\&quot;</span><span class="s"> (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                    <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterAFCodedAlls</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                              <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                              <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;AF_coded_all&#39;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                        <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;AF_coded_all&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;Filter_AFCodedAll_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                          <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;AF_coded_all&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Adding column </span><span class="se">\&quot;</span><span class="s">MAF</span><span class="se">\&quot;</span><span class="s"> to DataContainers ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;MAF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;MAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="s">&#39;MAF&#39;</span><span class="p">)</span>
+                    <span class="n">DataArray</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;AF_coded_all&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">():</span>
+                        <span class="k">if</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">0.5</span><span class="p">):</span>
+                            <span class="n">DataArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">Entry</span><span class="p">)))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">DataArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+                    <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;MAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">DataArray</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ Adding column </span><span class="se">\&quot;</span><span class="s">EMAC</span><span class="se">\&quot;</span><span class="s"> to DataContainers ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;EMAC&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;EMAC&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="s">&#39;EMAC&#39;</span><span class="p">)</span>
+                    <span class="n">DataArray</span>   <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;n_total&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">DataArray</span>  <span class="o">*=</span> <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;MAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">DataArray</span>  <span class="o">*=</span> <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;oevar_imp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">DataArray</span>  <span class="o">*=</span> <span class="mf">2.0</span>
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;EMAC&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">DataArray</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">EMAC</span><span class="se">\&quot;</span><span class="s"> (FILTER) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>\
+                    <span class="n">FilterTags</span>        <span class="o">=</span> <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">FilterEMACs</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                        <span class="n">DCs</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">],</span>
+                                                                        <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;EMAC&#39;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)):</span>
+                        <span class="n">FilterTag</span> <span class="o">=</span> <span class="n">FilterTags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **&#39;</span><span class="o">+</span><span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="s">&#39;EMAC&#39;</span><span class="p">][</span><span class="n">FilterTag</span><span class="p">]</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">      **&#39;</span><span class="p">,</span><span class="n">LogString</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">FilterTags</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+                            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWAFiltersDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteFilterReport</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="s">&#39;Filter_EMAC_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.txt&#39;</span><span class="p">,</span>
+                                                          <span class="n">Tag</span><span class="o">=</span><span class="s">&#39;EMAC&#39;</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;      !! Data arrays are empty after filtering!</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;      !! CONTINUING ...&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                        <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">PValWald</span><span class="se">\&quot;</span><span class="s"> for inflation (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">MaxNTotal</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;n_total&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                    <span class="n">MaxNTotal</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">MaxNTotal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                    <span class="n">MaxNTotal</span> <span class="o">=</span> <span class="n">MaxNTotal</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="n">boOK</span><span class="p">,</span>\
+                    <span class="n">LambdaEst</span><span class="p">,</span>\
+                    <span class="n">SELambdaEst</span> <span class="o">=</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckLambdaOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                   <span class="n">DataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;PValWald&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                                   <span class="n">EMACArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;EMAC&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                                   <span class="n">MaxNTotal</span><span class="o">=</span><span class="n">MaxNTotal</span><span class="p">,</span>
+                                                                   <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;PValWald&#39;</span><span class="p">,</span>
+                                                                   <span class="n">boPlot</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                                   <span class="n">MtbName</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">boOK</span><span class="p">):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in column </span><span class="se">\&quot;</span><span class="s">PValWald</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Column </span><span class="se">\&quot;</span><span class="s">PValWald</span><span class="se">\&quot;</span><span class="s"> is OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Genomic inflation factor Lambda (SE) = &#39;</span><span class="o">+</span>\
+                                <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">LambdaEst</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span>\
+                                <span class="s">&#39; (&#39;</span><span class="o">+</span>\
+                                <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">SELambdaEst</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span>\
+                                <span class="s">&#39;)&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    ++ QCing column </span><span class="se">\&quot;</span><span class="s">HapMapMAF</span><span class="se">\&quot;</span><span class="s"> against column </span><span class="se">\&quot;</span><span class="s">MAF</span><span class="se">\&quot;</span><span class="s"> (CHECK) ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">boOK</span><span class="p">,</span>\
+                    <span class="n">CorrCoeff</span> <span class="o">=</span> <span class="n">GWAChecksDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CheckScatterFreqsOK</span><span class="p">(</span><span class="n">XmlObj</span><span class="o">=</span><span class="n">XmlProtocol</span><span class="p">,</span>
+                                                                       <span class="n">HapMapMAFDataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;HapMapMAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                                       <span class="n">MAFDataArray</span><span class="o">=</span><span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;MAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">(),</span>
+                                                                       <span class="n">ColumnTag</span><span class="o">=</span><span class="s">&#39;HapMapMAF&#39;</span><span class="p">,</span>
+                                                                       <span class="n">boPlot</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                                       <span class="n">MtbName</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">boOK</span><span class="p">):</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Something is wrong in columns </span><span class="se">\&quot;</span><span class="s">HapMapMAF</span><span class="se">\&quot;</span><span class="s"> and </span><span class="se">\&quot;</span><span class="s">MAF</span><span class="se">\&quot;</span><span class="s">!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      ** Columns </span><span class="se">\&quot;</span><span class="s">HapMapMAF</span><span class="se">\&quot;</span><span class="s"> and </span><span class="se">\&quot;</span><span class="s">MAF</span><span class="se">\&quot;</span><span class="s"> are OK!&#39;</span>
+                        <span class="k">print</span> <span class="n">LogString</span>
+                        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;      **  </span><span class="se">\&quot;</span><span class="s">HapMapMAF</span><span class="se">\&quot;</span><span class="s"> Vs. </span><span class="se">\&quot;</span><span class="s">GWAMAF</span><span class="se">\&quot;</span><span class="s"> correlation coefficient = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetCsvLine</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+                    <span class="n">GWAChecksDict</span><span class="p">[</span><span class="s">&#39;GWADataFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">WriteCsvLine</span><span class="p">(</span><span class="s">&#39;Checks_&#39;</span><span class="o">+</span><span class="n">N</span><span class="o">+</span><span class="s">&#39;.csv&#39;</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                    <span class="n">FilteredGWADataPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GWADataPath</span><span class="p">,</span><span class="s">&#39;FILTERED&#39;</span><span class="p">)</span>
+                    <span class="n">FilteredGWADataFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">GWADataFile</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;.gz&#39;</span><span class="p">,</span><span class="n">FilteredGWADataFile</span><span class="p">)):</span>
+                        <span class="n">FilteredGWADataFile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;.gz&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">FilteredGWADataFile</span><span class="p">)</span>
+                    <span class="n">HeaderList</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;chr&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;position&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;coded_all&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;noncoded_all&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;strand_genome&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;beta&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;SE&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;pval&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;AF_coded_all&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;HWE_pval&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;n_total&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;imputed&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;used_for_imp&#39;</span><span class="p">,</span>
+                                  <span class="s">&#39;oevar_imp&#39;</span><span class="p">]</span>
+                    <span class="n">Header2ColumnDict</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">HeaderList</span><span class="p">:</span>
+                        <span class="n">Header2ColumnDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">Entry</span>
+                    <span class="n">Header2ColumnDict</span><span class="p">[</span><span class="s">&#39;pval&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;PValWald&#39;</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Writing filtered GWA data to </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span>\
+                                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">FilteredGWADataPath</span><span class="p">,</span><span class="n">FilteredGWADataFile</span><span class="p">)</span><span class="o">+</span>\
+                                <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+<span class="c">#                    PValArray  = GWADCsDict[Key].DataContainers[&#39;PValWald&#39;].GetDataArray()</span>
+<span class="c">#                    PValArray  = scipy.around(PValArray,5)</span>
+<span class="c">#                    TmpArray   = []</span>
+<span class="c">#                    for Entry in PValArray:</span>
+<span class="c">#                        TmpArray.append(str(Entry))</span>
+<span class="c">#                    PValArray = scipy.array(TmpArray)</span>
+<span class="c">#</span>
+<span class="c">#                    GWADCsDict[Key].DataContainers[&#39;PValWald&#39;].ReplaceDataArray(PValArray)</span>
+
+                    <span class="n">GWADCsDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">WriteBioCratesGWAOutput</span><span class="p">(</span><span class="n">FileName</span><span class="o">=</span><span class="n">FilteredGWADataFile</span><span class="p">,</span>
+                                                            <span class="n">OutPath</span><span class="o">=</span><span class="n">FilteredGWADataPath</span><span class="p">,</span>
+                                                            <span class="n">HeaderList</span><span class="o">=</span><span class="n">HeaderList</span><span class="p">,</span>
+                                                            <span class="n">Header2ColumnDict</span><span class="o">=</span><span class="n">Header2ColumnDict</span><span class="p">)</span>
+
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;    -- Done ...&#39;</span>
+                    <span class="k">print</span> <span class="n">LogString</span>
+                    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;  -- Done ...&#39;</span>
+                <span class="k">print</span> <span class="n">LogString</span>
+                <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;-- Done ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># END Do the work!</span>
+    <span class="c">#===========================================================================</span>
+
+    <span class="c">#===========================================================================</span>
+    <span class="c"># START Finalization</span>
+    <span class="c">#===========================================================================</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">**** Done :-)&#39;</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">LogString</span> <span class="o">=</span> <span class="n">Log</span><span class="o">.</span><span class="n">GetEndLogString</span><span class="p">()</span>
+    <span class="k">print</span> <span class="n">LogString</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">Log</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+    <span class="c">#===========================================================================</span>
+    <span class="c"># START Finalization</span>
+    <span class="c">#===========================================================================</span>
+
+    <span class="k">return</span>
+</div>
+<span class="k">if</span><span class="p">(</span><span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">):</span>
+    <span class="n">ExecutableName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">ExecutableName</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

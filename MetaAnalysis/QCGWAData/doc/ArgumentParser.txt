@@ -1,0 +1,11 @@
+ArgumentParser Module
+=====================
+
+:mod:`ArgumentParser` Module
+----------------------------
+
+.. automodule:: ArgumentParser
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:

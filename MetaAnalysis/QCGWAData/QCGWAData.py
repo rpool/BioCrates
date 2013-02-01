@@ -17,6 +17,13 @@ import Filters
 import DataContainer
 
 def main(ExecutableName=str):
+    """
+    This is the main function. It is called by invocation of this module.
+
+    :param ExecutableName: The name of the executable
+    :type ExecutableName: str
+    :returns: 0 (if succes)
+    """
 
     #===========================================================================
     # START Initialization
@@ -948,8 +955,11 @@ def main(ExecutableName=str):
     # START Finalization
     #===========================================================================
 
-    return
+    return 0
 
 if(__name__=='__main__'):
+    """
+    Do the work!
+    """
     ExecutableName = os.path.abspath(__file__).split('/')[-1]
     main(ExecutableName)

@@ -1,0 +1,11 @@
+Format Module
+=============
+
+:mod:`Format` Module
+--------------------
+
+.. automodule:: Format
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:

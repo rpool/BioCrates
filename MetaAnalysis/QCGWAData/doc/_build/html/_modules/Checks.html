@@ -1,0 +1,644 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Checks &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Checks</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">lxml.etree</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">Plotting</span>
+
+<div class="viewcode-block" id="Checks"><a class="viewcode-back" href="../index.html#Checks.Checks">[docs]</a><span class="k">class</span> <span class="nc">Checks</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># 0: False</span>
+        <span class="c"># 1: True</span>
+        <span class="c"># 3: Unknown</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MtbnameOK</span>         <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FormattingOK</span>      <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromosomesOK</span>     <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NtotalOK</span>          <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ImpQualOK</span>         <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NtotImpOK</span>         <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TTestOK</span>           <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LambdaOK</span>          <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ScatterFreqsOK</span>    <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicateSNPs</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvColumnList</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvHeader</span>         <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvComments</span>       <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvLine</span>           <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvPath</span>           <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span>  <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetCsvColumnList</span><span class="p">([</span><span class="s">&#39;Metabolite&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;MtbnameOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;FormattingOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;ChromosomesOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;NtotalOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;ImpQualOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;NtotImpOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;LambdaOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;ScatterFreqsOK&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;TTestOK&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="Checks.SetColumn2CheckDict"><a class="viewcode-back" href="../index.html#Checks.Checks.SetColumn2CheckDict">[docs]</a>    <span class="k">def</span> <span class="nf">SetColumn2CheckDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;Metabolite&#39;</span><span class="p">]</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;MtbnameOK&#39;</span><span class="p">]</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetMtbnameOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;FormattingOK&#39;</span><span class="p">]</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetFormattingOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;ChromosomesOK&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetChromosomesOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;NtotalOK&#39;</span><span class="p">]</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetNTotalOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;ImpQualOK&#39;</span><span class="p">]</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetImpQualOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;NtotImpOK&#39;</span><span class="p">]</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetNTotImpOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;LambdaOK&#39;</span><span class="p">]</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetLambdaOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;ScatterFreqsOK&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetScatterFreqsOK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="p">[</span><span class="s">&#39;TTestOK&#39;</span><span class="p">]</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetTTestOK</span>
+
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetColumn2CheckDict"><a class="viewcode-back" href="../index.html#Checks.Checks.GetColumn2CheckDict">[docs]</a>    <span class="k">def</span> <span class="nf">GetColumn2CheckDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetColumn2CheckDict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Column2CheckDict</span>
+</div>
+<div class="viewcode-block" id="Checks.SetCsvPath"><a class="viewcode-back" href="../index.html#Checks.Checks.SetCsvPath">[docs]</a>    <span class="k">def</span> <span class="nf">SetCsvPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">Cwd</span>          <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Cwd</span><span class="p">,</span><span class="n">Value</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CsvPath</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CsvPath</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetCsvPath"><a class="viewcode-back" href="../index.html#Checks.Checks.GetCsvPath">[docs]</a>    <span class="k">def</span> <span class="nf">GetCsvPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CsvPath</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetCsvPath</span><span class="p">(</span><span class="s">&#39;Csv&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CsvPath</span>
+</div>
+<div class="viewcode-block" id="Checks.SetCsvColumnList"><a class="viewcode-back" href="../index.html#Checks.Checks.SetCsvColumnList">[docs]</a>    <span class="k">def</span> <span class="nf">SetCsvColumnList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvColumnList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">List</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CsvColumnList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetCsvColumnList"><a class="viewcode-back" href="../index.html#Checks.Checks.GetCsvColumnList">[docs]</a>    <span class="k">def</span> <span class="nf">GetCsvColumnList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CsvColumnList</span>
+</div>
+<div class="viewcode-block" id="Checks.SetCsvHeader"><a class="viewcode-back" href="../index.html#Checks.Checks.SetCsvHeader">[docs]</a>    <span class="k">def</span> <span class="nf">SetCsvHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvHeader</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvColumnList</span><span class="p">())</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetCsvHeader"><a class="viewcode-back" href="../index.html#Checks.Checks.GetCsvHeader">[docs]</a>    <span class="k">def</span> <span class="nf">GetCsvHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CsvHeader</span>
+</div>
+<div class="viewcode-block" id="Checks.WriteCsvHeader"><a class="viewcode-back" href="../index.html#Checks.Checks.WriteCsvHeader">[docs]</a>    <span class="k">def</span> <span class="nf">WriteCsvHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">FilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvPath</span><span class="p">(),</span><span class="n">FileName</span><span class="p">)</span>
+
+        <span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">FilePath</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvHeader</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.SetCsvComments"><a class="viewcode-back" href="../index.html#Checks.Checks.SetCsvComments">[docs]</a>    <span class="k">def</span> <span class="nf">SetCsvComments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">CommentString</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">List</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">Column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetCsvColumnList</span><span class="p">():</span>
+            <span class="n">Function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetColumn2CheckDict</span><span class="p">()[</span><span class="n">Column</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">Function</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">List</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CommentString</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">List</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvComments</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">List</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetCsvComments"><a class="viewcode-back" href="../index.html#Checks.Checks.GetCsvComments">[docs]</a>    <span class="k">def</span> <span class="nf">GetCsvComments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CsvComments</span>
+</div>
+<div class="viewcode-block" id="Checks.WriteCsvComments"><a class="viewcode-back" href="../index.html#Checks.Checks.WriteCsvComments">[docs]</a>    <span class="k">def</span> <span class="nf">WriteCsvComments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">FilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvPath</span><span class="p">(),</span><span class="n">FileName</span><span class="p">)</span>
+
+        <span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">FilePath</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvComments</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.SetCsvLine"><a class="viewcode-back" href="../index.html#Checks.Checks.SetCsvLine">[docs]</a>    <span class="k">def</span> <span class="nf">SetCsvLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">MtbName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">LineList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">Column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetCsvColumnList</span><span class="p">():</span>
+            <span class="n">Function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetColumn2CheckDict</span><span class="p">()[</span><span class="n">Column</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">Function</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">LineList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MtbName</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LineList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Function</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CsvLine</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LineList</span><span class="p">)</span>
+
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetCsvLine"><a class="viewcode-back" href="../index.html#Checks.Checks.GetCsvLine">[docs]</a>    <span class="k">def</span> <span class="nf">GetCsvLine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CsvLine</span>
+</div>
+<div class="viewcode-block" id="Checks.WriteCsvLine"><a class="viewcode-back" href="../index.html#Checks.Checks.WriteCsvLine">[docs]</a>    <span class="k">def</span> <span class="nf">WriteCsvLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">FilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvPath</span><span class="p">(),</span><span class="n">FileName</span><span class="p">)</span>
+
+        <span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">FilePath</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetCsvLine</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.SetMaxNDuplicateSNPs"><a class="viewcode-back" href="../index.html#Checks.Checks.SetMaxNDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">SetMaxNDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicateSNPs</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetMaxNDuplicateSNPs"><a class="viewcode-back" href="../index.html#Checks.Checks.GetMaxNDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">GetMaxNDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicateSNPs</span>
+</div>
+<div class="viewcode-block" id="Checks.SetMtbnameOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetMtbnameOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetMtbnameOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MtbnameOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetMtbnameOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetMtbnameOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetMtbnameOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">MtbnameOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetFormattingOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetFormattingOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetFormattingOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FormattingOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.GetFormattingOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetFormattingOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetFormattingOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FormattingOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetChromosomesOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetChromosomesOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetChromosomesOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromosomesOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckChromosomesOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckChromosomesOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckChromosomesOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                           <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                           <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">CheckTag</span>    <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareList</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareList</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;\[&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">CompareList</span><span class="p">)</span>
+        <span class="n">CompareList</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;\]&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">CompareList</span><span class="p">)</span>
+        <span class="n">CompareList</span> <span class="o">=</span> <span class="n">CompareList</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="n">UniqueDataList</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">CompareList</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="p">(</span><span class="n">Entry</span> <span class="ow">in</span> <span class="n">UniqueDataList</span><span class="p">)):</span>
+                <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boOk</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetChromosomesOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span>
+</div>
+<div class="viewcode-block" id="Checks.GetChromosomesOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetChromosomesOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetChromosomesOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ChromosomesOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetNTotalOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetNTotalOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetNTotalOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NtotalOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckNTotalOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckNTotalOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckNTotalOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                      <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                      <span class="n">CheckDataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                      <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                      <span class="n">boPlot</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">MtbName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">CheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">FilterArray</span>    <span class="o">=</span> <span class="p">(</span><span class="n">DataArray</span><span class="o">!=</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+        <span class="n">FilterArray</span>   <span class="o">*=</span> <span class="p">(</span><span class="n">CheckDataArray</span><span class="o">!=</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+        <span class="n">DataArray</span>      <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">DataArray</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">CheckDataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">CorrCoeff</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">CheckDataArray</span><span class="p">,</span>
+                                   <span class="n">DataArray</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="nb">float</span><span class="p">(</span><span class="n">CompareValue</span><span class="p">)):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">FilterArray</span>     <span class="o">=</span> <span class="p">(</span><span class="n">DataArray</span><span class="o">&gt;</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">FilterArray</span>    <span class="o">*=</span> <span class="p">(</span><span class="n">CheckDataArray</span><span class="o">&gt;</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">DataArray</span>       <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">DataArray</span><span class="p">)</span>
+        <span class="n">CheckDataArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="p">)</span>
+        <span class="n">pCheckDataArray</span> <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">CheckDataArray</span><span class="p">)</span>
+        <span class="n">pDataArray</span>      <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+        <span class="n">Log10CorrCoeff</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">pCheckDataArray</span><span class="p">,</span>
+                                         <span class="n">pDataArray</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">Log10CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="nb">float</span><span class="p">(</span><span class="n">CompareValue</span><span class="p">)):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boPlot</span><span class="p">):</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">DataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">DataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span> <span class="o">+=</span> <span class="mf">0.05</span>
+            <span class="n">Plotting</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">DataArray</span><span class="p">,</span>
+                             <span class="n">Y</span><span class="o">=</span><span class="n">CheckDataArray</span><span class="p">,</span>
+                             <span class="n">Min</span><span class="o">=</span><span class="n">Minimum</span><span class="p">,</span>
+                             <span class="n">Max</span><span class="o">=</span><span class="n">Maximum</span><span class="p">,</span>
+                             <span class="n">Legend</span><span class="o">=</span><span class="s">r&#39;$r=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;$&#39;</span><span class="p">,</span>
+                             <span class="n">Name</span><span class="o">=</span><span class="s">&#39;WaldPScatter_&#39;</span><span class="o">+</span><span class="n">MtbName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">,</span>
+                             <span class="n">XLabel</span><span class="o">=</span><span class="s">r&#39;$p-{\rm value} {~\rm (reported)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">YLabel</span><span class="o">=</span><span class="s">r&#39;$p-{\rm value} {~\rm (expected)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">boDrawY_EQ_X</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">pDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">pCheckDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">pDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">pCheckDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span> <span class="o">+=</span> <span class="mf">2.5</span>
+            <span class="n">Plotting</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">pDataArray</span><span class="p">,</span>
+                             <span class="n">Y</span><span class="o">=</span><span class="n">pCheckDataArray</span><span class="p">,</span>
+                             <span class="n">Min</span><span class="o">=</span><span class="n">Minimum</span><span class="p">,</span>
+                             <span class="n">Max</span><span class="o">=</span><span class="n">Maximum</span><span class="p">,</span>
+                             <span class="n">Legend</span><span class="o">=</span><span class="s">r&#39;$r=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">Log10CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;$&#39;</span><span class="p">,</span>
+                             <span class="n">Name</span><span class="o">=</span><span class="s">&#39;WaldpPScatter_&#39;</span><span class="o">+</span><span class="n">MtbName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">,</span>
+                             <span class="n">XLabel</span><span class="o">=</span><span class="s">r&#39;$-\log_{10}{(p-{\rm value})} {~\rm (reported)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">YLabel</span><span class="o">=</span><span class="s">r&#39;$-\log_{10}{(p-{\rm value})} {~\rm (expected)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">boDrawY_EQ_X</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boOk</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetNTotalOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetNTotalOK</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span>
+</div>
+<div class="viewcode-block" id="Checks.GetNTotalOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetNTotalOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetNTotalOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">NtotalOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetTTestOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetTTestOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetTTestOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TTestOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckTTestOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckTTestOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckTTestOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                     <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                     <span class="n">CheckDataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                     <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                     <span class="n">boPlot</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                     <span class="n">MtbName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">CheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">FilterArray</span>    <span class="o">=</span> <span class="p">(</span><span class="n">DataArray</span><span class="o">!=</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+        <span class="n">FilterArray</span>   <span class="o">*=</span> <span class="p">(</span><span class="n">CheckDataArray</span><span class="o">!=</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+        <span class="n">DataArray</span>      <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">DataArray</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">CheckDataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">CorrCoeff</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">CheckDataArray</span><span class="p">,</span>
+                                   <span class="n">DataArray</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="nb">float</span><span class="p">(</span><span class="n">CompareValue</span><span class="p">)):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">FilterArray</span>     <span class="o">=</span> <span class="p">(</span><span class="n">DataArray</span><span class="o">&gt;</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">FilterArray</span>    <span class="o">*=</span> <span class="p">(</span><span class="n">CheckDataArray</span><span class="o">&gt;</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">DataArray</span>       <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">DataArray</span><span class="p">)</span>
+        <span class="n">CheckDataArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="p">)</span>
+        <span class="n">pCheckDataArray</span> <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">CheckDataArray</span><span class="p">)</span>
+        <span class="n">pDataArray</span>      <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+        <span class="n">Log10CorrCoeff</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">pCheckDataArray</span><span class="p">,</span>
+                                         <span class="n">pDataArray</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">Log10CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="nb">float</span><span class="p">(</span><span class="n">CompareValue</span><span class="p">)):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boPlot</span><span class="p">):</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">DataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">DataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">CheckDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span> <span class="o">+=</span> <span class="mf">0.05</span>
+            <span class="n">Plotting</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">DataArray</span><span class="p">,</span>
+                             <span class="n">Y</span><span class="o">=</span><span class="n">CheckDataArray</span><span class="p">,</span>
+                             <span class="n">Min</span><span class="o">=</span><span class="n">Minimum</span><span class="p">,</span>
+                             <span class="n">Max</span><span class="o">=</span><span class="n">Maximum</span><span class="p">,</span>
+                             <span class="n">Legend</span><span class="o">=</span><span class="s">r&#39;$r=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;$&#39;</span><span class="p">,</span>
+                             <span class="n">Name</span><span class="o">=</span><span class="s">&#39;TTestPScatter_&#39;</span><span class="o">+</span><span class="n">MtbName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">,</span>
+                             <span class="n">XLabel</span><span class="o">=</span><span class="s">r&#39;$p-{\rm value} {~\rm (reported)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">YLabel</span><span class="o">=</span><span class="s">r&#39;$p-{\rm value} {~\rm (expected)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">boDrawY_EQ_X</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">pDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">pCheckDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">pDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">pCheckDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span> <span class="o">+=</span> <span class="mf">2.5</span>
+            <span class="n">Plotting</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">pDataArray</span><span class="p">,</span>
+                             <span class="n">Y</span><span class="o">=</span><span class="n">pCheckDataArray</span><span class="p">,</span>
+                             <span class="n">Min</span><span class="o">=</span><span class="n">Minimum</span><span class="p">,</span>
+                             <span class="n">Max</span><span class="o">=</span><span class="n">Maximum</span><span class="p">,</span>
+                             <span class="n">Legend</span><span class="o">=</span><span class="s">r&#39;$r=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">Log10CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;$&#39;</span><span class="p">,</span>
+                             <span class="n">Name</span><span class="o">=</span><span class="s">&#39;TTestpPScatter_&#39;</span><span class="o">+</span><span class="n">MtbName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">,</span>
+                             <span class="n">XLabel</span><span class="o">=</span><span class="s">r&#39;$-\log_{10}{(p-{\rm value})} {~\rm (reported)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">YLabel</span><span class="o">=</span><span class="s">r&#39;$-\log_{10}{(p-{\rm value})} {~\rm (expected)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">boDrawY_EQ_X</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boOk</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetTTestOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span>
+</div>
+<div class="viewcode-block" id="Checks.GetTTestOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetTTestOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetTTestOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">TTestOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetImpQualOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetImpQualOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetImpQualOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ImpQualOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckImpQualOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckImpQualOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckImpQualOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                       <span class="n">ImpQArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                       <span class="n">ImputedArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                       <span class="n">ImpQColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                       <span class="n">ImputedColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">ImpQCheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImpQColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">ImpQCompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImpQCheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">ImpQCompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImpQCheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">ImpQFilterArray</span>  <span class="o">=</span> <span class="p">(</span><span class="n">ImpQArray</span><span class="o">==</span><span class="n">ImpQCompareValue</span><span class="p">)</span>
+        <span class="n">ImpQFilteredSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ImpQFilterArray</span><span class="p">,</span><span class="n">ImpQArray</span><span class="p">))</span>
+
+        <span class="n">ImputedCheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImputedColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CheckImpQualOK&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">ImputedCompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImputedCheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">ImputedCompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImputedCheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">ImputedFilterArray</span>  <span class="o">=</span> <span class="p">(</span><span class="n">ImputedArray</span><span class="o">==</span><span class="n">ImputedCompareValue</span><span class="p">)</span>
+        <span class="n">ImputedFilteredSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ImputedFilterArray</span><span class="p">,</span><span class="n">ImputedArray</span><span class="p">))</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">ImpQFilteredSize</span><span class="o">==</span><span class="n">ImputedFilteredSize</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ImpQFilterArray</span><span class="o">*</span><span class="n">ImputedFilterArray</span><span class="p">,</span><span class="n">ImpQArray</span><span class="p">))</span><span class="o">==</span><span class="n">ImpQFilteredSize</span><span class="p">):</span>
+                <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SetImpQualOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span>
+</div>
+<div class="viewcode-block" id="Checks.GetImpQualOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetImpQualOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetImpQualOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImpQualOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetNTotImpOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetNTotImpOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetNTotImpOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NtotImpOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckNTotImpOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckNTotImpOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckNTotImpOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                       <span class="n">NTotalArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                       <span class="n">ImputedArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                       <span class="n">NTotalColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                       <span class="n">ImputedColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">ImputedCheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImputedColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CheckNTotImpOK&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">ImputedCompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImputedCheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">ImputedCompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ImputedCheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">ImputedFilterArray</span>  <span class="o">=</span> <span class="p">(</span><span class="n">ImputedArray</span><span class="o">==</span><span class="n">ImputedCompareValue</span><span class="p">)</span>
+        <span class="n">NTotalFilteredArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">ImputedFilterArray</span><span class="p">,</span><span class="n">NTotalArray</span><span class="p">)</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">NTotalFilteredArray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">==</span><span class="n">NTotalFilteredArray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetNTotImpOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetNTotImpOK</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span>
+</div>
+<div class="viewcode-block" id="Checks.GetNTotImpOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetNTotImpOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetNTotImpOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">NtotImpOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetLambdaOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetLambdaOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetLambdaOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LambdaOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckLambdaOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckLambdaOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckLambdaOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                      <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                      <span class="n">EMACArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                      <span class="n">MaxNTotal</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                      <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                      <span class="n">boPlot</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">MtbName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">CheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">EMACLevels</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;EMAC&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Strata&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">EMACLevels</span><span class="p">)):</span>
+            <span class="n">Level</span> <span class="o">=</span> <span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;[0-9]&#39;</span><span class="p">,</span><span class="n">Level</span><span class="p">)):</span>
+                <span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Level</span><span class="p">)</span>
+            <span class="k">elif</span><span class="p">(</span><span class="n">Level</span><span class="o">==</span><span class="s">&#39;MAX&#39;</span><span class="p">):</span>
+                <span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">MaxNTotal</span><span class="p">)</span>
+        <span class="n">Colors</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;EMAC&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Colors&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">LambdaEst</span>   <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">SELambdaEst</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">boPlot</span><span class="p">):</span>
+            <span class="n">LPValObsArray</span> <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+<span class="c">#           The 1&#39;s are for df=1</span>
+            <span class="n">PValExpArray</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>\
+                                                                      <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)),</span>\
+                                                <span class="mi">1</span><span class="p">,)</span>
+            <span class="n">LPValExpArray</span> <span class="o">=</span> <span class="o">-</span><span class="n">scipy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">PValExpArray</span><span class="p">)</span>
+            <span class="n">LambdaEst</span><span class="p">,</span>\
+            <span class="n">SELambdaEst</span>   <span class="o">=</span> <span class="n">Plotting</span><span class="o">.</span><span class="n">PlotQQFilteredOnScore</span><span class="p">(</span><span class="n">MtbName</span><span class="o">=</span><span class="n">MtbName</span><span class="p">,</span>
+                                                           <span class="n">LPValExpArray</span><span class="o">=</span><span class="n">LPValExpArray</span><span class="p">,</span>
+                                                           <span class="n">LPValObsArray</span><span class="o">=</span><span class="n">LPValObsArray</span><span class="p">,</span>
+                                                           <span class="n">PValObsArray</span><span class="o">=</span><span class="n">DataArray</span><span class="p">,</span>
+                                                           <span class="n">EMACArray</span><span class="o">=</span><span class="n">EMACArray</span><span class="p">,</span>
+                                                           <span class="n">EMACLevels</span><span class="o">=</span><span class="n">EMACLevels</span><span class="p">,</span>
+                                                           <span class="n">Colors</span><span class="o">=</span><span class="n">Colors</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LambdaEst</span><span class="p">,</span>\
+            <span class="n">SELambdaEst</span> <span class="o">=</span> <span class="n">Plotting</span><span class="o">.</span><span class="n">LambdaEstimate</span><span class="p">(</span><span class="n">Array</span><span class="o">=</span><span class="n">DataArray</span><span class="p">,</span>
+                                                  <span class="n">Filter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">LambdaEst</span><span class="o">&gt;=</span><span class="nb">float</span><span class="p">(</span><span class="n">CompareValue</span><span class="p">)):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">boOk</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetLambdaOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span><span class="p">,</span>\
+               <span class="n">LambdaEst</span><span class="p">,</span>\
+               <span class="n">SELambdaEst</span>
+</div>
+<div class="viewcode-block" id="Checks.GetLambdaOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetLambdaOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetLambdaOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">LambdaOK</span>
+</div>
+<div class="viewcode-block" id="Checks.SetScatterFreqsOK"><a class="viewcode-back" href="../index.html#Checks.Checks.SetScatterFreqsOK">[docs]</a>    <span class="k">def</span> <span class="nf">SetScatterFreqsOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ScatterFreqsOK</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Checks.CheckScatterFreqsOK"><a class="viewcode-back" href="../index.html#Checks.Checks.CheckScatterFreqsOK">[docs]</a>    <span class="k">def</span> <span class="nf">CheckScatterFreqsOK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                            <span class="n">HapMapMAFDataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                            <span class="n">MAFDataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                            <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                            <span class="n">boPlot</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">MtbName</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">CheckTag</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">CompareType</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCChecks&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CheckTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="n">boOk</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">FilterArray</span>        <span class="o">=</span> <span class="p">(</span><span class="n">HapMapMAFDataArray</span><span class="o">!=</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+        <span class="n">FilterArray</span>       <span class="o">*=</span> <span class="p">(</span><span class="n">MAFDataArray</span><span class="o">!=</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+        <span class="n">HapMapMAFDataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">HapMapMAFDataArray</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">MAFDataArray</span>       <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">MAFDataArray</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">CorrCoeff</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">MAFDataArray</span><span class="p">,</span>
+                                   <span class="n">HapMapMAFDataArray</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span><span class="nb">float</span><span class="p">(</span><span class="n">CompareValue</span><span class="p">)):</span>
+            <span class="n">boOk</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boPlot</span><span class="p">):</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">HapMapMAFDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Minimum</span>  <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Minimum</span><span class="p">,</span><span class="n">MAFDataArray</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">HapMapMAFDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Maximum</span><span class="p">,</span><span class="n">MAFDataArray</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">Maximum</span> <span class="o">+=</span> <span class="mf">0.05</span>
+            <span class="n">Plotting</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">HapMapMAFDataArray</span><span class="p">,</span>
+                             <span class="n">Y</span><span class="o">=</span><span class="n">MAFDataArray</span><span class="p">,</span>
+                             <span class="n">Min</span><span class="o">=</span><span class="n">Minimum</span><span class="p">,</span>
+                             <span class="n">Max</span><span class="o">=</span><span class="n">Maximum</span><span class="p">,</span>
+                             <span class="n">Legend</span><span class="o">=</span><span class="s">r&#39;$r=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="mi">5</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;$&#39;</span><span class="p">,</span>
+                             <span class="n">Name</span><span class="o">=</span><span class="s">&#39;ScatterGWAVsHapMapMAF_&#39;</span><span class="o">+</span><span class="n">MtbName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">,</span>
+                             <span class="n">XLabel</span><span class="o">=</span><span class="s">r&#39;${\rm MAF} {~\rm (HapMap)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">YLabel</span><span class="o">=</span><span class="s">r&#39;${\rm MAF} {~\rm (GWA)} {~\rm [-]}$&#39;</span><span class="p">,</span>
+                             <span class="n">boDrawY_EQ_X</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">boOk</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetScatterFreqsOK</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetScatterFreqsOK</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">boOk</span><span class="p">,</span>\
+               <span class="n">CorrCoeff</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Checks.GetScatterFreqsOK"><a class="viewcode-back" href="../index.html#Checks.Checks.GetScatterFreqsOK">[docs]</a>    <span class="k">def</span> <span class="nf">GetScatterFreqsOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ScatterFreqsOK</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

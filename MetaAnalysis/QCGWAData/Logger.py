@@ -1,9 +1,17 @@
+# -*- coding: utf-8 -*-
+"""
+This module handles the logging to stdout and to file.
+
+.. moduleauthor:: René Pool <r.pool@vu.nl>
+
+"""
 import sys
 import os
 import pwd
 import platform
 import datetime
 import re
+import pysvn
 
 #===============================================================================
 # This module contains the basic Logger class.
@@ -12,6 +20,14 @@ import re
 #===============================================================================
 
 class Logger:
+    """
+    Class **Logger**
+
+    :param FileName: Name of the log file
+    :type FileName: str
+    :param Extension: Extension of the log file
+    :type Extension: str -- default='.log'
+    """
     def __init__(self,
                  FileName=str,
                  Extension=''):
@@ -31,6 +47,9 @@ class Logger:
         return
 
     def InitFileHandle(self):
+        """
+        Initializes the log file handle.
+        """
         ListDir        = os.listdir(os.getcwd())
 #       The following is done to prevent previous log files to be overwritten.
 #       NOTE: Counting goes until 9, so the *.log9 file will be overwritten in
@@ -44,12 +63,27 @@ class Logger:
         self.FileHandle   = open(self.LogFileName,'w')
         return
     def GetFileHandle(self):
+        """
+        Returns the log file handle.
+        """
         return self.FileHandle
+
     def GetFileName(self):
+        """
+        Returns the log file name.
+        """
         return self.LogFileName
+
     def GetStartDate(self):
+        """
+        Returns the log start date/time.
+        """
         return self.StartDate
+
     def StartLog(self):
+        """
+        Writes the log header to the log file.
+        """
         StartDate      = datetime.datetime.now()
         self.StartDate = StartDate
 
@@ -88,9 +122,17 @@ class Logger:
         self.StartLogString += '\n'
 
         return
+
     def GetStartLogString(self):
+        """
+        Returns the log header string.
+        """
         return self.StartLogString
+
     def EndLog(self):
+        """
+        Writes the log footer to the log file.
+        """
         EndDate = datetime.datetime.now()
 
         self.EndLogString  = '\n'
@@ -104,14 +146,30 @@ class Logger:
         self.EndLogString += '# elapsed (s)       : '+str((EndDate-self.StartDate).seconds) # Report total time.
 
         return
+
     def GetEndLogString(self):
+        """
+        Returns the log footer string.
+        """
         self.EndLog()
         return self.EndLogString
+
     def Write(self,
               String=str):
+        """
+        Writes a string to the log file.
+
+        :param String: The string to be written to the log file
+        :type String: str
+        :returns: nothing
+        """
         self.FileHandle.write(String)
         return
+
     def Close(self):
+        """
+        Closes the log file handle.
+        """
         self.EndLog()
         self.FileHandle.close()
         return

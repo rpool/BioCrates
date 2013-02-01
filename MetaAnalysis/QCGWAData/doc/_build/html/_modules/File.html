@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>File &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for File</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">lxml.etree</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">import</span> <span class="nn">DataContainer</span>
+
+<span class="c">#===============================================================================</span>
+<span class="c"># This module contains the basic File class.</span>
+<span class="c"># Its members and member modules should speak for themselves, if not a</span>
+<span class="c"># comment is provided.</span>
+<span class="c">#===============================================================================</span>
+
+<div class="viewcode-block" id="File"><a class="viewcode-back" href="../index.html#File.File">[docs]</a><span class="k">class</span> <span class="nc">File</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">Name</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                 <span class="n">boHeader</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span>         <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DecomprName</span>  <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boHeader</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span>   <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boUsePigz</span>    <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boCompressed</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TmpDir</span>       <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>    <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">Name</span><span class="o">=</span><span class="n">Name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetboHeader</span><span class="p">(</span><span class="n">boHeader</span><span class="o">=</span><span class="n">boHeader</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetboCompressed</span><span class="p">()</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboCompressed</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetTmpDir</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetDecomprName</span><span class="p">()</span>
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="File.SetTmpDir"><a class="viewcode-back" href="../index.html#File.File.SetTmpDir">[docs]</a>    <span class="k">def</span> <span class="nf">SetTmpDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c">#       Sets the temporary directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TmpDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span><span class="s">&#39;Tmp&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TmpDir</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TmpDir</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetTmpDir"><a class="viewcode-back" href="../index.html#File.File.GetTmpDir">[docs]</a>    <span class="k">def</span> <span class="nf">GetTmpDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">TmpDir</span>
+</div>
+<div class="viewcode-block" id="File.FindDuplicates"><a class="viewcode-back" href="../index.html#File.File.FindDuplicates">[docs]</a>    <span class="k">def</span> <span class="nf">FindDuplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">Array</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">CounterDict</span>           <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">TmpDuplicateIndexDict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Array</span><span class="p">)):</span>
+            <span class="n">Entry</span>               <span class="o">=</span> <span class="n">Array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">CounterDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">TmpDuplicateIndexDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">DuplicateDict</span>      <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">DuplicateIndexDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">Key</span><span class="p">,</span> <span class="n">Value</span> <span class="ow">in</span> <span class="n">CounterDict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">Value</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">DuplicateDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span>      <span class="o">=</span> <span class="n">Value</span>
+                <span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">TmpDuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">DuplicateDict</span><span class="p">,</span>\
+               <span class="n">DuplicateIndexDict</span>
+</div>
+<div class="viewcode-block" id="File.RemoveDuplicates"><a class="viewcode-back" href="../index.html#File.File.RemoveDuplicates">[docs]</a>    <span class="k">def</span> <span class="nf">RemoveDuplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">DuplicateIndexDict</span><span class="o">=</span><span class="p">{},</span>
+                         <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">DelList</span>   <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DuplicateIndexDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">])):</span>
+                <span class="n">Index</span> <span class="o">=</span> <span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DelList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Index</span><span class="p">)</span>
+        <span class="n">DelList</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">DelList</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">DataArray</span><span class="p">,</span><span class="nb">tuple</span><span class="p">(</span><span class="n">DelList</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DataArray</span>
+</div>
+<div class="viewcode-block" id="File.ParseToLineArray"><a class="viewcode-back" href="../index.html#File.File.ParseToLineArray">[docs]</a>    <span class="k">def</span> <span class="nf">ParseToLineArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">Delimiter</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">LineArray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">Line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetFileHandle</span><span class="p">():</span>
+            <span class="n">LJoin</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">Delimiter</span><span class="p">)</span>
+            <span class="n">LJoin</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LJoin</span><span class="p">)</span>
+            <span class="n">LineArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LJoin</span><span class="p">)</span>
+        <span class="n">LineArray</span>      <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">LineArray</span><span class="p">)</span>
+        <span class="n">DuplicateDict</span><span class="p">,</span>\
+        <span class="n">DuplicateIndexDict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FindDuplicates</span><span class="p">(</span><span class="n">LineArray</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">RemoveDuplicates</span><span class="p">(</span><span class="n">DuplicateIndexDict</span><span class="p">,</span>
+                                                   <span class="n">LineArray</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">LineArray</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="File.GetLineArray"><a class="viewcode-back" href="../index.html#File.File.GetLineArray">[docs]</a>    <span class="k">def</span> <span class="nf">GetLineArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>
+</div>
+<div class="viewcode-block" id="File.LineArray2DataContainers"><a class="viewcode-back" href="../index.html#File.File.LineArray2DataContainers">[docs]</a>    <span class="k">def</span> <span class="nf">LineArray2DataContainers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">Delimiter</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">DCs</span>  <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">()</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboHeader</span><span class="p">()):</span>
+            <span class="n">Header</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">Names</span>  <span class="o">=</span> <span class="n">Header</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">Delimiter</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Names</span><span class="p">)):</span>
+                <span class="n">Name</span>                     <span class="o">=</span> <span class="n">Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c"># The names of the datacontainers are determined by the</span>
+                                                    <span class="c"># header column names.</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Names2Columns</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span>  <span class="o">=</span> <span class="n">i</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Columns2Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>     <span class="o">=</span> <span class="n">Name</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">InitDataArray</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Line</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LSplit</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">Delimiter</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">LSplit</span><span class="p">)):</span>
+                <span class="n">Name</span>                     <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Names2Columns</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span>  <span class="o">=</span> <span class="n">i</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Columns2Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>     <span class="o">=</span> <span class="n">Name</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">InitDataArray</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span>
+                <span class="n">Entry</span> <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">AppendToArray</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">())):</span>
+            <span class="n">Line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">LSplit</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">Delimiter</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">LSplit</span><span class="p">)):</span>
+                <span class="n">Name</span>  <span class="o">=</span> <span class="n">DCs</span><span class="o">.</span><span class="n">Columns2Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">Entry</span> <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">AppendToArray</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+            <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CastDataArrayToScipy</span><span class="p">()</span> <span class="c"># Make scipy.arrays of the lists.</span>
+
+        <span class="k">return</span> <span class="n">DCs</span>
+</div>
+<div class="viewcode-block" id="File.ParseAsXml"><a class="viewcode-back" href="../index.html#File.File.ParseAsXml">[docs]</a>    <span class="k">def</span> <span class="nf">ParseAsXml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">XmlObject</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">XmlObject</span>
+</div>
+<div class="viewcode-block" id="File.ParseToDataContainers"><a class="viewcode-back" href="../index.html#File.File.ParseToDataContainers">[docs]</a>    <span class="k">def</span> <span class="nf">ParseToDataContainers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c">#       Parse an input file into the DataContainers object</span>
+        <span class="n">DCs</span>  <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">()</span>
+        <span class="n">Line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetFileHandle</span><span class="p">()</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboHeader</span><span class="p">()):</span>
+            <span class="n">Line</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">Line</span><span class="p">)</span>
+            <span class="n">Names</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="c"># The file should be space or tab delimited!</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Names</span><span class="p">)):</span>
+                <span class="n">Name</span>                     <span class="o">=</span> <span class="n">Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c"># The names of the datacontainers are determined by the</span>
+                                                    <span class="c"># header column names.</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Names2Columns</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span>  <span class="o">=</span> <span class="n">i</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Columns2Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>     <span class="o">=</span> <span class="n">Name</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">InitDataArray</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LSplit</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">LSplit</span><span class="p">)):</span>
+                <span class="n">Name</span>                     <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Names2Columns</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span>  <span class="o">=</span> <span class="n">i</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">Columns2Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>     <span class="o">=</span> <span class="n">Name</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">InitDataArray</span><span class="p">()</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span>
+                <span class="n">Entry</span> <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">AppendToArray</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">Line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetFileHandle</span><span class="p">():</span>
+            <span class="n">LSplit</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">LSplit</span><span class="p">)):</span>
+                <span class="n">Name</span>  <span class="o">=</span> <span class="n">DCs</span><span class="o">.</span><span class="n">Columns2Names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">Entry</span> <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Name</span><span class="p">]</span><span class="o">.</span><span class="n">AppendToArray</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+            <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">CastDataArrayToScipy</span><span class="p">()</span> <span class="c"># Make scipy.arrays of the lists.</span>
+
+        <span class="k">return</span> <span class="n">DCs</span>
+</div>
+<div class="viewcode-block" id="File.Cleanup"><a class="viewcode-back" href="../index.html#File.File.Cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">Cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboCompressed</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetboUsePigz</span><span class="p">()):</span>
+<span class="c">#           Remove the temporary file</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDecomprName</span><span class="p">())</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.Close"><a class="viewcode-back" href="../index.html#File.File.Close">[docs]</a>    <span class="k">def</span> <span class="nf">Close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GetFileHandle</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.SetDecomprName"><a class="viewcode-back" href="../index.html#File.File.SetDecomprName">[docs]</a>    <span class="k">def</span> <span class="nf">SetDecomprName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c">#       Sets the name of the decompressed file, to be located in the temporary directory</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboCompressed</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DecomprName</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;.gz&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetName</span><span class="p">()))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DecomprName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetTmpDir</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">DecomprName</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetDecomprName"><a class="viewcode-back" href="../index.html#File.File.GetDecomprName">[docs]</a>    <span class="k">def</span> <span class="nf">GetDecomprName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DecomprName</span>
+</div>
+<div class="viewcode-block" id="File.SetboCompressed"><a class="viewcode-back" href="../index.html#File.File.SetboCompressed">[docs]</a>    <span class="k">def</span> <span class="nf">SetboCompressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c">#       Check if file is decompressed. For now only the .gz format!</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;.gz&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">GetName</span><span class="p">())):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boCompressed</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boCompressed</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetboCompressed"><a class="viewcode-back" href="../index.html#File.File.GetboCompressed">[docs]</a>    <span class="k">def</span> <span class="nf">GetboCompressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boCompressed</span>
+</div>
+<div class="viewcode-block" id="File.SetboUsePigz"><a class="viewcode-back" href="../index.html#File.File.SetboUsePigz">[docs]</a>    <span class="k">def</span> <span class="nf">SetboUsePigz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">boUsePigz</span><span class="o">=</span><span class="nb">bool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boUsePigz</span> <span class="o">=</span> <span class="n">boUsePigz</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetboUsePigz"><a class="viewcode-back" href="../index.html#File.File.GetboUsePigz">[docs]</a>    <span class="k">def</span> <span class="nf">GetboUsePigz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c">#       Pigz is the multi-threaded equivalent of gzip and gunzip =&gt; should go faster.</span>
+<span class="c">#       For now, there is no check on whether pigz is installed on the system.</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boUsePigz</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boUsePigz</span> <span class="o">=</span> <span class="bp">False</span> <span class="c"># default value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boUsePigz</span>
+</div>
+<div class="viewcode-block" id="File.SetFileHandle"><a class="viewcode-back" href="../index.html#File.File.SetFileHandle">[docs]</a>    <span class="k">def</span> <span class="nf">SetFileHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">Mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">):</span> <span class="c"># &#39;r&#39; to be safe :-)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboCompressed</span><span class="p">()):</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetboUsePigz</span><span class="p">()):</span>
+<span class="c">#               Decompress into the decompressed file located in the temporary directory.</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;pigz -d -k -f -c &#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span><span class="o">+</span><span class="s">&#39; &gt; &#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDecomprName</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDecomprName</span><span class="p">(),</span><span class="n">Mode</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span><span class="n">Mode</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span><span class="n">Mode</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetFileHandle"><a class="viewcode-back" href="../index.html#File.File.GetFileHandle">[docs]</a>    <span class="k">def</span> <span class="nf">GetFileHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FileHandle</span>
+</div>
+<div class="viewcode-block" id="File.SetboHeader"><a class="viewcode-back" href="../index.html#File.File.SetboHeader">[docs]</a>    <span class="k">def</span> <span class="nf">SetboHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">boHeader</span><span class="o">=</span><span class="nb">bool</span><span class="p">):</span>
+<span class="c">#       Sets the boHeader flag: True -&gt; file has a header; False -&gt; file has no header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boHeader</span> <span class="o">=</span> <span class="n">boHeader</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetboHeader"><a class="viewcode-back" href="../index.html#File.File.GetboHeader">[docs]</a>    <span class="k">def</span> <span class="nf">GetboHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boHeader</span>
+</div>
+<div class="viewcode-block" id="File.SetName"><a class="viewcode-back" href="../index.html#File.File.SetName">[docs]</a>    <span class="k">def</span> <span class="nf">SetName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">Name</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">Name</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="File.GetName"><a class="viewcode-back" href="../index.html#File.File.GetName">[docs]</a>    <span class="k">def</span> <span class="nf">GetName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Name</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

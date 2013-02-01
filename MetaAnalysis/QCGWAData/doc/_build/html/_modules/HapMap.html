@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HapMap &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for HapMap</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">lxml.etree</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">Logger</span>
+<span class="kn">import</span> <span class="nn">File</span>
+<span class="kn">import</span> <span class="nn">DataContainer</span>
+
+<div class="viewcode-block" id="HapMap"><a class="viewcode-back" href="../index.html#HapMap.HapMap">[docs]</a><span class="k">class</span> <span class="nc">HapMap</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceBuild</span>                <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceRelease</span>              <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceRefPanel</span>             <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestBuild</span>                  <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestRelease</span>                <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestRefPanel</span>               <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestFileName</span>               <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestFile</span>                   <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span>                      <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestPath</span>                   <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Delimiter</span>                  <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Splitter</span>                   <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>                  <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChrDict</span>                    <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PosDict</span>                    <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AllDict</span>                    <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StrandDict</span>                 <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MAFDict</span>                    <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NonHapMapIndexList</span>         <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapIndexList</span>            <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StrandErrIndexList</span>         <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AllErrIndexList</span>            <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapFalseImputedTrueList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapTrueImputedFalseList</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="HapMap.Clean"><a class="viewcode-back" href="../index.html#HapMap.HapMap.Clean">[docs]</a>    <span class="k">def</span> <span class="nf">Clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetNonHapMapIndexList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetHapMapIndexList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetStrandErrIndexList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetAllErrIndexList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetHapMapFalseImputedTrueList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetHapMapTrueImputedFalseList</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetNonHapMapIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetNonHapMapIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">SetNonHapMapIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NonHapMapIndexList</span> <span class="o">=</span> <span class="n">List</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetNonHapMapIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetNonHapMapIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">ResetNonHapMapIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NonHapMapIndexList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetNonHapMapIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetNonHapMapIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">GetNonHapMapIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">NonHapMapIndexList</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetHapMapIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetHapMapIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">SetHapMapIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapIndexList</span> <span class="o">=</span> <span class="n">List</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetHapMapIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetHapMapIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">ResetHapMapIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapIndexList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetHapMapIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetHapMapIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">GetHapMapIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">HapMapIndexList</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetStrandErrIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetStrandErrIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">SetStrandErrIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StrandErrIndexList</span> <span class="o">=</span> <span class="n">List</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetStrandErrIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetStrandErrIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">ResetStrandErrIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">StrandErrIndexList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetStrandErrIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetStrandErrIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">GetStrandErrIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">StrandErrIndexList</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetAllErrIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetAllErrIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">SetAllErrIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AllErrIndexList</span> <span class="o">=</span> <span class="n">List</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetAllErrIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetAllErrIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">ResetAllErrIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AllErrIndexList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetAllErrIndexList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetAllErrIndexList">[docs]</a>    <span class="k">def</span> <span class="nf">GetAllErrIndexList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">AllErrIndexList</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetHapMapFalseImputedTrueList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetHapMapFalseImputedTrueList">[docs]</a>    <span class="k">def</span> <span class="nf">SetHapMapFalseImputedTrueList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                      <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapFalseImputedTrueList</span> <span class="o">=</span> <span class="n">List</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetHapMapFalseImputedTrueList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetHapMapFalseImputedTrueList">[docs]</a>    <span class="k">def</span> <span class="nf">ResetHapMapFalseImputedTrueList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapFalseImputedTrueList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetHapMapFalseImputedTrueList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetHapMapFalseImputedTrueList">[docs]</a>    <span class="k">def</span> <span class="nf">GetHapMapFalseImputedTrueList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">HapMapFalseImputedTrueList</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetHapMapTrueImputedFalseList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetHapMapTrueImputedFalseList">[docs]</a>    <span class="k">def</span> <span class="nf">SetHapMapTrueImputedFalseList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                      <span class="n">List</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapTrueImputedFalseList</span> <span class="o">=</span> <span class="n">List</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetHapMapTrueImputedFalseList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetHapMapTrueImputedFalseList">[docs]</a>    <span class="k">def</span> <span class="nf">ResetHapMapTrueImputedFalseList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HapMapTrueImputedFalseList</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetHapMapTrueImputedFalseList"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetHapMapTrueImputedFalseList">[docs]</a>    <span class="k">def</span> <span class="nf">GetHapMapTrueImputedFalseList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">HapMapTrueImputedFalseList</span>
+</div>
+<div class="viewcode-block" id="HapMap.Report"><a class="viewcode-back" href="../index.html#HapMap.HapMap.Report">[docs]</a>    <span class="k">def</span> <span class="nf">Report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">ReportName</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+               <span class="n">SNPIDArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+
+        <span class="n">ReportPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">ReportPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ReportPath</span><span class="p">,</span><span class="s">&#39;HapMap&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">ReportPath</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">ReportPath</span><span class="p">)</span>
+        <span class="n">ReportFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ReportPath</span><span class="p">,</span><span class="n">ReportName</span><span class="p">)</span>
+
+        <span class="n">Ext</span>    <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">Report</span> <span class="o">=</span> <span class="n">Logger</span><span class="o">.</span><span class="n">Logger</span><span class="p">(</span><span class="n">ReportFile</span><span class="p">,</span>
+                               <span class="n">Ext</span><span class="p">)</span>
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;## START TIMESTAMP</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Report</span><span class="o">.</span><span class="n">GetStartDate</span><span class="p">())</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;## END TIMESTAMP&#39;</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">LogString</span> <span class="o">=</span> <span class="n">Report</span><span class="o">.</span><span class="n">GetStartLogString</span><span class="p">()</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;Belows follows the report of the HapMap mapping procedure from build_release_panel=&#39;</span><span class="o">+</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">GetSourceBuild</span><span class="p">()</span><span class="o">+</span>\
+                    <span class="s">&#39;_&#39;</span><span class="o">+</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">GetSourceRelease</span><span class="p">()</span><span class="o">+</span>\
+                    <span class="s">&#39;_&#39;</span><span class="o">+</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">GetSourceRefPanel</span><span class="p">()</span><span class="o">+</span>\
+                    <span class="s">&#39; to build_release_panel=&#39;</span><span class="o">+</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">GetDestBuild</span><span class="p">()</span><span class="o">+</span>\
+                    <span class="s">&#39;_&#39;</span><span class="o">+</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">GetDestRelease</span><span class="p">()</span><span class="o">+</span>\
+                    <span class="s">&#39;_&#39;</span><span class="o">+</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">GetDestRefPanel</span><span class="p">()</span><span class="o">+</span>\
+                    <span class="s">&#39;.&#39;</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="s">&#39;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;! Each SNP reported in this file has NOT been mapped to the destination HapMap build_release_panel !</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!&#39;</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetNonHapMapIndexList</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;** Found the following non-HapMap rsids (N=&#39;</span><span class="o">+</span>\
+                        <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetNonHapMapIndexList</span><span class="p">()))</span><span class="o">+</span>\
+                        <span class="s">&#39;):&#39;</span>
+            <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">Index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetNonHapMapIndexList</span><span class="p">():</span>
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="n">SNPIDArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetHapMapFalseImputedTrueList</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;**** Of these, the following rsids WERE imputed for the source HapMap Build/Release (N=&#39;</span><span class="o">+</span>\
+                            <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetHapMapFalseImputedTrueList</span><span class="p">()))</span><span class="o">+</span>\
+                            <span class="s">&#39;):&#39;</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">Index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetHapMapFalseImputedTrueList</span><span class="p">():</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;     &#39;</span><span class="o">+</span><span class="n">SNPIDArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span>
+                    <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetStrandErrIndexList</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;** The following rsids have a strand_genome mismatch between the GWA data (-) and HapMap(+) (N=&#39;</span><span class="o">+</span>\
+                        <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetStrandErrIndexList</span><span class="p">()))</span><span class="o">+</span>\
+                        <span class="s">&#39;):&#39;</span>
+            <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">Index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetStrandErrIndexList</span><span class="p">():</span>
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="n">SNPIDArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetAllErrIndexList</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;** The following rsids have an allele naming mismatch between the GWA data and HapMap (N=&#39;</span><span class="o">+</span>\
+                        <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetAllErrIndexList</span><span class="p">()))</span><span class="o">+</span>\
+                        <span class="s">&#39;):&#39;</span>
+            <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">Index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetAllErrIndexList</span><span class="p">():</span>
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="n">SNPIDArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetHapMapIndexList</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetHapMapTrueImputedFalseList</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;The following rsids WERE NOT imputed although they are listed in the destination HapMap Build/Release (N=&#39;</span><span class="o">+</span>\
+                            <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetHapMapTrueImputedFalseList</span><span class="p">()))</span><span class="o">+</span>\
+                            <span class="s">&#39;):&#39;</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">Index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetAllErrIndexList</span><span class="p">():</span>
+                    <span class="n">LogString</span> <span class="o">=</span> <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="n">SNPIDArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span>
+                    <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">LogString</span> <span class="o">=</span> <span class="n">Report</span><span class="o">.</span><span class="n">GetEndLogString</span><span class="p">()</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">Report</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.Map"><a class="viewcode-back" href="../index.html#HapMap.HapMap.Map">[docs]</a>    <span class="k">def</span> <span class="nf">Map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">):</span>
+        <span class="n">HapMapIndexList</span>    <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">NonHapMapIndexList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">StrandErrIndexList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">AllErrIndexList</span>    <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">HapMapMAFDataArray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">HapMapFalseImputedTrueList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">HapMapTrueImputedFalseList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())):</span>
+            <span class="n">SNPID</span> <span class="o">=</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ChrDict</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">SNPID</span><span class="p">)):</span>
+                <span class="n">HapMapIndexList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">HapMapMAFDataArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MAFDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">])</span>
+                <span class="n">boDoMap</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;strand_genome&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">StrandDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">]):</span>
+                    <span class="n">StrandErrIndexList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">boDoMap</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">if</span><span class="p">((</span><span class="ow">not</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;coded_all&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">AllDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">])</span> <span class="ow">and</span>
+                   <span class="p">(</span><span class="ow">not</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;noncoded_all&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">AllDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">])):</span>
+                    <span class="n">AllErrIndexList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">boDoMap</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;imputed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;0&#39;</span><span class="p">):</span>
+                    <span class="n">HapMapTrueImputedFalseList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">boDoMap</span><span class="p">):</span>
+                    <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArrayEntryAtIndex</span><span class="p">(</span><span class="n">Index</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
+                                                                                <span class="n">Value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">PosDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">])</span>
+                    <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;chr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArrayEntryAtIndex</span><span class="p">(</span><span class="n">Index</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
+                                                                           <span class="n">Value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ChrDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">NonHapMapIndexList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;imputed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;0&#39;</span><span class="p">):</span>
+                    <span class="n">HapMapFalseImputedTrueList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">HapMapMAFDataArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;NA&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetNonHapMapIndexList</span><span class="p">(</span><span class="n">List</span><span class="o">=</span><span class="n">NonHapMapIndexList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetHapMapIndexList</span><span class="p">(</span><span class="n">List</span><span class="o">=</span><span class="n">HapMapIndexList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetStrandErrIndexList</span><span class="p">(</span><span class="n">List</span><span class="o">=</span><span class="n">StrandErrIndexList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetAllErrIndexList</span><span class="p">(</span><span class="n">List</span><span class="o">=</span><span class="n">AllErrIndexList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetHapMapFalseImputedTrueList</span><span class="p">(</span><span class="n">List</span><span class="o">=</span><span class="n">HapMapFalseImputedTrueList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetHapMapTrueImputedFalseList</span><span class="p">(</span><span class="n">List</span><span class="o">=</span><span class="n">HapMapTrueImputedFalseList</span><span class="p">)</span>
+
+        <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;HapMapMAF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainer</span><span class="p">()</span>
+        <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;HapMapMAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="s">&#39;HapMapMAF&#39;</span><span class="p">)</span>
+        <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;HapMapMAF&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">HapMapMAFDataArray</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DCs</span>
+</div>
+<div class="viewcode-block" id="HapMap.ProcessLineArray"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ProcessLineArray">[docs]</a>    <span class="k">def</span> <span class="nf">ProcessLineArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">())):</span> <span class="c"># skip header</span>
+            <span class="n">Line</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">NAll</span>   <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;NAlleleNames=&#39;</span><span class="p">,</span><span class="n">Line</span><span class="p">)):</span>
+                <span class="n">NAll</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">NAll</span> <span class="o">=</span> <span class="n">NAll</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">NAll</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">NAll</span><span class="p">)</span>
+
+            <span class="n">LSplit</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetSplitter</span><span class="p">())</span>
+            <span class="n">SNPID</span>  <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">Chr</span>    <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Pos</span>    <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">Alls</span>   <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">3</span><span class="o">+</span><span class="n">NAll</span><span class="p">]</span>
+            <span class="n">Strand</span> <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">NAll</span><span class="p">]</span>
+            <span class="n">MAF</span>    <span class="o">=</span> <span class="n">LSplit</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">NAll</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">ChrDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">]</span>    <span class="o">=</span> <span class="n">Chr</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PosDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">]</span>    <span class="o">=</span> <span class="n">Pos</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">AllDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">]</span>    <span class="o">=</span> <span class="n">Alls</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">StrandDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">]</span> <span class="o">=</span> <span class="n">Strand</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MAFDict</span><span class="p">[</span><span class="n">SNPID</span><span class="p">]</span>    <span class="o">=</span> <span class="n">MAF</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ResetLineArray</span><span class="p">()</span>
+
+        <span class="k">return</span>
+
+</div>
+<div class="viewcode-block" id="HapMap.CheckIfFileExists"><a class="viewcode-back" href="../index.html#HapMap.HapMap.CheckIfFileExists">[docs]</a>    <span class="k">def</span> <span class="nf">CheckIfFileExists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">Log</span><span class="o">=</span><span class="n">Logger</span><span class="p">,</span>
+                          <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;  ++ Checking if </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> exist(s) and are (is a) regular file(s) ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">())</span> <span class="ow">or</span>
+           <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">())):</span>
+            <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;    ** Path </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> is a regular file or a symlink to one ...&#39;</span>
+            <span class="k">print</span> <span class="n">LogString</span>
+            <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;    ** Path </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> is not a regular file or a symlink to one...</span><span class="se">\n</span><span class="s">&#39;</span>
+            <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;!!! EXITING !!!&#39;</span>
+            <span class="k">print</span> <span class="n">LogString</span>
+            <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;  -- Done ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDelimiter"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDelimiter">[docs]</a>    <span class="k">def</span> <span class="nf">SetDelimiter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Delimiter</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDelimiter"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDelimiter">[docs]</a>    <span class="k">def</span> <span class="nf">GetDelimiter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Delimiter</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetSplitter"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetSplitter">[docs]</a>    <span class="k">def</span> <span class="nf">SetSplitter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDelimiter</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;WhiteSpace&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Splitter</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDelimiter</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Splitter</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span>
+
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetSplitter"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetSplitter">[docs]</a>    <span class="k">def</span> <span class="nf">GetSplitter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Splitter</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetLineArray"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetLineArray">[docs]</a>    <span class="k">def</span> <span class="nf">SetLineArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">Array</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span> <span class="o">=</span> <span class="n">Array</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ResetLineArray"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ResetLineArray">[docs]</a>    <span class="k">def</span> <span class="nf">ResetLineArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetLineArray"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetLineArray">[docs]</a>    <span class="k">def</span> <span class="nf">GetLineArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">LineArray</span>
+</div>
+<div class="viewcode-block" id="HapMap.ParseDestFile"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ParseDestFile">[docs]</a>    <span class="k">def</span> <span class="nf">ParseDestFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">Log</span><span class="o">=</span><span class="n">Logger</span><span class="p">,</span>
+                      <span class="n">HeadingSpaces</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;  ++ Constructing data structure for </span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\&quot;</span><span class="s"> ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span> <span class="o">=</span> <span class="n">File</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">Name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFile</span><span class="p">(),</span>
+                               <span class="n">boHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span><span class="o">.</span><span class="n">SetboUsePigz</span><span class="p">(</span><span class="n">boUsePigz</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span><span class="o">.</span><span class="n">SetFileHandle</span><span class="p">(</span><span class="n">Mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="n">NLinesInFile</span><span class="p">,</span>\
+        <span class="n">NLinesInArray</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span><span class="o">.</span><span class="n">ParseToLineArray</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetLineArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DFile</span><span class="o">.</span><span class="n">GetLineArray</span><span class="p">())</span>
+
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;    ** Removed &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">NLinesInFile</span><span class="o">-</span><span class="n">NLinesInArray</span><span class="p">)</span><span class="o">+</span><span class="s">&#39; duplicate lines!&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DFile</span><span class="o">.</span><span class="n">Cleanup</span><span class="p">()</span>
+
+        <span class="n">LogString</span>  <span class="o">=</span> <span class="n">HeadingSpaces</span>
+        <span class="n">LogString</span> <span class="o">+=</span> <span class="s">&#39;  -- Done ...&#39;</span>
+        <span class="k">print</span> <span class="n">LogString</span>
+        <span class="n">Log</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">LogString</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.ProcessXml"><a class="viewcode-back" href="../index.html#HapMap.HapMap.ProcessXml">[docs]</a>    <span class="k">def</span> <span class="nf">ProcessXml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                   <span class="n">Tag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                   <span class="n">Log</span><span class="o">=</span><span class="n">Logger</span><span class="p">):</span>
+        <span class="n">HapMapXml</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSourceBuild</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;SourceBuild&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSourceRelease</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;SourceRelease&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSourceRefPanel</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;SourceRefPanel&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDestBuild</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;DestBuild&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDestRelease</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;DestRelease&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDestRefPanel</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;DestRefPanel&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDestFileName</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;SummaryFile&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDestPath</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;SummaryPath&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDestFile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestPath</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDestFileName</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDelimiter</span><span class="p">(</span><span class="n">HapMapXml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Delimiter&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetSplitter</span><span class="p">()</span>
+
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDestFileName"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDestFileName">[docs]</a>    <span class="k">def</span> <span class="nf">SetDestFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestFileName</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDestFileName"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDestFileName">[docs]</a>    <span class="k">def</span> <span class="nf">GetDestFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DestFileName</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDestFile"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDestFile">[docs]</a>    <span class="k">def</span> <span class="nf">SetDestFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestFile</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDestFile"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDestFile">[docs]</a>    <span class="k">def</span> <span class="nf">GetDestFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DestFile</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDestPath"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDestPath">[docs]</a>    <span class="k">def</span> <span class="nf">SetDestPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestPath</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDestPath"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDestPath">[docs]</a>    <span class="k">def</span> <span class="nf">GetDestPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DestPath</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetSourceBuild"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetSourceBuild">[docs]</a>    <span class="k">def</span> <span class="nf">SetSourceBuild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceBuild</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetSourceBuild"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetSourceBuild">[docs]</a>    <span class="k">def</span> <span class="nf">GetSourceBuild</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SourceBuild</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetSourceRelease"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetSourceRelease">[docs]</a>    <span class="k">def</span> <span class="nf">SetSourceRelease</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceRelease</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetSourceRelease"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetSourceRelease">[docs]</a>    <span class="k">def</span> <span class="nf">GetSourceRelease</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SourceRelease</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetSourceRefPanel"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetSourceRefPanel">[docs]</a>    <span class="k">def</span> <span class="nf">SetSourceRefPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceRefPanel</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetSourceRefPanel"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetSourceRefPanel">[docs]</a>    <span class="k">def</span> <span class="nf">GetSourceRefPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SourceRefPanel</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDestBuild"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDestBuild">[docs]</a>    <span class="k">def</span> <span class="nf">SetDestBuild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestBuild</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDestBuild"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDestBuild">[docs]</a>    <span class="k">def</span> <span class="nf">GetDestBuild</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DestBuild</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDestRelease"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDestRelease">[docs]</a>    <span class="k">def</span> <span class="nf">SetDestRelease</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestRelease</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDestRelease"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDestRelease">[docs]</a>    <span class="k">def</span> <span class="nf">GetDestRelease</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DestRelease</span>
+</div>
+<div class="viewcode-block" id="HapMap.SetDestRefPanel"><a class="viewcode-back" href="../index.html#HapMap.HapMap.SetDestRefPanel">[docs]</a>    <span class="k">def</span> <span class="nf">SetDestRefPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DestRefPanel</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="HapMap.GetDestRefPanel"><a class="viewcode-back" href="../index.html#HapMap.HapMap.GetDestRefPanel">[docs]</a>    <span class="k">def</span> <span class="nf">GetDestRefPanel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DestRefPanel</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

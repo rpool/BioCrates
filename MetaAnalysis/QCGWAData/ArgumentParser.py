@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+This module handles the argument parsing.
+
+.. moduleauthor:: René Pool <r.pool@vu.nl>
+
+"""
+
 import argparse
 import os
 
@@ -10,6 +18,17 @@ import Logger
 def LogArguments(Log=Logger,
                  ArgParser=argparse.ArgumentParser,
                  Arguments=argparse.Namespace):
+    """
+    This function handles the argument logging to stdout and to file.
+
+    :param Log: A Logger instance
+    :type Log: :class:Logger
+    :param ArgParser: An argparse.ArgumentParser instance
+    :type ArgParser: argparse.ArgumentParser
+    :param Arguments: Arguments read from stdin
+    :type Arguments: argparse.Namespace
+    :returns: nothing
+    """
 #   Argument logging module
     ArgParser.print_help()
     ArgParser.print_help(Log.GetFileHandle())
@@ -31,9 +50,21 @@ def LogArguments(Log=Logger,
     LogString += '****\n'
     print LogString
     Log.Write(LogString+'\n')
+
     return
 
 def ParseArguments(Log=None):
+    """
+    This function handles the argument logging to stdout and to file.
+
+    :param Log: A Logger instance (dummy argument)
+    :type Log: None
+    :param ArgParser: An argparse.ArgumentParser instance
+    :type ArgParser: argparse.ArgumentParser
+    :param Arguments: Arguments read from stdin
+    :type Arguments: argparse.Namespace
+    :returns: **ArgumentParser** (an argparse.ArgumentParser instance), **Arguments** (an argparse.Namespace instance)
+    """
 #   Argument parsing module
     ArgumentParser = argparse.ArgumentParser(description=\
                                              'This python module can be used for the initial QC of GWA output files.')
