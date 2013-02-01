@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Invocation of QCGWAData.py &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">QCGWAData v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="invocation-of-qcgwadata-py">
+<h1>Invocation of <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt><a class="headerlink" href="#invocation-of-qcgwadata-py" title="Permalink to this headline">¶</a></h1>
+<p>The module <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> is invoked as follows:</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight-python"><pre>usage: QCGWAData.py [-h] [-P NAME]
+
+This python module can be used for the initial QC of GWA output files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -P NAME, --protocolfile NAME
+                        NAME: Name of file contains the necessary input and
+                        protocol values (input, format XML)</pre>
+</div>
+<p>In practice you will run the following command:</p>
+<p><strong>Command</strong>:</p>
+<div class="highlight-python"><pre>./QCGWAData.py -P &lt;ProtocolFileName&gt;.xml</pre>
+</div>
+<p>in your working directory, after linking to the <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> executable.</p>
+<p><strong>Link</strong>:</p>
+<div class="highlight-python"><pre>ln -s &lt;PathToQCGWADataSource&gt;/QCGWAData.py ./</pre>
+</div>
+</div>
+<div class="section" id="the-xml-input-file">
+<h1>The <tt class="docutils literal"><span class="pre">.xml</span></tt> input file<a class="headerlink" href="#the-xml-input-file" title="Permalink to this headline">¶</a></h1>
+<p>The module <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> needs an input file in <tt class="docutils literal"><span class="pre">.xml</span></tt> format that contains all necessary instructions for a successful run: the <em>protocol</em>. Below follows a description of the ingredients of this input file. Knowledge on this input format is sufficient for a QC run. For special functionality, you should either modify the <tt class="docutils literal"><span class="pre">python</span></tt> source code or consult the developer (i.e. René Pool).</p>
+<p>An <tt class="docutils literal"><span class="pre">.xml</span></tt> file consists of tags, specified as <strong>&lt;Tag&gt;</strong> <em>Value or Child</em> <strong>&lt;/Tag&gt;</strong>. A tag contains values and/or children tags. Each tag has a parent, except for the <em>root</em> tag. Module <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> searches for specific tags in the <tt class="docutils literal"><span class="pre">.xml</span></tt> file. These tags contain the instructions <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> needs for a successful run.</p>
+<p>The <tt class="docutils literal"><span class="pre">.xml</span></tt> needs the following tag blocks (comments are between <tt class="docutils literal"><span class="pre">&lt;!--</span> <span class="pre">--&gt;</span></tt>)</p>
+<p><strong>TagBlocks</strong>:</p>
+<div class="highlight-python"><pre>&lt;!-- This contains the QC protocol for the TwinsUK GWA output --&gt;
+&lt;Protocol&gt;
+    &lt;!-- The directory containing the GWA output files --&gt;
+    &lt;GWAOutputPath&gt;&lt;/GWAOutputPath&gt;
+
+    &lt;!-- Your working directory --&gt;
+    &lt;WorkingPath&gt;&lt;/WorkingPath&gt;
+
+    &lt;!-- Format specifiers of GWA output and GWA extra files --&gt;
+    &lt;Format&gt;&lt;/Format&gt;
+
+    &lt;!-- Hapmap mapping details --&gt;
+    &lt;HapMap&gt;&lt;/HapMap&gt;
+
+    &lt;!-- Files containing extra info associated with the GWA output files --&gt;
+    &lt;ExtraInfoFiles&gt;
+        &lt;ExtraInfoFile1&gt;&lt;/ExtraInfoFile1&gt;
+        &lt;ExtraInfoFile2&gt;&lt;/ExtraInfoFile2&gt;
+    &lt;/ExtraInfoFiles&gt;
+    &lt;ExtraInfoColumns&gt;
+        &lt;!-- Column specifiers of the extra info file --&gt;
+        &lt;!-- ColumnName:        Expected name of the column --&gt;
+        &lt;!-- boSetColumnName:   Change the column name? --&gt;
+        &lt;!-- SetColumnName:     Change the column name --&gt;
+    &lt;/ExtraInfoColumns&gt;
+
+    &lt;!-- Details on the ExcludedMetabolites file --&gt;
+    &lt;ExcludedMtbFile&gt;&lt;/ExcludedMtbFile&gt;
+
+    &lt;!-- Details on the PositiveControl file --&gt;
+    &lt;PositiveControlFile&gt;&lt;/PositiveControlFile&gt;
+
+    &lt;!-- File containing the list of metabolite names you want to QC --&gt;
+    &lt;MtbNameFile&gt;&lt;/MtbNameFile&gt;
+    &lt;MtbGWAColumns&gt;
+        &lt;!-- GWA file column specifiers --&gt;
+        &lt;!-- ColumnName:            Expected name of the column --&gt;
+        &lt;!-- boSetColumnName:       Change the column name? --&gt;
+        &lt;!-- SetColumnName:         Change the column name --&gt;
+        &lt;!-- MandatoryFieldEntries: Conditions the fields should apply to --&gt;
+        &lt;!-- NonNAFieldType:        Data type of the non-NA fields --&gt;
+        &lt;!-- Filters:               What filters can be applied? --&gt;
+        &lt;!-- NumericFieldPrecision: Precision specifier required for some columns --&gt;
+    &lt;/MtbGWAColumns&gt;
+
+    &lt;QCChecks&gt;
+        &lt;!-- IN: value present in list --&gt;
+    &lt;/QCChecks&gt;
+
+    &lt;QCFilters&gt;
+        &lt;!-- Filter specifiers --&gt;
+        &lt;!-- NE: != --&gt;
+        &lt;!-- EQ: == --&gt;
+        &lt;!-- LT: &lt; --&gt;
+        &lt;!-- LE: &lt;= --&gt;
+        &lt;!-- GT: &gt; --&gt;
+        &lt;!-- GE: &gt;= --&gt;
+    &lt;/QCFilters&gt;
+    &lt;EMAC&gt;&lt;/EMAC&gt;
+&lt;/Protocol&gt;</pre>
+</div>
+<p>As we can see the <em>root</em> tag should be called <tt class="docutils literal"><span class="pre">Protocol</span></tt>. Its children should be called <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt>, <tt class="docutils literal"><span class="pre">WorkingPath</span></tt>, <tt class="docutils literal"><span class="pre">Format</span></tt>, <tt class="docutils literal"><span class="pre">HapMap</span></tt>, <tt class="docutils literal"><span class="pre">ExtraInfoFiles</span></tt>, <tt class="docutils literal"><span class="pre">ExtraInfoColumns</span></tt>, <tt class="docutils literal"><span class="pre">ExcludedMtbFile</span></tt>, <tt class="docutils literal"><span class="pre">PositiveControlFile</span></tt>, <tt class="docutils literal"><span class="pre">MtbNameFile</span></tt>, <tt class="docutils literal"><span class="pre">MtbGWAColumns</span></tt>, <tt class="docutils literal"><span class="pre">QCChecks</span></tt>, <tt class="docutils literal"><span class="pre">QCFilters</span></tt> and <tt class="docutils literal"><span class="pre">EMAC</span></tt>. A brief description for each of the children tags will be given below.</p>
+<div class="section" id="the-gwaoutputpath-block">
+<h2>The <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt> block<a class="headerlink" href="#the-gwaoutputpath-block" title="Permalink to this headline">¶</a></h2>
+<p>In this block we specify the location of the GWAS data files that need to be QCed.</p>
+<p><strong>GWAOutputPath</strong>:</p>
+<div class="highlight-python"><pre>&lt;GWAOutputPath&gt;
+    /mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data
+&lt;/GWAOutputPath&gt;</pre>
+</div>
+</div>
+<div class="section" id="the-workingpath-block">
+<h2>The <tt class="docutils literal"><span class="pre">WorkingPath</span></tt> block<a class="headerlink" href="#the-workingpath-block" title="Permalink to this headline">¶</a></h2>
+<p>In this block we specify the working directory.</p>
+<p><strong>WorkingPath</strong>:</p>
+<div class="highlight-python"><pre>&lt;WorkingPath&gt;
+    /mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Jobs/Job_0
+&lt;/WorkingPath&gt;</pre>
+</div>
+</div>
+<div class="section" id="the-format-block">
+<h2>The <tt class="docutils literal"><span class="pre">Format</span></tt> block<a class="headerlink" href="#the-format-block" title="Permalink to this headline">¶</a></h2>
+<p>In this block we specify the format properties of the &#8216;extra info&#8217; files and of the GWAS files. Child tag <tt class="docutils literal"><span class="pre">ColumnNames</span></tt> contains a comma-separated list of what column names to expect, <tt class="docutils literal"><span class="pre">Delimiter</span></tt> of what delimiter to expect. The latter can be overriden by setting <tt class="docutils literal"><span class="pre">boSetDelimeter</span></tt> to <tt class="xref docutils literal"><span class="pre">True</span></tt> and specifying the new delimeter in <tt class="docutils literal"><span class="pre">SetDelimeter</span></tt>. <tt class="docutils literal"><span class="pre">boRemoveDuplicateLines</span></tt> specifies whether or not duplicate lines are removed. Child tag <tt class="docutils literal"><span class="pre">ExtraInfoDelimiter</span></tt> sets the delimiter of the &#8216;extra info&#8217; files.</p>
+<p><strong>Format</strong>:</p>
+<div class="highlight-python"><pre>&lt;Format&gt;
+     &lt;ColumnNames&gt;SNPID,chr,position,coded_all,noncoded_all,strand_genome,beta,SE,pval,AF_coded_all,HWE_pval,n_total,imputed,used_for_imp,oevar_imp&lt;/ColumnNames&gt;
+     &lt;Delimiter&gt;WhiteSpace&lt;/Delimiter&gt;
+     &lt;boSetDelimeter&gt;False&lt;/boSetDelimeter&gt;
+     &lt;SetDelimeter&gt;WhiteSpace&lt;/SetDelimeter&gt;
+     &lt;boRemoveDuplicateLines&gt;True&lt;/boRemoveDuplicateLines&gt;
+     &lt;ExtraInfoDelimiter&gt;,&lt;/ExtraInfoDelimiter&gt;
+ &lt;/Format&gt;</pre>
+</div>
+</div>
+<div class="section" id="the-hapmap-block">
+<h2>The <tt class="docutils literal"><span class="pre">HapMap</span></tt> block<a class="headerlink" href="#the-hapmap-block" title="Permalink to this headline">¶</a></h2>
+<p>If one wants to map the SNPs listed in a GWAS file to a specific Hapmap build/release, this block can be used to specify the details. <tt class="docutils literal"><span class="pre">SummaryPath</span></tt> sets the path where your target Hapmap file resides. This file should list the following information: SNPID, chr, position, AlleleA, AlleleB, strand_genome and MAF. <tt class="docutils literal"><span class="pre">SummaryFile</span></tt> sets the Hapmap summary file name. <tt class="docutils literal"><span class="pre">SourceBuild</span></tt> specifies the build number of your GWAS file, <tt class="docutils literal"><span class="pre">SourceRelease</span></tt> its release number and <tt class="docutils literal"><span class="pre">SourceRefPanel</span></tt> the source reference panel. <tt class="docutils literal"><span class="pre">DestBuild</span></tt> specifies the target build number of your GWAS file, <tt class="docutils literal"><span class="pre">DestRelease</span></tt> its release number and <tt class="docutils literal"><span class="pre">DestRefPanel</span></tt> the target reference panel. <tt class="docutils literal"><span class="pre">Delimiter</span></tt> specifies the column delimiter in the Hapmap summary file.</p>
+<p><strong>HapMap</strong>:</p>
+<div class="highlight-python"><pre>&lt;HapMap&gt;
+     &lt;SummaryPath&gt;/mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data&lt;/SummaryPath&gt;
+     &lt;SummaryFile&gt;HapMapB36R22.txt.gz&lt;/SummaryFile&gt;
+     &lt;SourceBuild&gt;36&lt;/SourceBuild&gt;
+     &lt;SourceRelease&gt;22&lt;/SourceRelease&gt;
+     &lt;SourceRefPanel&gt;CEU&lt;/SourceRefPanel&gt;
+     &lt;DestBuild&gt;36&lt;/DestBuild&gt;
+     &lt;DestRelease&gt;22&lt;/DestRelease&gt;
+     &lt;DestRefPanel&gt;CEU&lt;/DestRefPanel&gt;
+     &lt;Delimiter&gt;,&lt;/Delimiter&gt;
+ &lt;/HapMap&gt;</pre>
+</div>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Invocation of <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt></a></li>
+<li><a class="reference internal" href="#the-xml-input-file">The <tt class="docutils literal"><span class="pre">.xml</span></tt> input file</a><ul>
+<li><a class="reference internal" href="#the-gwaoutputpath-block">The <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-workingpath-block">The <tt class="docutils literal"><span class="pre">WorkingPath</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-format-block">The <tt class="docutils literal"><span class="pre">Format</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-hapmap-block">The <tt class="docutils literal"><span class="pre">HapMap</span></tt> block</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Invocation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">QCGWAData v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
