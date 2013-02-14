@@ -11,7 +11,6 @@ import pwd
 import platform
 import datetime
 import re
-import pysvn
 
 #===============================================================================
 # This module contains the basic Logger class.
