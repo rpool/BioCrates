@@ -423,11 +423,15 @@ class Checks:
         NTotalFilteredArray = scipy.compress(ImputedFilterArray,NTotalArray)
 
         boOk = False
-        if(NTotalFilteredArray.astype(float).min()==NTotalFilteredArray.astype(float).max()):
+        if(len(NTotalFilteredArray)==0):
             boOk = True
             self.SetNTotImpOK(1)
         else:
-            self.SetNTotImpOK(0)
+            if(NTotalFilteredArray.astype(float).min()==NTotalFilteredArray.astype(float).max()):
+                boOk = True
+                self.SetNTotImpOK(1)
+            else:
+                self.SetNTotImpOK(0)
 
         return boOk
 
