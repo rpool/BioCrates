@@ -393,7 +393,8 @@ def QCSample(DataDict={},                        # should contain keys of type i
                                 # they do not affect the input object objects
 def ProcessDataDict(ReferenceQCMetaboliteContainers=list,
                     SampleQCMetaboliteContainers=list,
-                    SampleDataDict=dict):
+                    SampleDataDict=dict,
+                    boImputeZeros=bool):
     QCntrl                                = QualityControl()
     MetaboliteExclusionList               = []
     SampleExclusionList                   = []
@@ -404,8 +405,8 @@ def ProcessDataDict(ReferenceQCMetaboliteContainers=list,
     for Key,Value in SampleDataDict.iteritems():
             if(Value.GetMetaboliteName()!=None):
                 MapMetaboliteContainersToDataDictKeys.append(Key)
-
-    MetaboliteExclusionList.extend(QCntrl.GetMetaboliteExclusionList(ReferenceQCMetaboliteContainers))
+    if(len(ReferenceQCMetaboliteContainers)>0):
+        MetaboliteExclusionList.extend(QCntrl.GetMetaboliteExclusionList(ReferenceQCMetaboliteContainers))
     MetaboliteExclusionList.extend(QCntrl.GetMetaboliteExclusionList(SampleQCMetaboliteContainers))
     MetaboliteExclusionList = list(set(MetaboliteExclusionList))
     MetaboliteExclusionList.sort()
@@ -413,8 +414,8 @@ def ProcessDataDict(ReferenceQCMetaboliteContainers=list,
         MetaboliteNameExclusionList.append(SampleDataDict[MapMetaboliteContainersToDataDictKeys[i]].GetMetaboliteName())
     MetaboliteExclusionList.reverse()
 
-
-    SampleExclusionList.extend(QCntrl.GetSampleExclusionList(ReferenceQCMetaboliteContainers))
+    if(len(ReferenceQCMetaboliteContainers)>0):
+        SampleExclusionList.extend(QCntrl.GetSampleExclusionList(ReferenceQCMetaboliteContainers))
     SampleExclusionList.extend(QCntrl.GetSampleExclusionList(SampleQCMetaboliteContainers))
     SampleExclusionList = list(set(SampleExclusionList))
     SampleExclusionList.sort()
@@ -430,9 +431,16 @@ def ProcessDataDict(ReferenceQCMetaboliteContainers=list,
     ProcessedDataDict = copy.deepcopy(SampleDataDict)
     for i in range(len(SampleQCMetaboliteContainers)):
         for j in SampleQCMetaboliteContainers[i].GetOutlierIndexList():
-                ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]].\
-                AlterDataArrayEntry(j,
-                                    ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]].GetMissingDataIdentifier())
+            ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]].\
+            AlterDataArrayEntry(j,
+                                ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]].GetMissingDataIdentifier())
+        if(boImputeZeros):
+            for j in range(len(SampleQCMetaboliteContainers[i].GetDataArray())):
+                if((type(SampleQCMetaboliteContainers[i].GetDataArray()[j])==float) and
+                   (SampleQCMetaboliteContainers[i].GetDataArray()[j]<=0.0)):
+                    ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]].\
+                    AlterDataArrayEntry(j,
+                                        ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]].GetMissingDataIdentifier())
     for i in MetaboliteExclusionList:
         del ProcessedDataDict[MapMetaboliteContainersToDataDictKeys[i]]
     for Key,Value in ProcessedDataDict.iteritems():

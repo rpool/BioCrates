@@ -43,7 +43,7 @@ class Logger:
         self.StartLogString += '# time (hh:mm:ss)   : '+str(StartDate.time())+'\n'
         self.StartLogString += '# platform          : '+' '.join(platform.uname())+'\n'
         self.StartLogString += '# user              : '+str(pwd.getpwuid(os.getuid())[0])+'\n'
-        self.StartLogString += '# path              : '+os.getcwd()
+        self.StartLogString += '# path              : '+os.getcwd()+'\n'
         self.StartLogString += '# python version    : '+str(sys.version_info)+'\n'
         self.StartLogString += '# running module    : '+sys.argv[0]+'\n'
         if(os.path.islink(sys.argv[0])):

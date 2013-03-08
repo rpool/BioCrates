@@ -132,6 +132,12 @@ def ParseArguments(Log=None):
                                 help='FLAG: Perform normality tests on the concentrations, the ln-transformed concentrations and all possible ratios in ln-space (input)',
                                 action='store_true',
                                 default=False)
+    ArgumentParser.add_argument('-z',
+                                '--imputezeros',
+                                dest='boImputeZeros',
+                                help='FLAG: Set zero data entries to \"NA\" in order to impute these values that will become \"missing\" after ln-transformation (input)',
+                                action='store_true',
+                                default=False)
 
 
     Arguments = ArgumentParser.parse_args()

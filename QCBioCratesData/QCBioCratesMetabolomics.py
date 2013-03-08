@@ -143,8 +143,10 @@ def PostProcess(SampleDataDict=None,
     DataDict   = {}
     DataHeader = Data[0].strip().split()
     DataHeader.reverse()
+    DataNames = []
     for i in range(len(DataHeader)):
         Entry = int(re.sub('X','',DataHeader[i]))
+        DataNames.append(SampleDataDict[Entry].GetMetaboliteConventionName())
         if(not DataDict.has_key(Entry)):
             DataDict[Entry] = []
         for j in range(1,len(Data)):
@@ -174,10 +176,84 @@ def PostProcess(SampleDataDict=None,
             CompleteDict[Entry].append(Value)
     del FMem
 
+    CompleteDataNames = []
+    for Key in CompleteDict.iterkeys():
+        CompleteDataNames.append(SampleDataDict[Key].GetMetaboliteConventionName())
+
     for Key,Value in DataDict.iteritems():
         SampleDataDict[Key].SetQCedDataArray(Value)
     for Key,Value in CompleteDict.iteritems():
         SampleDataDict[Key].SetImputedDataArray(Value)
+
+    LogString = '**** Writing QCed data to \"QCedData.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    fw = open('QCedData.csv','w')
+    String = []
+    for Key in sorted(DataDict.keys()):
+        String.append(SampleDataDict[Key].GetMetaboliteConventionName())
+    fw.write(','.join(String)+'\n')
+    for i in range(len(DataDict[DataDict.keys()[0]])):
+        String = []
+        for j in sorted(DataDict.keys()):
+            String.append(str(DataDict[j][i]))
+        fw.write(','.join(String)+'\n')
+    fw.close()
+
+    LogString = '**** Writing ln-transformed QCed data to \"LnQCedData.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    fw = open('LnQCedData.csv','w')
+    String = []
+    for Key in sorted(DataDict.keys()):
+        String.append(SampleDataDict[Key].GetMetaboliteConventionName())
+    fw.write(','.join(String)+'\n')
+    for i in range(len(DataDict[DataDict.keys()[0]])):
+        String = []
+        for j in sorted(DataDict.keys()):
+            if(type(DataDict[j][i])==str):
+                String.append(DataDict[j][i])
+            elif(DataDict[j][i]<=0.0):
+                String.append('NA')
+            else:
+                String.append(str(scipy.log(DataDict[j][i])))
+        fw.write(','.join(String)+'\n')
+    fw.close()
+
+    LogString = '**** Writing QCed data to \"QCedAndImputedData.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    fw = open('QCedAndImputedData.csv','w')
+    String = []
+    for Key in sorted(CompleteDict.keys()):
+        String.append(SampleDataDict[Key].GetMetaboliteConventionName())
+    fw.write(','.join(String)+'\n')
+    for i in range(len(CompleteDict[CompleteDict.keys()[0]])):
+        String = []
+        for j in sorted(CompleteDict.keys()):
+            String.append(str(CompleteDict[j][i]))
+        fw.write(','.join(String)+'\n')
+    fw.close()
+
+    LogString = '**** Writing ln-transformed QCed data to \"LnQCedAndImputedData.csv\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    fw = open('LnQCedAndImputedData.csv','w')
+    String = []
+    for Key in sorted(CompleteDict.keys()):
+        String.append(SampleDataDict[Key].GetMetaboliteConventionName())
+    fw.write(','.join(String)+'\n')
+    for i in range(len(CompleteDict[CompleteDict.keys()[0]])):
+        String = []
+        for j in sorted(CompleteDict.keys()):
+            if(type(CompleteDict[j][i])==str):
+                String.append(CompleteDict[j][i])
+            elif(CompleteDict[j][i]<=0.0):
+                String.append('NA')
+            else:
+                String.append(str(scipy.log(CompleteDict[j][i])))
+        fw.write(','.join(String)+'\n')
+    fw.close()
 
     if(Arguments.boNormalityTest):
         ExcludedMtbList = []
@@ -465,13 +541,19 @@ def QCAndImpute(Arguments=argparse.Namespace,
                                                  Arguments.ExcelSampleSheetName,
                                                  Arguments.boRemoveCustomMetabolites,
                                                  Log)
-    LogString = '**** Parsing Excel book \"'+Arguments.ExcelReferenceDataFileName+'\" containing the reference data ...'
-    print LogString
-    Log.Write(LogString+'\n')
-    ReferenceDataDict = ExcelParser.ParseExcellBook(Arguments.ExcelReferenceDataFileName,
-                                                    Arguments.ExcelReferenceSheetName,
-                                                    Arguments.boRemoveCustomMetabolites,
-                                                    Log)
+    if(Arguments.ExcelReferenceDataFileName!=None):
+        LogString = '**** Parsing Excel book \"'+Arguments.ExcelReferenceDataFileName+'\" containing the reference data ...'
+        print LogString
+        Log.Write(LogString+'\n')
+        ReferenceDataDict = ExcelParser.ParseExcellBook(Arguments.ExcelReferenceDataFileName,
+                                                        Arguments.ExcelReferenceSheetName,
+                                                        Arguments.boRemoveCustomMetabolites,
+                                                        Log)
+    else:
+        LogString = '**** No reference data file given: performing QC without reference data!'
+        print LogString
+        Log.Write(LogString+'\n')
+
     LogString = '**** Parsing analytical ranges from \"'+str(Arguments.AnalyticalRangesExcelFileName)+'\" ...'
     print LogString
     Log.Write(LogString+'\n')
@@ -480,10 +562,11 @@ def QCAndImpute(Arguments=argparse.Namespace,
         Value.SetLODFromDocumentation(AnalRanges)
         Value.SetLLOQFromDocumentation(AnalRanges)
         Value.SetULOQFromDocumentation(AnalRanges)
-    for Value in ReferenceDataDict.itervalues():
-        Value.SetLODFromDocumentation(AnalRanges)
-        Value.SetLLOQFromDocumentation(AnalRanges)
-        Value.SetULOQFromDocumentation(AnalRanges)
+    if(Arguments.ExcelReferenceDataFileName!=None):
+        for Value in ReferenceDataDict.itervalues():
+            Value.SetLODFromDocumentation(AnalRanges)
+            Value.SetLLOQFromDocumentation(AnalRanges)
+            Value.SetULOQFromDocumentation(AnalRanges)
 
     if(Arguments.boPlotDistributions):
         LogString = '**** Plotting sample data distributions ...'
@@ -515,7 +598,8 @@ def QCAndImpute(Arguments=argparse.Namespace,
 
     ReferenceQCMetaboliteContainers = []
     SampleQCMetaboliteContainers    = []
-    if(Arguments.boQCReference):
+    if((Arguments.boQCReference) and
+       (Arguments.ExcelReferenceDataFileName!=None)):
         LogString = '**** Performing quality control using the reference data ...'
         print LogString
         Log.Write(LogString+'\n')
@@ -529,7 +613,9 @@ def QCAndImpute(Arguments=argparse.Namespace,
                                                    ReferenceQCMetaboliteContainers,
                                                    Arguments.DLHandling,
                                                    Log)
-    if(Arguments.boQCReference or Arguments.boQCSample):
+    if(((Arguments.boQCReference) and
+        (Arguments.ExcelReferenceDataFileName!=None)) or
+       Arguments.boQCSample):
         if(Arguments.boImpute):
             LogString = '**** Processing sample and/or reference QC results ...'
             print LogString
@@ -544,7 +630,8 @@ def QCAndImpute(Arguments=argparse.Namespace,
             NameExclusionList,\
             IDExclusionList     = QC.ProcessDataDict(ReferenceQCMetaboliteContainers,
                                                      SampleQCMetaboliteContainers,
-                                                     SampleDataDict)
+                                                     SampleDataDict,
+                                                     Arguments.boImputeZeros)
             MetaboliteNameExclusionList.extend(NameExclusionList)
             SampleIDExclusionList.extend(IDExclusionList)
             ProcessedDataDict,\
