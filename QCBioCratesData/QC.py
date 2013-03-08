@@ -349,7 +349,7 @@ def QCSample(DataDict={},                        # should contain keys of type i
         DuplicateDict    = collections.Counter(DuplicateList)
     except AttributeError:
         import CollectionsCounter
-        DuplicateDict    = CollectionsCounter(DuplicateList)
+        DuplicateDict    = CollectionsCounter.Counter(DuplicateList)
     SetToMissingList = []
     for Key, Value in DuplicateDict.iteritems(): # Key=DataArrayIndex;Val=ListOfMetaboliteContainers
         if(Value<=3):
