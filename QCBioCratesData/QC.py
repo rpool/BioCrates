@@ -1,5 +1,6 @@
 import copy
 import collections
+import CollectionsCounter
 import re
 import scipy
 import sys
@@ -343,7 +344,12 @@ def QCSample(DataDict={},                        # should contain keys of type i
                 ReferenceboExcludeMetabolite)):
             OutLierList = MetaboliteContainers[i].GetOutlierIndexList()
             DuplicateList.extend(OutLierList)
-    DuplicateDict    = collections.Counter(DuplicateList)
+    DuplicateDict = None
+    try:
+        DuplicateDict    = collections.Counter(DuplicateList)
+    except AttributeError:
+        import CollectionsCounter
+        DuplicateDict    = CollectionsCounter(DuplicateList)
     SetToMissingList = []
     for Key, Value in DuplicateDict.iteritems(): # Key=DataArrayIndex;Val=ListOfMetaboliteContainers
         if(Value<=3):
