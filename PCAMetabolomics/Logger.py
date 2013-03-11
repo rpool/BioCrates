@@ -5,7 +5,6 @@ import platform
 import datetime
 import re
 import sys
-import pysvn
 
 #===============================================================================
 # This module contains the basic Logger class.
@@ -72,9 +71,22 @@ class Logger:
             self.StartLogString += '#  -> linking to    : '+os.path.realpath(sys.argv[0])+'\n'
         if((os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn'))) or
            (os.path.isdir(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'..','.svn')))):
-            Client = pysvn.Client()
-            self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
-            del Client
+            try:
+                import pysvn
+                Client = pysvn.Client()
+                self.StartLogString += '# svn revision      : '+str(Client.info(os.path.dirname(os.path.realpath(sys.argv[0]))).revision.number)+'\n'
+                del Client
+            except ImportError:
+                fr    = open(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'.svn','entries'),'r')
+                Lines = fr.readlines()
+                fr.close()
+                for l in range(len(Lines)):
+                    Line = Lines[l]
+                    if(Line[:3]=='dir'):
+                        break
+                Version              = Lines[l+1].strip()
+                self.StartLogString += '# svn revision      : '+Version+'\n'
+
         self.StartLogString += '\n'
 
         return
