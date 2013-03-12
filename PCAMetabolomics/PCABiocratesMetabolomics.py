@@ -437,7 +437,7 @@ def main(ExecutableName=str):
     RawData            = []
     for i in range(len(MetaboliteList)):
         Mtb = MetaboliteList[i]
-        PhenotypeArrayDict[Mtb] = Arrays[i+1].astype(float)
+        PhenotypeArrayDict[Mtb] = Arrays[i+1]
         RawData.append(PhenotypeArrayDict[Mtb])
 
     LogString = '++ Accounting for excluded metabolites in current data set ...'
@@ -458,7 +458,6 @@ def main(ExecutableName=str):
         LogString = '  ** '+str(len(DelList))+' metabolites are exluded ...'
         print LogString
         Log.Write(LogString+'\n')
-    print DelList
 
     for Entry in DelList:
         del PhenotypeArrayDict[Entry]
@@ -466,6 +465,12 @@ def main(ExecutableName=str):
     LogString = '-- Done ...'
     print LogString
     Log.Write(LogString+'\n')
+
+    RawData            = []
+    Metabolites        = PhenotypeArrayDict.keys()
+    for i in range(len(MetaboliteList)):
+        Mtb = MetaboliteList[i]
+        RawData.append(PhenotypeArrayDict[Mtb].astype(float))
 
     MeanCenteredData           = []
     MeanCenteredAutoScaledData = []
