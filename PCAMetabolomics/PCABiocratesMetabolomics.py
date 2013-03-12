@@ -383,10 +383,10 @@ def main(ExecutableName=str):
         ExcludedMtbs.append(Tag.text)
 
     PhenotypePath       = XmlProtocol.getroot().find('PhenotypeInputPath').text.strip()
+    PhenotypeBName      = XmlProtocol.getroot().find('PhenotypeFileBase').text.strip()
     PhenotypeExtension  = XmlProtocol.getroot().find('PhenotypeFileExt').text.strip()
-    PhenotypeInputFiles = fnmatch.filter(os.listdir(PhenotypePath),'*.'+PhenotypeExtension)
-    PhenotypeInputFiles = fnmatch.filter(PhenotypeInputFiles,'*Phenotype*'+PhenotypeExtension)
-    fr = open(PhenotypeInputFiles[0],'r')
+    PhenotypeInputFile  = PhenotypeBName+'.'+PhenotypeExtension
+    fr = open(PhenotypeInputFile,'r')
     HeaderList     = fr.readline().strip().split(',')
     MetaboliteList = []
     fr.close()
@@ -397,12 +397,18 @@ def main(ExecutableName=str):
         if(i>1):
             MetaboliteList.append(Entry)
     UseCols = range(1,len(HeaderList))
-    Arrays = scipy.loadtxt(fname=PhenotypeInputFiles[0],
+    LogString = '++ Parsing \"'+PhenotypeInputFile+'\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    Arrays = scipy.loadtxt(fname=PhenotypeInputFile,
                            dtype=str,
                            delimiter=',',
                            skiprows=1,
                            usecols=UseCols,
                            unpack=True)
+    LogString = '-- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
     SampleIdArray = Arrays[0].astype(int)
 
     MtbName2ClassesDict = {}
@@ -445,13 +451,14 @@ def main(ExecutableName=str):
             Log.Write(LogString+'\n')
             DelList.append(Key)
     if(len(DelList)==0):
-        LogString = '  ** No metabolites will be exluded ...'
+        LogString = '  ** No metabolites are exluded ...'
         print LogString
         Log.Write(LogString+'\n')
     else:
-        LogString = '  ** '+str(len(DelList))+' metabolites will be exluded ...'
+        LogString = '  ** '+str(len(DelList))+' metabolites are exluded ...'
         print LogString
         Log.Write(LogString+'\n')
+    print DelList
 
     for Entry in DelList:
         del PhenotypeArrayDict[Entry]
