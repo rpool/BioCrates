@@ -7,6 +7,7 @@ import gzip
 import itertools
 import scipy
 import scipy.stats
+import copy
 
 import SummarizeFigsUsingTeX
 import BioCratesAnalyticalRanges
@@ -83,6 +84,14 @@ def PostProcess(SampleDataDict=None,
                                                      Arguments.ExcelSampleSheetName,
                                                      Arguments.boRemoveCustomMetabolites,
                                                      Log)
+#   Remove excluded samples
+    fr       = open('QC.report','r')
+    QCReport = fr.readlines()
+    fr.close()
+    ExcludedSamples = []
+    for i in range(QCReport.index('## START EXCLUDEDSAMPLEIDS\n')+1,QCReport.index('## END EXCLUDEDSAMPLEIDS\n')):
+        ExcludedSamples.append(QCReport[i].strip().split()[-1])
+
     FileList = []
     FileList.append('MiceImpute.report.gz')
     FileList.append('QCBioCratesMetabolomics.py.qc.log')
@@ -185,16 +194,33 @@ def PostProcess(SampleDataDict=None,
     for Key,Value in CompleteDict.iteritems():
         SampleDataDict[Key].SetImputedDataArray(Value)
 
+    SIDKey = None
+    for Key in SampleDataDict.iterkeys():
+        if(SampleDataDict[Key].GetDataName()=='Sample Identification'):
+            SIDKey = Key
+            break
+    SampleIDList = copy.deepcopy(SampleDataDict[SIDKey].GetDataArray())
+    DelIndexList = []
+    for S in ExcludedSamples:
+        DelIndexList.append(SampleIDList.index(S))
+    DelIndexList.sort()
+    DelIndexList.reverse()
+    for i in DelIndexList:
+        del SampleIDList[i]
+
     LogString = '**** Writing QCed data to \"QCedData.csv\" ...'
     print LogString
     Log.Write(LogString+'\n')
     fw = open('QCedData.csv','w')
-    String = []
+    String = ['']
+    String.append('sample.id')
     for Key in sorted(DataDict.keys()):
         String.append(SampleDataDict[Key].GetMetaboliteConventionName())
     fw.write(','.join(String)+'\n')
     for i in range(len(DataDict[DataDict.keys()[0]])):
         String = []
+        String.append(str(i+1))
+        String.append(SampleIDList[i])
         for j in sorted(DataDict.keys()):
             String.append(str(DataDict[j][i]))
         fw.write(','.join(String)+'\n')
@@ -204,12 +230,15 @@ def PostProcess(SampleDataDict=None,
     print LogString
     Log.Write(LogString+'\n')
     fw = open('LnQCedData.csv','w')
-    String = []
+    String = ['']
+    String.append('sample.id')
     for Key in sorted(DataDict.keys()):
         String.append(SampleDataDict[Key].GetMetaboliteConventionName())
     fw.write(','.join(String)+'\n')
     for i in range(len(DataDict[DataDict.keys()[0]])):
         String = []
+        String.append(str(i+1))
+        String.append(SampleIDList[i])
         for j in sorted(DataDict.keys()):
             if(type(DataDict[j][i])==str):
                 String.append(DataDict[j][i])
@@ -224,12 +253,15 @@ def PostProcess(SampleDataDict=None,
     print LogString
     Log.Write(LogString+'\n')
     fw = open('QCedAndImputedData.csv','w')
-    String = []
+    String = ['']
+    String.append('sample.id')
     for Key in sorted(CompleteDict.keys()):
         String.append(SampleDataDict[Key].GetMetaboliteConventionName())
     fw.write(','.join(String)+'\n')
     for i in range(len(CompleteDict[CompleteDict.keys()[0]])):
         String = []
+        String.append(str(i+1))
+        String.append(SampleIDList[i])
         for j in sorted(CompleteDict.keys()):
             String.append(str(CompleteDict[j][i]))
         fw.write(','.join(String)+'\n')
@@ -239,12 +271,15 @@ def PostProcess(SampleDataDict=None,
     print LogString
     Log.Write(LogString+'\n')
     fw = open('LnQCedAndImputedData.csv','w')
-    String = []
+    String = ['']
+    String.append('sample.id')
     for Key in sorted(CompleteDict.keys()):
         String.append(SampleDataDict[Key].GetMetaboliteConventionName())
     fw.write(','.join(String)+'\n')
     for i in range(len(CompleteDict[CompleteDict.keys()[0]])):
         String = []
+        String.append(str(i+1))
+        String.append(SampleIDList[i])
         for j in sorted(CompleteDict.keys()):
             if(type(CompleteDict[j][i])==str):
                 String.append(CompleteDict[j][i])
