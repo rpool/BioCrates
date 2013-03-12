@@ -467,7 +467,7 @@ def main(ExecutableName=str):
     Log.Write(LogString+'\n')
 
     RawData            = []
-    Metabolites        = PhenotypeArrayDict.keys()
+    MetaboliteList     = PhenotypeArrayDict.keys()
     for i in range(len(MetaboliteList)):
         Mtb = MetaboliteList[i]
         RawData.append(PhenotypeArrayDict[Mtb].astype(float))
