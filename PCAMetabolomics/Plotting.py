@@ -1,4 +1,6 @@
 import os
+import matplotlib
+matplotlib.use('Agg')
 import pylab
 import scipy
 import scipy.stats

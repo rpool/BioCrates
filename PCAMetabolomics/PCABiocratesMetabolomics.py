@@ -8,6 +8,8 @@ import scipy
 import scipy.linalg
 import scipy.interpolate
 import re
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.mlab
 import pylab
 
