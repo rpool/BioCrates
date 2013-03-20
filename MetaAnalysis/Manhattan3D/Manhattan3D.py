@@ -302,6 +302,7 @@ def main(ExecutableName):
             if((not os.path.isfile(FName)) or
                (not os.path.islink(FName))):
                 NoPlotList.append(p)
+                print "joe"
                 continue
             LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
             print LogString
