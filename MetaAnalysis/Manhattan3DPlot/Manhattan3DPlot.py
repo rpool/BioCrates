@@ -345,7 +345,8 @@ def main(ExecutableName):
             for RsId in RsIdArray:
 #                if(RsId in Gene2RsIdDict[Gene]):
                 if(RsId2GeneDict.has_key(RsId)):
-                    ColorList.append('red')
+#                    ColorList.append('red')
+                    ColorList.append('black')
                 else:
                     ColorList.append('black')
 #            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
