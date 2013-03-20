@@ -299,10 +299,9 @@ def main(ExecutableName):
             PHE        = re.sub('_','',P)
             Mtb        = MName[MNumber.index(str(p+1))]
             FName      = os.path.join(Arguments.MAOutputPath,'AlphaNfFilteredMetaAnalysis_'+Mtb+'_1.tbl')
-            if((not os.path.isfile(FName)) or
-               (not os.path.islink(FName))):
+            if(not (os.path.isfile(FName) or
+               os.path.islink(FName))):
                 NoPlotList.append(p)
-                print "joe",FName
                 continue
             LogString  = '** Now at '+PHE+' (\"'+FName+'\") ...'
             print LogString
