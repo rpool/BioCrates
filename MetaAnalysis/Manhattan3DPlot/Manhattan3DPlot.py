@@ -387,9 +387,12 @@ def main(ExecutableName):
 #                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
 #                        ZZ.extend(list(FMem))
 #                        del FMem
-            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
-            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
-            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(14))))
+            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(14))))
+            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(14))))
+#            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
+#            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
+#            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
 
 #            ZSugg[PHE] = scipy.compress(Sugg,ZZ)
             ZSign[PHE] = scipy.compress(Sign,ZZ)
