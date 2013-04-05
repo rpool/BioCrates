@@ -200,7 +200,7 @@ def main(ExecutableName=str):
             if(len(FileName)==1):
                 FileName  = FileName[0]
                 Index     = InclMtbFileDCs.DataContainers['Mtb'].GetDataArray().tolist().index(MtbName)
-                if(not eval(InclMtbFileDCs.DataContainers[CohortName+'Include\[Mtb\]'].GetDataArray()[Index])):
+                if(not eval(InclMtbFileDCs.DataContainers[CohortName+'Include[Mtb]'].GetDataArray()[Index])):
                     LogString = '  ** Metabolite \"'+MtbName+'\" ('+CohortName+') is set to be excluded ...'
                     print LogString
                     Log.Write(LogString+'\n')
