@@ -108,6 +108,36 @@ def main(ExecutableName=str):
         print LogString
         Log.Write(LogString+'\n')
 
+    InclMtbFileDCs = None
+    if(XmlProtocol.getroot().find('InclMtbFile')!=None):
+        if(eval(XmlProtocol.getroot().find('InclMtbFile').find('boUse').text)):
+            FPath     = XmlProtocol.getroot().find('InclMtbFile').find('Path').text
+            FName     = XmlProtocol.getroot().find('InclMtbFile').find('Name').text
+            FileName  = os.path.join(FPath,FName)
+            LogString = '++ Parsing \"'+FileName+'\" ...'
+            print LogString
+            Log.Write(LogString+'\n')
+            InclMtbFile = File.File(Name=FileName,
+                                    boHeader=True)
+            InclMtbFile.SetFileHandle(Mode='r')
+            boRemoveDuplicateLines = eval(XmlProtocol.getroot().find('Format').find('boRemoveDuplicateLines').text)
+            if(boRemoveDuplicateLines):
+                NLinesInFile,\
+                NLinesInArray  = InclMtbFile.ParseToLineArray()
+                LogString = '  ** Removed '+str(NLinesInFile-NLinesInArray)+' duplicate lines!'
+                print LogString
+                Log.Write(LogString+'\n')
+                InclMtbFileDCs = InclMtbFile.LineArray2DataContainers(Delimiter=',')
+            else:
+                InclMtbFileDCs = InclMtbFile.ParseToDataContainers(Delimiter=',')
+            InclMtbFile.Close()
+            InclMtbFile.Cleanup()
+            del InclMtbFile
+
+            LogString = '-- Done ...'
+            print LogString
+            Log.Write(LogString+'\n')
+
     GWAOutputPath = XmlProtocol.getroot().find('GWAOutputPath').text.strip()
     FindREsDict = {}
     for XmlCohort in XmlProtocol.getroot().find('FindRegExps'):
@@ -169,6 +199,12 @@ def main(ExecutableName=str):
                                       '*'+CohortName+'*')
             if(len(FileName)==1):
                 FileName  = FileName[0]
+                Index     = InclMtbFileDCs.DataContainers['Mtb'].GetDataArray().tolist().index(MtbName)
+                if(not eval(InclMtbFileDCs.DataContainers[CohortName+'Include\[Mtb\]'].GetDataArray()[Index])):
+                    LogString = '  ** Metabolite \"'+MtbName+'\" ('+CohortName+') is set to be excluded ...'
+                    print LogString
+                    Log.Write(LogString+'\n')
+                    continue
             elif(len(FileName)<1):
                 LogString = '  ** No data for metabolite \"'+MtbName+'\" ('+CohortName+') ...'
                 print LogString

@@ -171,13 +171,14 @@ class File:
 
         return DCs
 
-    def ParseToDataContainers(self):
+    def ParseToDataContainers(self,
+                              Delimiter=None):
 #       Parse an input file into the DataContainers object
         DCs  = DataContainer.DataContainers()
         Line = self.GetFileHandle().readline()
         if(self.GetboHeader()):
             Line  = re.sub('#','',Line)
-            Names = Line.strip().split() # The file should be space or tab delimited!
+            Names = Line.strip().split(Delimiter) # The file should be space or tab delimited!
             for i in range(len(Names)):
                 Name                     = Names[i] # The names of the datacontainers are determined by the
                                                     # header column names.
@@ -187,7 +188,7 @@ class File:
                 DCs.DataContainers[Name].InitDataArray()
                 DCs.DataContainers[Name].SetDataName(Name)
         else:
-            LSplit = Line.strip().split()
+            LSplit = Line.strip().split(Delimiter)
             for i in range(len(LSplit)):
                 Name                     = str(i)
                 DCs.DataContainers[Name] = DataContainer.DataContainer()
@@ -199,7 +200,7 @@ class File:
                 DCs.DataContainers[Name].AppendToArray(Entry)
 
         for Line in self.GetFileHandle():
-            LSplit = Line.strip().split()
+            LSplit = Line.strip().split(Delimiter)
             for i in range(len(LSplit)):
                 Name  = DCs.Columns2Names[i]
                 Entry = LSplit[i]
