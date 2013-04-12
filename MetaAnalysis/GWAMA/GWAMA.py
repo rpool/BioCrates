@@ -4,6 +4,7 @@
 import os
 import fnmatch
 import sys
+import re
 
 # Homebrew modules
 import Logger
@@ -159,36 +160,12 @@ def main(ExecutableName=str):
                                             Re)
             Matches.extend(TmpMatches)
 
-    MetalHeader  = '#Start metal\n'
-    MetalHeader += '#metal\n'
-    MetalHeader += '\n'
-    MetalHeader  = '#Source this file\n'
-    MetalHeader += '#SOURCE thisfile\n'
-    MetalHeader += '\n'
-
-    MetalFooter  = '# Analysis\n'
-    MetalFooter += 'ANALYZE HETEROGENEITY\n'
-    MetalFooter += '\n'
-    MetalFooter += '# Exit\n'
-    MetalFooter += 'QUIT\n'
-
 
     for MtbName in MtbNameFileDCs.DataContainers['0'].GetDataArray():
-        ScriptName = MtbName+'_MetalScript.txt'
+        ScriptName = MtbName+'_FE_GWAMA.in'
         fw         = open(ScriptName,'w')
-        fw.write(MetalHeader)
-        fw.write('# Track allele frequencies\n')
-        fw.write('AVERAGEFREQ ON\n')
-        fw.write('MINMAXFREQ ON\n')
 
-        if(XmlProtocol.getroot().find('MetalScheme').text.strip()=='SAMPLESIZE'):
-            fw.write('# Set Scheme\n')
-            fw.write('SCHEME SAMPLESIZE\n')
-        elif(XmlProtocol.getroot().find('MetalScheme').text.strip()=='STDERR'):
-            fw.write('# Set Scheme\n')
-            fw.write('SCHEME STDERR\n')
-
-        LogString = '++ Generating a \"metal\" script for metabolite\"'+MtbName+'\": \"'+ScriptName+'\" ...'
+        LogString = '++ Generating a \"gwama\" script for metabolite\"'+MtbName+'\": \"'+ScriptName+'\" ...'
         print LogString
         Log.Write(LogString+'\n')
 
@@ -216,27 +193,8 @@ def main(ExecutableName=str):
                 print LogString
                 Log.Write(LogString+'\n')
                 sys.exit(1)
-            fw.write('#Set Options for describing input files\n')
-            fw.write('MARKERLABEL SNPID\n')
-            fw.write('PVALUELABEL pval\n')
-            fw.write('STDERRLABEL SE\n')
-            fw.write('EFFECTLABEL beta\n')
-            fw.write('WEIGHTLABEL n_total\n')
-            fw.write('ALLELELABELS coded_all noncoded_all\n')
-            fw.write('FREQLABEL AF_coded_all\n')
-            fw.write('STRANDLABEL strand_genome\n')
-            fw.write('# Strand information\n')
-            fw.write('USESTRAND ON\n')
-            fw.write('# Column counting per line\n')
-            fw.write('COLUMNCOUNTING STRICT\n')
-            fw.write('#Process file; assuming that it has been unzipped using e.g. \"gzip -dc\"\n')
-            fw.write('PROCESSFILE '+FileName+'\n')
-            fw.write('\n')
+            fw.write(re.sub('.gz','',FileName)+'\n')
 
-        fw.write('# Outfile\n')
-        fw.write('OUTFILE MetaAnalysis_'+MtbName+'_ .tbl\n')
-        fw.write('\n')
-        fw.write(MetalFooter)
         fw.close()
 
         LogString = '-- Done ...'
