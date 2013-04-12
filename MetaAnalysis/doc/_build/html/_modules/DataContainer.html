@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DataContainer &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for DataContainer</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">Logger</span>
+
+<span class="c">#===============================================================================</span>
+<span class="c"># This module contains the basic DataContainer and DataContainers classes.</span>
+<span class="c"># Their members and member modules should speak for themselves, if not a</span>
+<span class="c"># comment is provided.</span>
+<span class="c">#===============================================================================</span>
+
+<div class="viewcode-block" id="DataContainer"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer">[docs]</a><span class="k">class</span> <span class="nc">DataContainer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataName</span>           <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span>          <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateDict</span>      <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateIndexDict</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicates</span>     <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Entry2IndexDict</span>    <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="DataContainer.GetMaxNDuplicates"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.GetMaxNDuplicates">[docs]</a>    <span class="k">def</span> <span class="nf">GetMaxNDuplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicates</span>
+</div>
+<div class="viewcode-block" id="DataContainer.SetDataName"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.SetDataName">[docs]</a>    <span class="k">def</span> <span class="nf">SetDataName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">Name</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataName</span> <span class="o">=</span> <span class="n">Name</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.GetDataName"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.GetDataName">[docs]</a>    <span class="k">def</span> <span class="nf">GetDataName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DataName</span>
+</div>
+<div class="viewcode-block" id="DataContainer.InitDataArray"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.InitDataArray">[docs]</a>    <span class="k">def</span> <span class="nf">InitDataArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.ReplaceDataArray"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.ReplaceDataArray">[docs]</a>    <span class="k">def</span> <span class="nf">ReplaceDataArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">DataArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span> <span class="o">=</span> <span class="n">DataArray</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.ReplaceDataArrayEntryAtIndex"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.ReplaceDataArrayEntryAtIndex">[docs]</a>    <span class="k">def</span> <span class="nf">ReplaceDataArrayEntryAtIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">Index</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                                     <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.AppendToArray"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.AppendToArray">[docs]</a>    <span class="k">def</span> <span class="nf">AppendToArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">Entry</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Entry</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.CastDataArrayToScipy"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.CastDataArrayToScipy">[docs]</a>    <span class="k">def</span> <span class="nf">CastDataArrayToScipy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DataContainer.GetDataArray"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.GetDataArray">[docs]</a>    <span class="k">def</span> <span class="nf">GetDataArray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span>
+</div>
+<div class="viewcode-block" id="DataContainer.RenameFieldsInDataArray"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.RenameFieldsInDataArray">[docs]</a>    <span class="k">def</span> <span class="nf">RenameFieldsInDataArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">Source</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                                <span class="n">Dest</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">DataArray</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()</span>
+        <span class="n">ExtractedArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataArray</span><span class="o">==</span><span class="n">Source</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">Index</span> <span class="ow">in</span> <span class="n">ExtractedArray</span><span class="p">:</span>
+            <span class="n">DataArray</span><span class="p">[</span><span class="n">Index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Dest</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span> <span class="o">=</span> <span class="n">DataArray</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.RenameColumnOfDataArray"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.RenameColumnOfDataArray">[docs]</a>    <span class="k">def</span> <span class="nf">RenameColumnOfDataArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">Source</span><span class="p">,</span>
+                                <span class="n">Dest</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetDataName</span><span class="p">(</span><span class="n">Dest</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.FindDuplicates"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.FindDuplicates">[docs]</a>    <span class="k">def</span> <span class="nf">FindDuplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CounterDict</span>   <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">DuplicateIndexDict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())):</span>
+            <span class="n">Entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CounterDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateDict</span>      <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateIndexDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicates</span>     <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">Key</span><span class="p">,</span> <span class="n">Value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">CounterDict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">Value</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span>      <span class="o">=</span> <span class="n">Value</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span> <span class="o">=</span> <span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicates</span>          <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicates</span><span class="p">,</span><span class="n">Value</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateDict</span>
+</div>
+<div class="viewcode-block" id="DataContainer.GetDuplicateIndexDict"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.GetDuplicateIndexDict">[docs]</a>    <span class="k">def</span> <span class="nf">GetDuplicateIndexDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DuplicateIndexDict</span>
+</div>
+<div class="viewcode-block" id="DataContainer.RemoveDuplicates"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.RemoveDuplicates">[docs]</a>    <span class="k">def</span> <span class="nf">RemoveDuplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                         <span class="n">DuplicateIndexDict</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">DataArray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()</span>
+        <span class="n">NRemoved</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+        <span class="n">DelList</span>   <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DuplicateIndexDict</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">])):</span>
+                <span class="n">Index</span> <span class="o">=</span> <span class="n">DuplicateIndexDict</span><span class="p">[</span><span class="n">Key</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">DelList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Index</span><span class="p">)</span>
+        <span class="n">DelList</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">DelList</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">DataArray</span><span class="p">,</span><span class="nb">tuple</span><span class="p">(</span><span class="n">DelList</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataArray</span> <span class="o">=</span> <span class="n">DataArray</span>
+        <span class="n">NRemoved</span>      <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">NRemoved</span>
+</div>
+<div class="viewcode-block" id="DataContainer.InitEntry2IndexDict"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.InitEntry2IndexDict">[docs]</a>    <span class="k">def</span> <span class="nf">InitEntry2IndexDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Entry2IndexDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.SetEntry2IndexDict"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.SetEntry2IndexDict">[docs]</a>    <span class="k">def</span> <span class="nf">SetEntry2IndexDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetEntry2IndexDict</span><span class="p">()</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">InitEntry2IndexDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())):</span>
+            <span class="n">Entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Entry2IndexDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="DataContainer.GetEntry2IndexDict"><a class="viewcode-back" href="../index.html#DataContainer.DataContainer.GetEntry2IndexDict">[docs]</a>    <span class="k">def</span> <span class="nf">GetEntry2IndexDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Entry2IndexDict</span>
+</div></div>
+<div class="viewcode-block" id="DataContainers"><a class="viewcode-back" href="../index.html#DataContainer.DataContainers">[docs]</a><span class="k">class</span> <span class="nc">DataContainers</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DataContainers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Names2Columns</span>  <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Columns2Names</span>  <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="DataContainers.WriteBioCratesGWAOutput"><a class="viewcode-back" href="../index.html#DataContainer.DataContainers.WriteBioCratesGWAOutput">[docs]</a>    <span class="k">def</span> <span class="nf">WriteBioCratesGWAOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                                <span class="n">OutPath</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                                <span class="n">HeaderList</span><span class="o">=</span><span class="p">[],</span>
+                                <span class="n">Header2ColumnDict</span><span class="o">=</span><span class="p">{}):</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">OutPath</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">OutPath</span><span class="p">)</span>
+        <span class="n">FilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OutPath</span><span class="p">,</span><span class="n">FileName</span><span class="p">)</span>
+
+        <span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">FilePath</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+
+        <span class="n">ColumnWidthList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">MaxWidth</span>        <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">HeaderList</span><span class="p">:</span>
+            <span class="n">MaxWidth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Entry</span><span class="p">),</span><span class="n">MaxWidth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">HeaderList</span><span class="p">:</span>
+            <span class="n">ColumnWidthList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MaxWidth</span><span class="o">+</span><span class="mi">6</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">HeaderList</span><span class="p">)):</span>
+            <span class="n">Entry</span>        <span class="o">=</span> <span class="n">HeaderList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;}&#39;</span>
+            <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Entry</span><span class="p">))</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">ArrayLenth</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ArrayLenth</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">HeaderList</span><span class="p">)):</span>
+                <span class="n">Entry</span>       <span class="o">=</span> <span class="n">HeaderList</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">ColumnId</span>    <span class="o">=</span> <span class="n">Header2ColumnDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span>
+
+                <span class="n">String</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnId</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()[</span><span class="n">i</span><span class="p">])</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">String</span><span class="o">==</span><span class="s">&#39;NA&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;beta&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;SE&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;pval&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;PValWald&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;AF_coded_all&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;HWE_pval&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;n_total&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;d}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">),</span><span class="mi">0</span><span class="p">)))</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">ColumnId</span><span class="o">==</span><span class="s">&#39;oevar_imp&#39;</span><span class="p">):</span>
+                    <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.5e}&#39;</span>
+                    <span class="n">String</span>       <span class="o">=</span> <span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+                <span class="n">FormatString</span> <span class="o">=</span> <span class="s">&#39;{0:&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ColumnWidthList</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;}&#39;</span>
+                <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">FormatString</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">String</span><span class="p">))</span>
+            <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">Cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">OutPath</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;pigz -f &#39;</span><span class="o">+</span><span class="n">FileName</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">Cwd</span><span class="p">)</span>
+
+        <span class="k">return</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

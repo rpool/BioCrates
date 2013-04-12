@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Plotting &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Plotting</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pylab</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+
+<div class="viewcode-block" id="LinearModel"><a class="viewcode-back" href="../index.html#Plotting.LinearModel">[docs]</a><span class="k">def</span> <span class="nf">LinearModel</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                <span class="n">Parameters</span><span class="o">=</span><span class="p">[]):</span>
+<span class="c">#   The linear regression function with ofsset 0.</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">B</span><span class="o">*</span><span class="n">X</span>
+    <span class="k">return</span> <span class="n">Y</span>
+</div>
+<div class="viewcode-block" id="Residuals"><a class="viewcode-back" href="../index.html#Plotting.Residuals">[docs]</a><span class="k">def</span> <span class="nf">Residuals</span><span class="p">(</span><span class="n">Parameters</span><span class="o">=</span><span class="p">[],</span>
+              <span class="n">X</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+              <span class="n">Y</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+<span class="c">#   The residuals function to be called by scipy.optimize.leastsq().</span>
+    <span class="n">Err</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">-</span> <span class="n">LinearModel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span>
+                          <span class="n">Parameters</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Err</span>
+</div>
+<div class="viewcode-block" id="GetPPointsArray"><a class="viewcode-back" href="../index.html#Plotting.GetPPointsArray">[docs]</a><span class="k">def</span> <span class="nf">GetPPointsArray</span><span class="p">(</span><span class="n">ArraySize</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+    <span class="c">#===========================================================================</span>
+    <span class="c"># Copied fromm R-ppoints</span>
+    <span class="c">#===========================================================================</span>
+    <span class="n">PPointsArray</span>   <span class="o">=</span> <span class="p">[]</span> <span class="c"># probability points array</span>
+    <span class="n">ThreeOverEight</span> <span class="o">=</span> <span class="mf">3.0</span><span class="o">/</span><span class="mf">8.0</span>
+    <span class="n">Half</span>           <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">N</span>              <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">Factor</span>         <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">ArraySize</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">ArraySize</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">N</span><span class="o">&lt;=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">Factor</span> <span class="o">=</span> <span class="n">ThreeOverEight</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Factor</span> <span class="o">=</span> <span class="n">Half</span>
+    <span class="n">OffSet</span>       <span class="o">=</span> <span class="n">Factor</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+    <span class="n">PPointsArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="o">+</span><span class="n">OffSet</span><span class="p">,</span><span class="mf">1.0</span><span class="o">-</span><span class="n">OffSet</span><span class="p">,</span><span class="n">N</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">PPointsArray</span>
+</div>
+<div class="viewcode-block" id="LambdaEstimate"><a class="viewcode-back" href="../index.html#Plotting.LambdaEstimate">[docs]</a><span class="k">def</span> <span class="nf">LambdaEstimate</span><span class="p">(</span><span class="n">Array</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                   <span class="n">Filter</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c">#===========================================================================</span>
+    <span class="c"># copied from R-GenABEL.lamdaest</span>
+    <span class="c">#===========================================================================</span>
+    <span class="n">Array</span>      <span class="o">=</span> <span class="n">Array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">Estimate</span>   <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">Ntp</span>        <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Array</span><span class="p">)</span>
+    <span class="n">QChi2Array</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">Array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">&lt;=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="c">#       Convert to quantile function of PValObsArray (df=1) if input are p-values.</span>
+        <span class="n">QChi2Array</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span>
+                                          <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">QChi2Array</span> <span class="o">=</span> <span class="n">Array</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+        <span class="n">FilterArray</span>        <span class="o">=</span> <span class="p">(</span><span class="n">QChi2Array</span><span class="o">&gt;=</span><span class="mf">1.0e-8</span><span class="p">)</span>
+        <span class="n">QChi2FilteredArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">QChi2Array</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">QChi2FilteredArray</span> <span class="o">=</span> <span class="n">QChi2Array</span>
+    <span class="n">QChi2FilteredArray</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+    <span class="n">PPointsArray</span> <span class="o">=</span> <span class="n">GetPPointsArray</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">QChi2FilteredArray</span><span class="p">))</span>
+    <span class="n">PPointsArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">PPointsArray</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="c"># df=1</span>
+
+    <span class="n">FilterArray</span>          <span class="o">=</span> <span class="p">(</span><span class="n">PPointsArray</span><span class="o">!=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">FilterArray</span>         <span class="o">*=</span> <span class="p">(</span><span class="n">QChi2FilteredArray</span><span class="o">!=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">PPointsArray</span>         <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">PPointsArray</span><span class="p">)</span>
+    <span class="n">QChi2FilteredArray</span>   <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">QChi2FilteredArray</span><span class="p">)</span>
+
+<span class="c">#   Fit PPointsArray,QChi2FilteredArray to the linear model.</span>
+    <span class="n">P0</span>           <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">PBest</span>        <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">leastsq</span><span class="p">(</span><span class="n">Residuals</span><span class="p">,</span>
+                                          <span class="n">P0</span><span class="p">,</span>
+                                          <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">PPointsArray</span><span class="p">,</span><span class="n">QChi2FilteredArray</span><span class="p">),</span>
+                                          <span class="n">full_output</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                          <span class="n">maxfev</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">Estimate</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">PBest</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">==</span><span class="n">scipy</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
+        <span class="n">Estimate</span> <span class="o">=</span> <span class="n">PBest</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Estimate</span>     <span class="o">=</span> <span class="n">PBest</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="c">#   Error estimation of parameter.</span>
+    <span class="n">Chi2</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">PBest</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s">&#39;fvec&#39;</span><span class="p">],</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">Dof</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">QChi2FilteredArray</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">P0</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+    <span class="n">SE</span>   <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">PBest</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Chi2</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Dof</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">Estimate</span><span class="p">,</span><span class="n">SE</span>
+</div>
+<div class="viewcode-block" id="PylabGetParams"><a class="viewcode-back" href="../index.html#Plotting.PylabGetParams">[docs]</a><span class="k">def</span> <span class="nf">PylabGetParams</span><span class="p">():</span>
+<span class="c">#   Set the plotting parameters: TeX mode, two columns per page in revtex mode/</span>
+    <span class="n">FigwidthPt</span>  <span class="o">=</span> <span class="mf">246.0</span> <span class="c"># pt (from revtex \showthe\columnwidth)</span>
+    <span class="n">InchesPerPt</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">72.27</span>
+    <span class="n">FigWidth</span>    <span class="o">=</span> <span class="n">FigwidthPt</span><span class="o">*</span><span class="n">InchesPerPt</span>
+    <span class="n">GoldenMean</span>  <span class="o">=</span> <span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span> <span class="c"># Aesthetic ratio</span>
+    <span class="n">FigHeight</span>   <span class="o">=</span> <span class="n">FigWidth</span><span class="o">*</span><span class="n">GoldenMean</span>
+    <span class="n">FigSize</span>     <span class="o">=</span> <span class="p">[</span><span class="n">FigWidth</span><span class="p">,</span><span class="n">FigHeight</span><span class="p">]</span>
+    <span class="n">Params</span>      <span class="o">=</span> <span class="p">{</span><span class="s">&#39;backend&#39;</span><span class="p">:</span> <span class="s">&#39;pdf&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;patch.antialiased&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                   <span class="s">&#39;axes.labelsize&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                   <span class="s">&#39;axes.linewidth&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                   <span class="s">&#39;grid.color&#39;</span><span class="p">:</span> <span class="s">&#39;0.75&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;grid.linewidth&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                   <span class="s">&#39;grid.linestyle&#39;</span><span class="p">:</span> <span class="s">&#39;:&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;axes.axisbelow&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="s">&#39;text.fontsize&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                   <span class="s">&#39;legend.fontsize&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                   <span class="s">&#39;xtick.labelsize&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                   <span class="s">&#39;ytick.labelsize&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                   <span class="s">&#39;text.usetex&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                   <span class="s">&#39;figure.figsize&#39;</span><span class="p">:</span> <span class="n">FigSize</span><span class="p">}</span>
+    <span class="n">Left</span>   <span class="o">=</span> <span class="mf">0.16</span>
+    <span class="n">Bottom</span> <span class="o">=</span> <span class="mf">0.16</span>
+    <span class="n">Width</span>  <span class="o">=</span> <span class="mf">0.86</span> <span class="o">-</span> <span class="n">Left</span>
+    <span class="n">Height</span> <span class="o">=</span> <span class="mf">0.95</span> <span class="o">-</span> <span class="n">Bottom</span>
+
+    <span class="k">return</span> <span class="n">Params</span><span class="p">,</span>\
+           <span class="p">[</span><span class="n">Left</span><span class="p">,</span> <span class="n">Bottom</span><span class="p">,</span> <span class="n">Width</span><span class="p">,</span> <span class="n">Height</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Scatter"><a class="viewcode-back" href="../index.html#Plotting.Scatter">[docs]</a><span class="k">def</span> <span class="nf">Scatter</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+            <span class="n">Y</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+            <span class="n">Min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">Max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">Legend</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">Name</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">XLabel</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">YLabel</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">boDrawY_EQ_X</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+    <span class="n">PylabParameters</span><span class="p">,</span>\
+    <span class="n">Rectangle</span>         <span class="o">=</span> <span class="n">PylabGetParams</span><span class="p">()</span>
+    <span class="n">Size</span>              <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="n">LineWidth</span>         <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">PylabParameters</span><span class="p">)</span>
+    <span class="n">PylabFigure</span> <span class="o">=</span> <span class="n">pylab</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">PylabFigure</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="n">PylabAxis</span> <span class="o">=</span> <span class="n">PylabFigure</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">)</span>
+    <span class="n">PlotName</span>  <span class="o">=</span> <span class="n">Name</span>
+    <span class="n">PlotPath</span>  <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span><span class="s">&#39;Plots&#39;</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">PlotPath</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">PlotPath</span><span class="p">)</span>
+    <span class="n">PlotName</span>  <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PlotPath</span><span class="p">,</span><span class="n">PlotName</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">X</span><span class="p">,</span>
+                      <span class="n">Y</span><span class="p">,</span>
+                      <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span>
+                      <span class="n">s</span><span class="o">=</span><span class="n">Size</span><span class="p">,</span>
+                      <span class="n">linewidths</span><span class="o">=</span><span class="n">LineWidth</span><span class="p">,</span>
+                      <span class="n">facecolor</span><span class="o">=</span><span class="s">&#39;None&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="n">Legend</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">Min</span><span class="p">,</span><span class="n">Max</span><span class="p">],</span>
+                   <span class="p">[</span><span class="n">Min</span><span class="p">,</span><span class="n">Max</span><span class="p">],</span>
+                   <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span>
+                   <span class="n">linestyle</span><span class="o">=</span><span class="s">&#39;--&#39;</span><span class="p">,</span>
+                   <span class="n">linewidth</span><span class="o">=</span><span class="n">LineWidth</span><span class="p">,</span>
+                   <span class="n">label</span><span class="o">=</span><span class="s">r&#39;$y=x$&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">Min</span><span class="p">,</span><span class="n">Max</span><span class="p">])</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">Min</span><span class="p">,</span><span class="n">Max</span><span class="p">])</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">XLabel</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">YLabel</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s">&#39;left&#39;</span><span class="p">)</span>
+    <span class="n">Handles</span><span class="p">,</span><span class="n">Labels</span> <span class="o">=</span> <span class="n">PylabAxis</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">Handles</span><span class="p">,</span>
+                     <span class="n">Labels</span><span class="p">,</span>
+                     <span class="n">fancybox</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">shadow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">loc</span><span class="o">=</span><span class="s">&#39;lower right&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">PylabFigure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">PlotName</span><span class="p">,</span><span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+
+    <span class="n">pylab</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">PylabFigure</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">PylabAxis</span>
+    <span class="k">del</span> <span class="n">PylabFigure</span>
+
+    <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="PlotQQFilteredOnScore"><a class="viewcode-back" href="../index.html#Plotting.PlotQQFilteredOnScore">[docs]</a><span class="k">def</span> <span class="nf">PlotQQFilteredOnScore</span><span class="p">(</span><span class="n">MtbName</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                          <span class="n">LPValExpArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                          <span class="n">LPValObsArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                          <span class="n">PValObsArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                          <span class="n">EMACArray</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+                          <span class="n">EMACLevels</span><span class="o">=</span><span class="p">[],</span>
+                          <span class="n">Colors</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="n">PylabParameters</span><span class="p">,</span>\
+    <span class="n">Rectangle</span>         <span class="o">=</span> <span class="n">PylabGetParams</span><span class="p">()</span>
+    <span class="n">Size</span>              <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="n">LineWidth</span>         <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">PylabParameters</span><span class="p">)</span>
+    <span class="n">PylabFigure</span> <span class="o">=</span> <span class="n">pylab</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">PylabFigure</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="n">PylabAxis</span> <span class="o">=</span> <span class="n">PylabFigure</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">)</span>
+    <span class="n">PlotName</span>  <span class="o">=</span> <span class="s">&#39;QQPValueModeFilteredOnScore_&#39;</span><span class="o">+</span><span class="n">MtbName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span>
+    <span class="n">PlotPath</span>  <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span><span class="s">&#39;Plots&#39;</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">PlotPath</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">PlotPath</span><span class="p">)</span>
+    <span class="n">PlotName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PlotPath</span><span class="p">,</span><span class="n">PlotName</span><span class="p">)</span>
+<span class="c">#   Initialize the Lamba arrays and start filling them (Lambda = genomic inflation factor)</span>
+    <span class="n">Lambdas</span>   <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">SEsLambda</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">LambdaEst</span><span class="p">,</span>\
+    <span class="n">SELambdaEst</span> <span class="o">=</span> <span class="n">LambdaEstimate</span><span class="p">(</span><span class="n">Array</span><span class="o">=</span><span class="n">PValObsArray</span><span class="p">,</span><span class="n">Filter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">Lambdas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LambdaEst</span><span class="p">)</span>
+    <span class="n">SEsLambda</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SELambdaEst</span><span class="p">)</span>
+    <span class="c">#   Plot the unfiltered QQ plot.</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">LPValExpArray</span><span class="p">),</span>
+                      <span class="n">scipy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">LPValObsArray</span><span class="p">),</span>
+                      <span class="n">color</span><span class="o">=</span><span class="n">Colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                      <span class="n">s</span><span class="o">=</span><span class="n">Size</span><span class="p">,</span>
+                      <span class="n">linewidths</span><span class="o">=</span><span class="n">LineWidth</span><span class="p">,</span>
+                      <span class="n">facecolor</span><span class="o">=</span><span class="s">&#39;None&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s">r&#39;${\rm ~all~SNPs}&#39;</span><span class="o">+</span><span class="s">r&#39;~(\lambda=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">LambdaEst</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="s">r&#39;)$&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">EMACLevels</span><span class="p">)):</span>
+<span class="c">#       Plot the Score filtered QQ plots</span>
+        <span class="n">Color</span>       <span class="o">=</span> <span class="n">Colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">LabelString</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">FilterArray</span>  <span class="o">=</span> <span class="p">(</span><span class="n">EMACArray</span> <span class="o">&gt;=</span> <span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">FilterArray</span> <span class="o">*=</span> <span class="p">(</span><span class="n">EMACArray</span>  <span class="o">&lt;</span> <span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">ObsLP</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">LPValObsArray</span><span class="p">))</span>
+        <span class="n">ObsP</span>  <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">PValObsArray</span><span class="p">))</span>
+<span class="c">#       Append estimates to Lambda arrays</span>
+        <span class="n">LambdaEst</span><span class="p">,</span>\
+        <span class="n">SELambdaEst</span> <span class="o">=</span> <span class="n">LambdaEstimate</span><span class="p">(</span><span class="n">Array</span><span class="o">=</span><span class="n">ObsP</span><span class="p">,</span><span class="n">Filter</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">Lambdas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LambdaEst</span><span class="p">)</span>
+        <span class="n">SEsLambda</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SELambdaEst</span><span class="p">)</span>
+        <span class="n">ExpLP</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span><span class="n">LPValExpArray</span><span class="p">))</span>
+
+        <span class="n">LabelString</span>  <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">r&#39;\leq {\rm EMAC} &lt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">EMACLevels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">LabelString</span> <span class="o">+=</span> <span class="s">r&#39;~(\lambda = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">LambdaEst</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;)&#39;</span>
+        <span class="n">PylabAxis</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">ExpLP</span><span class="p">,</span>
+                          <span class="n">ObsLP</span><span class="p">,</span>
+                          <span class="n">color</span><span class="o">=</span><span class="n">Color</span><span class="p">,</span>
+                          <span class="n">s</span><span class="o">=</span><span class="n">Size</span><span class="p">,</span>
+                          <span class="n">linewidths</span><span class="o">=</span><span class="n">LineWidth</span><span class="p">,</span>
+                          <span class="n">facecolor</span><span class="o">=</span><span class="s">&#39;None&#39;</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s">r&#39;${\rm ~&#39;</span><span class="o">+</span><span class="n">LabelString</span><span class="o">+</span><span class="s">&#39;}$&#39;</span><span class="p">)</span>
+    <span class="n">MaxLPVal</span>    <span class="o">=</span> <span class="n">LPValObsArray</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">MaxLPValExp</span> <span class="o">=</span> <span class="n">LPValExpArray</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">Max</span>         <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">MaxLPVal</span><span class="p">,</span><span class="n">MaxLPValExp</span><span class="p">)</span><span class="o">+</span><span class="mf">2.5</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span><span class="n">Max</span><span class="p">],</span>
+                   <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="n">Max</span><span class="p">],</span>
+                   <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span>
+                   <span class="n">linestyle</span><span class="o">=</span><span class="s">&#39;--&#39;</span><span class="p">,</span>
+                   <span class="n">linewidth</span><span class="o">=</span><span class="n">LineWidth</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span><span class="n">Max</span><span class="p">])</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span><span class="n">Max</span><span class="p">])</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">r&#39;$-\log_{10}{(p-{\rm value})} {\rm ~(expected)~[-]}$&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">r&#39;$-\log_{10}{(p-{\rm value})} {\rm ~(observed)~[-]}$&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s">&#39;left&#39;</span><span class="p">)</span>
+    <span class="n">Handles</span><span class="p">,</span><span class="n">Labels</span> <span class="o">=</span> <span class="n">PylabAxis</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">Handles</span><span class="p">,</span>
+                     <span class="n">Labels</span><span class="p">,</span>
+                     <span class="n">fancybox</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">shadow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">loc</span><span class="o">=</span><span class="s">&#39;lower right&#39;</span><span class="p">)</span>
+    <span class="n">PylabAxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">PylabFigure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">PlotName</span><span class="p">,</span><span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+
+    <span class="n">pylab</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">PylabFigure</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">PylabAxis</span>
+    <span class="k">del</span> <span class="n">PylabFigure</span>
+
+    <span class="k">return</span> <span class="n">Lambdas</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>\
+           <span class="n">SEsLambda</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

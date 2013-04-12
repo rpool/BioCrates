@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Filters &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for Filters</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">lxml.etree</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">import</span> <span class="nn">FilterFunction</span>
+<span class="kn">import</span> <span class="nn">DataContainer</span>
+
+<div class="viewcode-block" id="Filters"><a class="viewcode-back" href="../index.html#Filters.Filters">[docs]</a><span class="k">class</span> <span class="nc">Filters</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitialArrayLength</span>    <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NDeletedDuplicateSNPs</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicateSNPs</span>     <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boDuplicateSNPWarning</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterFunctionDict</span>    <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportDict</span>      <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportPath</span>      <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDict</span><span class="p">()</span>
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="Filters.InitFilterReportDict"><a class="viewcode-back" href="../index.html#Filters.Filters.InitFilterReportDict">[docs]</a>    <span class="k">def</span> <span class="nf">InitFilterReportDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.GetFilterReportDictDict"><a class="viewcode-back" href="../index.html#Filters.Filters.GetFilterReportDictDict">[docs]</a>    <span class="k">def</span> <span class="nf">GetFilterReportDictDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportDict</span>
+</div>
+<div class="viewcode-block" id="Filters.SetFilterReportPath"><a class="viewcode-back" href="../index.html#Filters.Filters.SetFilterReportPath">[docs]</a>    <span class="k">def</span> <span class="nf">SetFilterReportPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">Cwd</span>                   <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Cwd</span><span class="p">,</span><span class="n">Value</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FilterReportPath</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FilterReportPath</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.GetFilterReportPath"><a class="viewcode-back" href="../index.html#Filters.Filters.GetFilterReportPath">[docs]</a>    <span class="k">def</span> <span class="nf">GetFilterReportPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FilterReportPath</span><span class="o">==</span><span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportPath</span><span class="p">(</span><span class="s">&#39;Filters&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportPath</span>
+</div>
+<div class="viewcode-block" id="Filters.WriteFilterReport"><a class="viewcode-back" href="../index.html#Filters.Filters.WriteFilterReport">[docs]</a>    <span class="k">def</span> <span class="nf">WriteFilterReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                          <span class="n">Tag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">FilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetFilterReportPath</span><span class="p">(),</span><span class="n">FileName</span><span class="p">)</span>
+
+        <span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">FilePath</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="n">Tag</span><span class="p">]</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+            <span class="n">String</span> <span class="o">=</span> <span class="s">&#39;**&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GetFilterReportDictDict</span><span class="p">()[</span><span class="n">Tag</span><span class="p">][</span><span class="n">Key</span><span class="p">]</span>
+            <span class="n">String</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">**&#39;</span><span class="p">,</span><span class="n">String</span><span class="p">)</span>
+            <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">String</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.WriteCustomFilterReport"><a class="viewcode-back" href="../index.html#Filters.Filters.WriteCustomFilterReport">[docs]</a>    <span class="k">def</span> <span class="nf">WriteCustomFilterReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">FileName</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                                <span class="n">String</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">FilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetFilterReportPath</span><span class="p">(),</span><span class="n">FileName</span><span class="p">)</span>
+
+        <span class="n">FH</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">FilePath</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">String</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">FH</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.InitFilterReportDictDict"><a class="viewcode-back" href="../index.html#Filters.Filters.InitFilterReportDictDict">[docs]</a>    <span class="k">def</span> <span class="nf">InitFilterReportDictDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">Tag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportDict</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.SetFilterReportDictDict"><a class="viewcode-back" href="../index.html#Filters.Filters.SetFilterReportDictDict">[docs]</a>    <span class="k">def</span> <span class="nf">SetFilterReportDictDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">ParentTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                                <span class="n">ChildTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                                <span class="n">Value</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FilterReportDict</span><span class="p">[</span><span class="n">ParentTag</span><span class="p">][</span><span class="n">ChildTag</span><span class="p">]</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.FilterSEs"><a class="viewcode-back" href="../index.html#Filters.Filters.FilterSEs">[docs]</a>    <span class="k">def</span> <span class="nf">FilterSEs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                  <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">,</span>
+                  <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                  <span class="n">boDryRun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+        <span class="n">FiltersTag</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">boDryRun</span><span class="p">):</span>
+            <span class="n">FiltersTag</span> <span class="o">=</span> <span class="s">&#39;DryRunFilters&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">FiltersTag</span> <span class="o">=</span> <span class="s">&#39;Filters&#39;</span>
+
+        <span class="n">FilterTags</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">FiltersTag</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDictDict</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">Tag</span> <span class="ow">in</span> <span class="n">FilterTags</span><span class="p">:</span>
+            <span class="n">Operator</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Operator&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">ValueType</span>    <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">FFunction</span> <span class="o">=</span> <span class="n">FilterFunction</span><span class="o">.</span><span class="n">FilterFunction</span><span class="p">(</span><span class="n">OperatorString</span><span class="o">=</span><span class="n">Operator</span><span class="p">,</span>
+                                                      <span class="n">CompareString</span><span class="o">=</span><span class="n">CompareValue</span><span class="p">,</span>
+                                                      <span class="n">CompareType</span><span class="o">=</span><span class="n">ValueType</span><span class="p">)</span>
+
+            <span class="n">InitLength</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="n">FinalLength</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">boDryRun</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                    <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span>
+                                               <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                    <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+                <span class="n">FinalLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">CounterDict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">FilterArray</span><span class="p">:</span>
+                    <span class="n">CounterDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">Difference</span>  <span class="o">=</span> <span class="n">CounterDict</span><span class="p">[</span><span class="bp">False</span><span class="p">]</span>
+                <span class="n">FinalLength</span> <span class="o">=</span> <span class="n">InitLength</span><span class="o">-</span><span class="n">Difference</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportDictDict</span><span class="p">(</span><span class="n">ParentTag</span><span class="o">=</span><span class="n">ColumnTag</span><span class="p">,</span>
+                                         <span class="n">ChildTag</span><span class="o">=</span><span class="n">Tag</span><span class="p">,</span>
+                                         <span class="n">Value</span><span class="o">=</span><span class="s">&#39;Column Tag   = &#39;</span><span class="o">+</span><span class="n">ColumnTag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Filter Tag   = &#39;</span><span class="o">+</span><span class="n">Tag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Start Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Final Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">FinalLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Difference   = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="o">-</span><span class="n">FinalLength</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DCs</span><span class="p">,</span>\
+               <span class="n">FilterTags</span>
+</div>
+<div class="viewcode-block" id="Filters.FilterBetas"><a class="viewcode-back" href="../index.html#Filters.Filters.FilterBetas">[docs]</a>    <span class="k">def</span> <span class="nf">FilterBetas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                    <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">,</span>
+                    <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                    <span class="n">boDryRun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+        <span class="n">FiltersTag</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">boDryRun</span><span class="p">):</span>
+            <span class="n">FiltersTag</span> <span class="o">=</span> <span class="s">&#39;DryRunFilters&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">FiltersTag</span> <span class="o">=</span> <span class="s">&#39;Filters&#39;</span>
+
+        <span class="n">FilterTags</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">FiltersTag</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDictDict</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">Tag</span> <span class="ow">in</span> <span class="n">FilterTags</span><span class="p">:</span>
+            <span class="n">Operator</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Operator&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">ValueType</span>    <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">FFunction</span> <span class="o">=</span> <span class="n">FilterFunction</span><span class="o">.</span><span class="n">FilterFunction</span><span class="p">(</span><span class="n">OperatorString</span><span class="o">=</span><span class="n">Operator</span><span class="p">,</span>
+                                                      <span class="n">CompareString</span><span class="o">=</span><span class="n">CompareValue</span><span class="p">,</span>
+                                                      <span class="n">CompareType</span><span class="o">=</span><span class="n">ValueType</span><span class="p">)</span>
+
+            <span class="n">InitLength</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="n">FinalLength</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">boDryRun</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                    <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span>
+                                               <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                    <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+                <span class="n">FinalLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">CounterDict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">FilterArray</span><span class="p">:</span>
+                    <span class="n">CounterDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">Difference</span>  <span class="o">=</span> <span class="n">CounterDict</span><span class="p">[</span><span class="bp">False</span><span class="p">]</span>
+                <span class="n">FinalLength</span> <span class="o">=</span> <span class="n">InitLength</span><span class="o">-</span><span class="n">Difference</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportDictDict</span><span class="p">(</span><span class="n">ParentTag</span><span class="o">=</span><span class="n">ColumnTag</span><span class="p">,</span>
+                                         <span class="n">ChildTag</span><span class="o">=</span><span class="n">Tag</span><span class="p">,</span>
+                                         <span class="n">Value</span><span class="o">=</span><span class="s">&#39;Column Tag   = &#39;</span><span class="o">+</span><span class="n">ColumnTag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Filter Tag   = &#39;</span><span class="o">+</span><span class="n">Tag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Start Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Final Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">FinalLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Difference   = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="o">-</span><span class="n">FinalLength</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DCs</span><span class="p">,</span>\
+               <span class="n">FilterTags</span>
+</div>
+<div class="viewcode-block" id="Filters.FilterChrs"><a class="viewcode-back" href="../index.html#Filters.Filters.FilterChrs">[docs]</a>    <span class="k">def</span> <span class="nf">FilterChrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                   <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">,</span>
+                   <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+
+        <span class="n">FilterTags</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Filters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDictDict</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">Tag</span> <span class="ow">in</span> <span class="n">FilterTags</span><span class="p">:</span>
+            <span class="n">Operator</span>      <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Operator&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">CompareValues</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">ValueType</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">CompareValues</span><span class="p">)):</span>
+                <span class="n">CValue</span>    <span class="o">=</span> <span class="n">CompareValues</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">FFunction</span> <span class="o">=</span> <span class="n">FilterFunction</span><span class="o">.</span><span class="n">FilterFunction</span><span class="p">(</span><span class="n">OperatorString</span><span class="o">=</span><span class="n">Operator</span><span class="p">,</span>
+                                                          <span class="n">CompareString</span><span class="o">=</span><span class="n">CValue</span><span class="p">,</span>
+                                                          <span class="n">CompareType</span><span class="o">=</span><span class="n">ValueType</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                    <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">FilterArray</span> <span class="o">=</span> <span class="p">(</span><span class="n">FilterArray</span> <span class="o">|</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">()))</span>
+
+            <span class="n">InitLength</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span>
+                                           <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+            <span class="n">FinalLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportDictDict</span><span class="p">(</span><span class="n">ParentTag</span><span class="o">=</span><span class="n">ColumnTag</span><span class="p">,</span>
+                                         <span class="n">ChildTag</span><span class="o">=</span><span class="n">Tag</span><span class="p">,</span>
+                                         <span class="n">Value</span><span class="o">=</span><span class="s">&#39;Column Tag   = &#39;</span><span class="o">+</span><span class="n">ColumnTag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Filter Tag   = &#39;</span><span class="o">+</span><span class="n">Tag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Start Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Final Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">FinalLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Difference   = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="o">-</span><span class="n">FinalLength</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DCs</span><span class="p">,</span>\
+               <span class="n">FilterTags</span>
+</div>
+<div class="viewcode-block" id="Filters.FilterNTotals"><a class="viewcode-back" href="../index.html#Filters.Filters.FilterNTotals">[docs]</a>    <span class="k">def</span> <span class="nf">FilterNTotals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                      <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">,</span>
+                      <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                      <span class="n">boDryRun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+        <span class="n">FiltersTag</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">boDryRun</span><span class="p">):</span>
+            <span class="n">FiltersTag</span> <span class="o">=</span> <span class="s">&#39;DryRunFilters&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">FiltersTag</span> <span class="o">=</span> <span class="s">&#39;Filters&#39;</span>
+
+        <span class="n">FilterTags</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">FiltersTag</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDictDict</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">Tag</span> <span class="ow">in</span> <span class="n">FilterTags</span><span class="p">:</span>
+            <span class="n">Operator</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Operator&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">ValueType</span>    <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">FFunction</span> <span class="o">=</span> <span class="n">FilterFunction</span><span class="o">.</span><span class="n">FilterFunction</span><span class="p">(</span><span class="n">OperatorString</span><span class="o">=</span><span class="n">Operator</span><span class="p">,</span>
+                                                      <span class="n">CompareString</span><span class="o">=</span><span class="n">CompareValue</span><span class="p">,</span>
+                                                      <span class="n">CompareType</span><span class="o">=</span><span class="n">ValueType</span><span class="p">)</span>
+
+            <span class="n">InitLength</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="n">FinalLength</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">boDryRun</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                    <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span>
+                                               <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                    <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+                <span class="n">FinalLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">CounterDict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">Entry</span> <span class="ow">in</span> <span class="n">FilterArray</span><span class="p">:</span>
+                    <span class="n">CounterDict</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">Difference</span>  <span class="o">=</span> <span class="n">CounterDict</span><span class="p">[</span><span class="bp">False</span><span class="p">]</span>
+                <span class="n">FinalLength</span> <span class="o">=</span> <span class="n">InitLength</span><span class="o">-</span><span class="n">Difference</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportDictDict</span><span class="p">(</span><span class="n">ParentTag</span><span class="o">=</span><span class="n">ColumnTag</span><span class="p">,</span>
+                                         <span class="n">ChildTag</span><span class="o">=</span><span class="n">Tag</span><span class="p">,</span>
+                                         <span class="n">Value</span><span class="o">=</span><span class="s">&#39;Column Tag   = &#39;</span><span class="o">+</span><span class="n">ColumnTag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Filter Tag   = &#39;</span><span class="o">+</span><span class="n">Tag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Start Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Final Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">FinalLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Difference   = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="o">-</span><span class="n">FinalLength</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DCs</span><span class="p">,</span>\
+               <span class="n">FilterTags</span>
+</div>
+<div class="viewcode-block" id="Filters.FilterAFCodedAlls"><a class="viewcode-back" href="../index.html#Filters.Filters.FilterAFCodedAlls">[docs]</a>    <span class="k">def</span> <span class="nf">FilterAFCodedAlls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                          <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">,</span>
+                          <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+
+        <span class="n">FilterTags</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Filters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDictDict</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">Tag</span> <span class="ow">in</span> <span class="n">FilterTags</span><span class="p">:</span>
+            <span class="n">Operator</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Operator&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">ValueType</span>    <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">FFunction</span> <span class="o">=</span> <span class="n">FilterFunction</span><span class="o">.</span><span class="n">FilterFunction</span><span class="p">(</span><span class="n">OperatorString</span><span class="o">=</span><span class="n">Operator</span><span class="p">,</span>
+                                                      <span class="n">CompareString</span><span class="o">=</span><span class="n">CompareValue</span><span class="p">,</span>
+                                                      <span class="n">CompareType</span><span class="o">=</span><span class="n">ValueType</span><span class="p">)</span>
+
+            <span class="n">InitLength</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span>
+                                           <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+            <span class="n">FinalLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportDictDict</span><span class="p">(</span><span class="n">ParentTag</span><span class="o">=</span><span class="n">ColumnTag</span><span class="p">,</span>
+                                         <span class="n">ChildTag</span><span class="o">=</span><span class="n">Tag</span><span class="p">,</span>
+                                         <span class="n">Value</span><span class="o">=</span><span class="s">&#39;Column Tag   = &#39;</span><span class="o">+</span><span class="n">ColumnTag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Filter Tag   = &#39;</span><span class="o">+</span><span class="n">Tag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Start Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Final Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">FinalLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Difference   = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="o">-</span><span class="n">FinalLength</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DCs</span><span class="p">,</span>\
+               <span class="n">FilterTags</span>
+</div>
+<div class="viewcode-block" id="Filters.FilterEMACs"><a class="viewcode-back" href="../index.html#Filters.Filters.FilterEMACs">[docs]</a>    <span class="k">def</span> <span class="nf">FilterEMACs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">XmlObj</span><span class="o">=</span><span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">_ElementTree</span><span class="p">,</span>
+                    <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">,</span>
+                    <span class="n">ColumnTag</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+
+        <span class="n">FilterTags</span>  <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;MtbGWAColumns&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Filters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitFilterReportDictDict</span><span class="p">(</span><span class="n">ColumnTag</span><span class="p">)</span>
+
+        <span class="n">FilterArray</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">Tag</span> <span class="ow">in</span> <span class="n">FilterTags</span><span class="p">:</span>
+            <span class="n">Operator</span>     <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Operator&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">CompareValue</span> <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Compare&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">ValueType</span>    <span class="o">=</span> <span class="n">XmlObj</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;QCFilters&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;CompareType&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">FFunction</span> <span class="o">=</span> <span class="n">FilterFunction</span><span class="o">.</span><span class="n">FilterFunction</span><span class="p">(</span><span class="n">OperatorString</span><span class="o">=</span><span class="n">Operator</span><span class="p">,</span>
+                                                      <span class="n">CompareString</span><span class="o">=</span><span class="n">CompareValue</span><span class="p">,</span>
+                                                      <span class="n">CompareType</span><span class="o">=</span><span class="n">ValueType</span><span class="p">)</span>
+
+            <span class="n">InitLength</span>  <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="n">FilterArray</span> <span class="o">=</span> <span class="n">FFunction</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">DataArray</span><span class="o">=</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">Key</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                <span class="n">DataArray</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">FilterArray</span><span class="p">,</span>
+                                           <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+                <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">Key</span><span class="p">]</span><span class="o">.</span><span class="n">ReplaceDataArray</span><span class="p">(</span><span class="n">DataArray</span><span class="p">)</span>
+            <span class="n">FinalLength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">ColumnTag</span><span class="p">]</span><span class="o">.</span><span class="n">GetDataArray</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">SetFilterReportDictDict</span><span class="p">(</span><span class="n">ParentTag</span><span class="o">=</span><span class="n">ColumnTag</span><span class="p">,</span>
+                                         <span class="n">ChildTag</span><span class="o">=</span><span class="n">Tag</span><span class="p">,</span>
+                                         <span class="n">Value</span><span class="o">=</span><span class="s">&#39;Column Tag   = &#39;</span><span class="o">+</span><span class="n">ColumnTag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Filter Tag   = &#39;</span><span class="o">+</span><span class="n">Tag</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Start Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Final Length = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">FinalLength</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span>\
+                                               <span class="s">&#39;Difference   = &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">InitLength</span><span class="o">-</span><span class="n">FinalLength</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">DCs</span><span class="p">,</span>\
+               <span class="n">FilterTags</span>
+</div>
+<div class="viewcode-block" id="Filters.SetInitialArrayLength"><a class="viewcode-back" href="../index.html#Filters.Filters.SetInitialArrayLength">[docs]</a>    <span class="k">def</span> <span class="nf">SetInitialArrayLength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitialArrayLength</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.GetInitialArrayLength"><a class="viewcode-back" href="../index.html#Filters.Filters.GetInitialArrayLength">[docs]</a>    <span class="k">def</span> <span class="nf">GetInitialArrayLength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">InitialArrayLength</span>
+</div>
+<div class="viewcode-block" id="Filters.SetNDeletedDuplicateSNPs"><a class="viewcode-back" href="../index.html#Filters.Filters.SetNDeletedDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">SetNDeletedDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NDeletedDuplicateSNPs</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.GetNDeletedDuplicateSNPs"><a class="viewcode-back" href="../index.html#Filters.Filters.GetNDeletedDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">GetNDeletedDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">NDeletedDuplicateSNPs</span>
+</div>
+<div class="viewcode-block" id="Filters.RemoveDuplicateSNPs"><a class="viewcode-back" href="../index.html#Filters.Filters.RemoveDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">RemoveDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">DCs</span><span class="o">=</span><span class="n">DataContainer</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">):</span>
+
+        <span class="n">NRemoved</span>   <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">DuplicateIndexDict</span> <span class="o">=</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="s">&#39;SNPID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GetDuplicateIndexDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">DCKey</span> <span class="ow">in</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+            <span class="n">NRemoved</span> <span class="o">=</span> <span class="n">DCs</span><span class="o">.</span><span class="n">DataContainers</span><span class="p">[</span><span class="n">DCKey</span><span class="p">]</span><span class="o">.</span><span class="n">RemoveDuplicates</span><span class="p">(</span><span class="n">DuplicateIndexDict</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SetNDeletedDuplicateSNPs</span><span class="p">(</span><span class="n">NRemoved</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DCs</span>
+</div>
+<div class="viewcode-block" id="Filters.SetMaxNDuplicateSNPs"><a class="viewcode-back" href="../index.html#Filters.Filters.SetMaxNDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">SetMaxNDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">Value</span><span class="o">=</span><span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicateSNPs</span> <span class="o">=</span> <span class="n">Value</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.GetMaxNDuplicateSNPs"><a class="viewcode-back" href="../index.html#Filters.Filters.GetMaxNDuplicateSNPs">[docs]</a>    <span class="k">def</span> <span class="nf">GetMaxNDuplicateSNPs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">MaxNDuplicateSNPs</span>
+</div>
+<div class="viewcode-block" id="Filters.SetboDuplicateSNPWarning"><a class="viewcode-back" href="../index.html#Filters.Filters.SetboDuplicateSNPWarning">[docs]</a>    <span class="k">def</span> <span class="nf">SetboDuplicateSNPWarning</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GetMaxNDuplicateSNPs</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">100</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boDuplicateSNPWarning</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="Filters.GetboDuplicateSNPWarning"><a class="viewcode-back" href="../index.html#Filters.Filters.GetboDuplicateSNPWarning">[docs]</a>    <span class="k">def</span> <span class="nf">GetboDuplicateSNPWarning</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boDuplicateSNPWarning</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">QCGWAData v0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to QCGWAData’s documentation! &mdash; QCGWAData v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="QCGWAData v0.1 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">QCGWAData v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-qcgwadata-s-documentation">
+<h1>Welcome to QCGWAData&#8217;s documentation!<a class="headerlink" href="#welcome-to-qcgwadata-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>On these pages you can find the necessary documentation to run <tt class="docutils literal"><span class="pre">QCGWA.py</span></tt>, a python module to quality control your GWA output files.</p>
+<p>A QC of GWA data in general involves two steps: (1) format checking and curation if needed and (2) QC based on preset properties, e.g. a MAF filter. These two steps are performed by <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> and the user will receive information in log and summary files. In addition, the QC run can be inspected afterwards by looking at the outputted graphs.</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+<div class="section" id="invocation-of-qcgwadata-py">
+<h1>Invocation of <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt><a class="headerlink" href="#invocation-of-qcgwadata-py" title="Permalink to this headline">¶</a></h1>
+<p>The module <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> is invoked as follows:</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight-python"><pre>usage: QCGWAData.py [-h] [-P NAME]
+
+This python module can be used for the initial QC of GWA output files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -P NAME, --protocolfile NAME
+                        NAME: Name of file contains the necessary input and
+                        protocol values (input, format XML)</pre>
+</div>
+<p>In practice you will run the following command:</p>
+<p><strong>Command</strong>:</p>
+<div class="highlight-python"><pre>./QCGWAData.py -P &lt;ProtocolFileName&gt;.xml</pre>
+</div>
+<p>in your working directory, after linking to the <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> executable.</p>
+<p><strong>Link</strong>:</p>
+<div class="highlight-python"><pre>ln -s &lt;PathToQCGWADataSource&gt;/QCGWAData.py ./</pre>
+</div>
+</div>
+<div class="section" id="the-xml-input-file">
+<h1>The <tt class="docutils literal"><span class="pre">.xml</span></tt> input file<a class="headerlink" href="#the-xml-input-file" title="Permalink to this headline">¶</a></h1>
+<p>The module <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> needs an input file in <tt class="docutils literal"><span class="pre">.xml</span></tt> format that contains all necessary instructions for a successful run: the <em>protocol</em>. Below follows a description of the ingredients of this input file. Knowledge on this input format is sufficient for a QC run. For special functionality, you should either modify the <tt class="docutils literal"><span class="pre">python</span></tt> source code or consult the developer (i.e. René Pool).</p>
+<p>An <tt class="docutils literal"><span class="pre">.xml</span></tt> file consists of tags, specified as <strong>&lt;Tag&gt;</strong> <em>Value or Child</em> <strong>&lt;/Tag&gt;</strong>. A tag contains values and/or children tags. Each tag has a parent, except for the <em>root</em> tag. Module <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> searches for specific tags in the <tt class="docutils literal"><span class="pre">.xml</span></tt> file. These tags contain the instructions <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt> needs for a successful run.</p>
+<p>The <tt class="docutils literal"><span class="pre">.xml</span></tt> needs the following tag blocks (comments are between <tt class="docutils literal"><span class="pre">&lt;!--</span> <span class="pre">--&gt;</span></tt>)</p>
+<p><strong>TagBlocks</strong>:</p>
+<div class="highlight-python"><pre>&lt;!-- This contains the QC protocol for the TwinsUK GWA output --&gt;
+&lt;Protocol&gt;
+    &lt;!-- The directory containing the GWA output files --&gt;
+    &lt;GWAOutputPath&gt;&lt;/GWAOutputPath&gt;
+
+    &lt;!-- Your working directory --&gt;
+    &lt;WorkingPath&gt;&lt;/WorkingPath&gt;
+
+    &lt;!-- Format specifiers of GWA output and GWA extra files --&gt;
+    &lt;Format&gt;&lt;/Format&gt;
+
+    &lt;!-- Hapmap mapping details --&gt;
+    &lt;HapMap&gt;&lt;/HapMap&gt;
+
+    &lt;!-- Files containing extra info associated with the GWA output files --&gt;
+    &lt;ExtraInfoFiles&gt;
+        &lt;ExtraInfoFile1&gt;&lt;/ExtraInfoFile1&gt;
+        &lt;ExtraInfoFile2&gt;&lt;/ExtraInfoFile2&gt;
+    &lt;/ExtraInfoFiles&gt;
+    &lt;ExtraInfoColumns&gt;
+        &lt;!-- Column specifiers of the extra info file --&gt;
+        &lt;!-- ColumnName:        Expected name of the column --&gt;
+        &lt;!-- boSetColumnName:   Change the column name? --&gt;
+        &lt;!-- SetColumnName:     Change the column name --&gt;
+    &lt;/ExtraInfoColumns&gt;
+
+    &lt;!-- Details on the ExcludedMetabolites file --&gt;
+    &lt;ExcludedMtbFile&gt;&lt;/ExcludedMtbFile&gt;
+
+    &lt;!-- Details on the PositiveControl file --&gt;
+    &lt;PositiveControlFile&gt;&lt;/PositiveControlFile&gt;
+
+    &lt;!-- File containing the list of metabolite names you want to QC --&gt;
+    &lt;MtbNameFile&gt;&lt;/MtbNameFile&gt;
+    &lt;MtbGWAColumns&gt;
+        &lt;!-- GWA file column specifiers --&gt;
+        &lt;!-- ColumnName:            Expected name of the column --&gt;
+        &lt;!-- boSetColumnName:       Change the column name? --&gt;
+        &lt;!-- SetColumnName:         Change the column name --&gt;
+        &lt;!-- MandatoryFieldEntries: Conditions the fields should apply to --&gt;
+        &lt;!-- NonNAFieldType:        Data type of the non-NA fields --&gt;
+        &lt;!-- Filters:               What filters can be applied? --&gt;
+        &lt;!-- NumericFieldPrecision: Precision specifier required for some columns --&gt;
+    &lt;/MtbGWAColumns&gt;
+
+    &lt;QCChecks&gt;
+        &lt;!-- IN: value present in list --&gt;
+    &lt;/QCChecks&gt;
+
+    &lt;QCFilters&gt;
+        &lt;!-- Filter specifiers --&gt;
+        &lt;!-- NE: != --&gt;
+        &lt;!-- EQ: == --&gt;
+        &lt;!-- LT: &lt; --&gt;
+        &lt;!-- LE: &lt;= --&gt;
+        &lt;!-- GT: &gt; --&gt;
+        &lt;!-- GE: &gt;= --&gt;
+    &lt;/QCFilters&gt;
+    &lt;EMAC&gt;&lt;/EMAC&gt;
+&lt;/Protocol&gt;</pre>
+</div>
+<p>As we can see the <em>root</em> tag should be called <tt class="docutils literal"><span class="pre">Protocol</span></tt>. Its children should be called <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt>, <tt class="docutils literal"><span class="pre">WorkingPath</span></tt>, <tt class="docutils literal"><span class="pre">Format</span></tt>, <tt class="docutils literal"><span class="pre">HapMap</span></tt>, <tt class="docutils literal"><span class="pre">ExtraInfoFiles</span></tt>, <tt class="docutils literal"><span class="pre">ExtraInfoColumns</span></tt>, <tt class="docutils literal"><span class="pre">ExcludedMtbFile</span></tt>, <tt class="docutils literal"><span class="pre">PositiveControlFile</span></tt>, <tt class="docutils literal"><span class="pre">MtbNameFile</span></tt>, <tt class="docutils literal"><span class="pre">MtbGWAColumns</span></tt>, <tt class="docutils literal"><span class="pre">QCChecks</span></tt>, <tt class="docutils literal"><span class="pre">QCFilters</span></tt> and <tt class="docutils literal"><span class="pre">EMAC</span></tt>. A brief description for each of the children tags will be given below.</p>
+<div class="section" id="the-gwaoutputpath-block">
+<h2>The <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt> block<a class="headerlink" href="#the-gwaoutputpath-block" title="Permalink to this headline">¶</a></h2>
+<p>In this block we specify the location of the GWAS data files that need to be QCed.</p>
+<p><strong>GWAOutputPath</strong>:</p>
+<div class="highlight-python"><pre>&lt;GWAOutputPath&gt;
+    /mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data
+&lt;/GWAOutputPath&gt;</pre>
+</div>
+</div>
+<div class="section" id="the-workingpath-block">
+<h2>The <tt class="docutils literal"><span class="pre">WorkingPath</span></tt> block<a class="headerlink" href="#the-workingpath-block" title="Permalink to this headline">¶</a></h2>
+<p>In this block we specify the working directory.</p>
+<p><strong>WorkingPath</strong>:</p>
+<div class="highlight-python"><pre>&lt;WorkingPath&gt;
+    /mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Jobs/Job_0
+&lt;/WorkingPath&gt;</pre>
+</div>
+</div>
+<div class="section" id="the-format-block">
+<h2>The <tt class="docutils literal"><span class="pre">Format</span></tt> block<a class="headerlink" href="#the-format-block" title="Permalink to this headline">¶</a></h2>
+<p>In this block we specify the format properties of the &#8216;extra info&#8217; files and of the GWAS files. Child tag <tt class="docutils literal"><span class="pre">ColumnNames</span></tt> contains a comma-separated list of what column names to expect, <tt class="docutils literal"><span class="pre">Delimiter</span></tt> of what delimiter to expect. The latter can be overriden by setting <tt class="docutils literal"><span class="pre">boSetDelimeter</span></tt> to <tt class="xref docutils literal"><span class="pre">True</span></tt> and specifying the new delimeter in <tt class="docutils literal"><span class="pre">SetDelimeter</span></tt>. <tt class="docutils literal"><span class="pre">boRemoveDuplicateLines</span></tt> specifies whether or not duplicate lines are removed. Child tag <tt class="docutils literal"><span class="pre">ExtraInfoDelimiter</span></tt> sets the delimiter of the &#8216;extra info&#8217; files.</p>
+<p><strong>Format</strong>:</p>
+<div class="highlight-python"><pre>&lt;Format&gt;
+     &lt;ColumnNames&gt;SNPID,chr,position,coded_all,noncoded_all,strand_genome,beta,SE,pval,AF_coded_all,HWE_pval,n_total,imputed,used_for_imp,oevar_imp&lt;/ColumnNames&gt;
+     &lt;Delimiter&gt;WhiteSpace&lt;/Delimiter&gt;
+     &lt;boSetDelimeter&gt;False&lt;/boSetDelimeter&gt;
+     &lt;SetDelimeter&gt;WhiteSpace&lt;/SetDelimeter&gt;
+     &lt;boRemoveDuplicateLines&gt;True&lt;/boRemoveDuplicateLines&gt;
+     &lt;ExtraInfoDelimiter&gt;,&lt;/ExtraInfoDelimiter&gt;
+ &lt;/Format&gt;</pre>
+</div>
+</div>
+<div class="section" id="the-hapmap-block">
+<h2>The <tt class="docutils literal"><span class="pre">HapMap</span></tt> block<a class="headerlink" href="#the-hapmap-block" title="Permalink to this headline">¶</a></h2>
+<p>If one wants to map the SNPs listed in a GWAS file to a specific Hapmap build/release, this block can be used to specify the details. <tt class="docutils literal"><span class="pre">SummaryPath</span></tt> sets the path where your target Hapmap file resides. This file should list the following information: SNPID, chr, position, AlleleA, AlleleB, strand_genome and MAF. <tt class="docutils literal"><span class="pre">SummaryFile</span></tt> sets the Hapmap summary file name. <tt class="docutils literal"><span class="pre">SourceBuild</span></tt> specifies the build number of your GWAS file, <tt class="docutils literal"><span class="pre">SourceRelease</span></tt> its release number and <tt class="docutils literal"><span class="pre">SourceRefPanel</span></tt> the source reference panel. <tt class="docutils literal"><span class="pre">DestBuild</span></tt> specifies the target build number of your GWAS file, <tt class="docutils literal"><span class="pre">DestRelease</span></tt> its release number and <tt class="docutils literal"><span class="pre">DestRefPanel</span></tt> the target reference panel. <tt class="docutils literal"><span class="pre">Delimiter</span></tt> specifies the column delimiter in the Hapmap summary file.</p>
+<p><strong>HapMap</strong>:</p>
+<div class="highlight-python"><pre>&lt;HapMap&gt;
+     &lt;SummaryPath&gt;/mnt/ntr.biocrates@fluke.psy.vu.nl/PreMAQC/ReneAndHarmen_25Jan2013/TestTwinsUK/Data&lt;/SummaryPath&gt;
+     &lt;SummaryFile&gt;HapMapB36R22.txt.gz&lt;/SummaryFile&gt;
+     &lt;SourceBuild&gt;36&lt;/SourceBuild&gt;
+     &lt;SourceRelease&gt;22&lt;/SourceRelease&gt;
+     &lt;SourceRefPanel&gt;CEU&lt;/SourceRefPanel&gt;
+     &lt;DestBuild&gt;36&lt;/DestBuild&gt;
+     &lt;DestRelease&gt;22&lt;/DestRelease&gt;
+     &lt;DestRefPanel&gt;CEU&lt;/DestRefPanel&gt;
+     &lt;Delimiter&gt;,&lt;/Delimiter&gt;
+ &lt;/HapMap&gt;</pre>
+</div>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="qcgwadata-module">
+<h1>QCGWAData Module<a class="headerlink" href="#qcgwadata-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><a class="reference internal" href="#module-QCGWAData" title="QCGWAData"><tt class="xref py py-mod docutils literal"><span class="pre">QCGWAData</span></tt></a> Module<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-QCGWAData"></span><p>This is the main module of QCGWA and should be used as an executable.</p>
+<p><em>Module author: René Pool &lt;<a class="reference external" href="mailto:r&#46;pool&#37;&#52;&#48;vu&#46;nl">r<span>&#46;</span>pool<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;</em></p>
+<p id="module-QCGWA"><em>Platforms: </em>Linux</p>
+<dl class="function">
+<dt id="QCGWAData.main">
+<tt class="descclassname">QCGWAData.</tt><tt class="descname">main</tt><big>(</big><em>ExecutableName=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/QCGWAData.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#QCGWAData.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main function. It is called by invocation of this module.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ExecutableName</strong> (<em>str</em>) &#8211; The name of the executable</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">0 (if succes)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="argumentparser-module">
+<h1>ArgumentParser Module<a class="headerlink" href="#argumentparser-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id2">
+<h2><a class="reference internal" href="#module-ArgumentParser" title="ArgumentParser"><tt class="xref py py-mod docutils literal"><span class="pre">ArgumentParser</span></tt></a> Module<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-ArgumentParser"></span><p>This module handles the argument parsing.</p>
+<p><em>Module author: René Pool &lt;<a class="reference external" href="mailto:r&#46;pool&#37;&#52;&#48;vu&#46;nl">r<span>&#46;</span>pool<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;</em></p>
+<dl class="function">
+<dt id="ArgumentParser.LogArguments">
+<tt class="descclassname">ArgumentParser.</tt><tt class="descname">LogArguments</tt><big>(</big><em>Log=&lt;module 'Logger' from '/home/rpool/workspace/BioCrates/MetaAnalysis/QCGWAData/Logger.pyc'&gt;</em>, <em>ArgParser=&lt;class 'argparse.ArgumentParser'&gt;</em>, <em>Arguments=&lt;class 'argparse.Namespace'&gt;</em><big>)</big><a class="reference internal" href="_modules/ArgumentParser.html#LogArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ArgumentParser.LogArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function handles the argument logging to stdout and to file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Log</strong> (<em>:class:Logger</em>) &#8211; A Logger instance</li>
+<li><strong>ArgParser</strong> (<em>argparse.ArgumentParser</em>) &#8211; An argparse.ArgumentParser instance</li>
+<li><strong>Arguments</strong> (<em>argparse.Namespace</em>) &#8211; Arguments read from stdin</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ArgumentParser.ParseArguments">
+<tt class="descclassname">ArgumentParser.</tt><tt class="descname">ParseArguments</tt><big>(</big><em>Log=None</em><big>)</big><a class="reference internal" href="_modules/ArgumentParser.html#ParseArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ArgumentParser.ParseArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function handles the argument logging to stdout and to file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Log</strong> (<em>None</em>) &#8211; A Logger instance (dummy argument)</li>
+<li><strong>ArgParser</strong> (<em>argparse.ArgumentParser</em>) &#8211; An argparse.ArgumentParser instance</li>
+<li><strong>Arguments</strong> (<em>argparse.Namespace</em>) &#8211; Arguments read from stdin</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>ArgumentParser</strong> (an argparse.ArgumentParser instance), <strong>Arguments</strong> (an argparse.Namespace instance)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="logger-module">
+<h1>Logger Module<a class="headerlink" href="#logger-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id3">
+<h2><a class="reference internal" href="#module-Logger" title="Logger"><tt class="xref py py-mod docutils literal"><span class="pre">Logger</span></tt></a> Module<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-Logger"></span><p>This module handles the logging to stdout and to file.</p>
+<p><em>Module author: René Pool &lt;<a class="reference external" href="mailto:r&#46;pool&#37;&#52;&#48;vu&#46;nl">r<span>&#46;</span>pool<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;</em></p>
+<dl class="class">
+<dt id="Logger.Logger">
+<em class="property">class </em><tt class="descclassname">Logger.</tt><tt class="descname">Logger</tt><big>(</big><em>FileName=&lt;type 'str'&gt;</em>, <em>Extension=''</em><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class <strong>Logger</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>FileName</strong> (<em>str</em>) &#8211; Name of the log file</li>
+<li><strong>Extension</strong> (<em>str &#8211; default=&#8217;.log&#8217;</em>) &#8211; Extension of the log file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Logger.Logger.Close">
+<tt class="descname">Close</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.Close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.Close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the log file handle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.EndLog">
+<tt class="descname">EndLog</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.EndLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.EndLog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the log footer to the log file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.GetEndLogString">
+<tt class="descname">GetEndLogString</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.GetEndLogString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.GetEndLogString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the log footer string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.GetFileHandle">
+<tt class="descname">GetFileHandle</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.GetFileHandle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.GetFileHandle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the log file handle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.GetFileName">
+<tt class="descname">GetFileName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.GetFileName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.GetFileName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the log file name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.GetStartDate">
+<tt class="descname">GetStartDate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.GetStartDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.GetStartDate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the log start date/time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.GetStartLogString">
+<tt class="descname">GetStartLogString</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.GetStartLogString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.GetStartLogString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the log header string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.InitFileHandle">
+<tt class="descname">InitFileHandle</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.InitFileHandle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.InitFileHandle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the log file handle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.StartLog">
+<tt class="descname">StartLog</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.StartLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.StartLog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the log header to the log file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Logger.Logger.Write">
+<tt class="descname">Write</tt><big>(</big><em>String=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/Logger.html#Logger.Write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Logger.Logger.Write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a string to the log file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>String</strong> (<em>str</em>) &#8211; The string to be written to the log file</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="datacontainer-module">
+<h1>DataContainer Module<a class="headerlink" href="#datacontainer-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id4">
+<h2><a class="reference internal" href="#module-DataContainer" title="DataContainer"><tt class="xref py py-mod docutils literal"><span class="pre">DataContainer</span></tt></a> Module<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-DataContainer"></span><p>This module contains the basic DataContainer and DataContainers classes.</p>
+<p><em>Module author: René Pool &lt;<a class="reference external" href="mailto:r&#46;pool&#37;&#52;&#48;vu&#46;nl">r<span>&#46;</span>pool<span>&#64;</span>vu<span>&#46;</span>nl</a>&gt;</em></p>
+<dl class="class">
+<dt id="DataContainer.DataContainer">
+<em class="property">class </em><tt class="descclassname">DataContainer.</tt><tt class="descname">DataContainer</tt><a class="reference internal" href="_modules/DataContainer.html#DataContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class <strong>DataContainer</strong></p>
+<dl class="method">
+<dt id="DataContainer.DataContainer.AppendToArray">
+<tt class="descname">AppendToArray</tt><big>(</big><em>Entry=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.AppendToArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.AppendToArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends an element to the DataArray</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Entry</strong> (<em>str</em>) &#8211; Value of the appended element</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.CastDataArrayToScipy">
+<tt class="descname">CastDataArrayToScipy</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.CastDataArrayToScipy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.CastDataArrayToScipy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type casts the DataArray to type <cite>scipy.array</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.FindDuplicates">
+<tt class="descname">FindDuplicates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.FindDuplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.FindDuplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds duplicate entries in DataArray.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">A dictionary of duplicates</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.GetDataArray">
+<tt class="descname">GetDataArray</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.GetDataArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.GetDataArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the DataArray.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.GetDataName">
+<tt class="descname">GetDataName</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.GetDataName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.GetDataName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the DataContainer name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.GetDuplicateIndexDict">
+<tt class="descname">GetDuplicateIndexDict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.GetDuplicateIndexDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.GetDuplicateIndexDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the duplicate index list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.GetEntry2IndexDict">
+<tt class="descname">GetEntry2IndexDict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.GetEntry2IndexDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.GetEntry2IndexDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Entry2IndexDict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.GetMaxNDuplicates">
+<tt class="descname">GetMaxNDuplicates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.GetMaxNDuplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.GetMaxNDuplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the maximum number of duplicate lines found in an input file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.InitDataArray">
+<tt class="descname">InitDataArray</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.InitDataArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.InitDataArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the DataArray</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.InitEntry2IndexDict">
+<tt class="descname">InitEntry2IndexDict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.InitEntry2IndexDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.InitEntry2IndexDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes Entry2IndexDict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.RemoveDuplicates">
+<tt class="descname">RemoveDuplicates</tt><big>(</big><em>DuplicateIndexDict={}</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.RemoveDuplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.RemoveDuplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the duplicates listed in <em>DuplicateIndexDict</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>DuplicateIndexDict</strong> (<em>dict</em>) &#8211; The dictionary of the indices of the duplicates</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">The number of removed lines (<em>int</em>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.RenameColumnOfDataArray">
+<tt class="descname">RenameColumnOfDataArray</tt><big>(</big><em>Source=&lt;type 'str'&gt;</em>, <em>Dest=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.RenameColumnOfDataArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.RenameColumnOfDataArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renames the DataContainer name from <em>Source</em> to <em>Dest</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Source</strong> (<em>str</em>) &#8211; Source value</li>
+<li><strong>Dest</strong> (<em>str</em>) &#8211; Replacement value</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.RenameFieldsInDataArray">
+<tt class="descname">RenameFieldsInDataArray</tt><big>(</big><em>Source=&lt;type 'str'&gt;</em>, <em>Dest=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.RenameFieldsInDataArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.RenameFieldsInDataArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renames DataArray elements that are equal to <em>Source</em> to <em>Dest</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Source</strong> (<em>str</em>) &#8211; Source value</li>
+<li><strong>Dest</strong> (<em>str</em>) &#8211; Replacement value</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.ReplaceDataArray">
+<tt class="descname">ReplaceDataArray</tt><big>(</big><em>DataArray=&lt;built-in function array&gt;</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.ReplaceDataArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.ReplaceDataArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the DataArray by the input array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>DataArray</strong> (<em>scipy.array</em>) &#8211; Array that replaces the old value</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">nothing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.ReplaceDataArrayEntryAtIndex">
+<tt class="descname">ReplaceDataArrayEntryAtIndex</tt><big>(</big><em>Index=&lt;type 'int'&gt;</em>, <em>Value=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.ReplaceDataArrayEntryAtIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.ReplaceDataArrayEntryAtIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces element <em>Index</em> of DataArray by the input <em>Value</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Index</strong> (<em>int</em>) &#8211; Index of the element that will be replaced</li>
+<li><strong>Value</strong> (<em>str</em>) &#8211; New value of <em>DataArray[Index]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.SetDataName">
+<tt class="descname">SetDataName</tt><big>(</big><em>Name=&lt;type 'str'&gt;</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.SetDataName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.SetDataName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the DataContainer name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="DataContainer.DataContainer.SetEntry2IndexDict">
+<tt class="descname">SetEntry2IndexDict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainer.SetEntry2IndexDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainer.SetEntry2IndexDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets Entry2IndexDict.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="DataContainer.DataContainers">
+<em class="property">class </em><tt class="descclassname">DataContainer.</tt><tt class="descname">DataContainers</tt><a class="reference internal" href="_modules/DataContainer.html#DataContainers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainers" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="DataContainer.DataContainers.WriteBioCratesGWAOutput">
+<tt class="descname">WriteBioCratesGWAOutput</tt><big>(</big><em>FileName=&lt;type 'str'&gt;</em>, <em>OutPath=&lt;type 'str'&gt;</em>, <em>HeaderList=</em><span class="optional">[</span><span class="optional">]</span>, <em>Header2ColumnDict={}</em><big>)</big><a class="reference internal" href="_modules/DataContainer.html#DataContainers.WriteBioCratesGWAOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#DataContainer.DataContainers.WriteBioCratesGWAOutput" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to QCGWAData&#8217;s documentation!</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#invocation-of-qcgwadata-py">Invocation of <tt class="docutils literal"><span class="pre">QCGWAData.py</span></tt></a></li>
+<li><a class="reference internal" href="#the-xml-input-file">The <tt class="docutils literal"><span class="pre">.xml</span></tt> input file</a><ul>
+<li><a class="reference internal" href="#the-gwaoutputpath-block">The <tt class="docutils literal"><span class="pre">GWAOutputPath</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-workingpath-block">The <tt class="docutils literal"><span class="pre">WorkingPath</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-format-block">The <tt class="docutils literal"><span class="pre">Format</span></tt> block</a></li>
+<li><a class="reference internal" href="#the-hapmap-block">The <tt class="docutils literal"><span class="pre">HapMap</span></tt> block</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qcgwadata-module">QCGWAData Module</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">QCGWAData</span></tt> Module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#argumentparser-module">ArgumentParser Module</a><ul>
+<li><a class="reference internal" href="#id2"><tt class="docutils literal"><span class="pre">ArgumentParser</span></tt> Module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#logger-module">Logger Module</a><ul>
+<li><a class="reference internal" href="#id3"><tt class="docutils literal"><span class="pre">Logger</span></tt> Module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#datacontainer-module">DataContainer Module</a><ul>
+<li><a class="reference internal" href="#id4"><tt class="docutils literal"><span class="pre">DataContainer</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">QCGWAData v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, René Pool.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

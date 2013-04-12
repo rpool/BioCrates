@@ -1,0 +1,11 @@
+Checks Module
+=============
+
+:mod:`Checks` Module
+--------------------
+
+.. automodule:: Checks
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:
