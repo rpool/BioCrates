@@ -217,6 +217,8 @@ def main(ExecutableName=str):
                 Log.Write(LogString+'\n')
                 sys.exit(1)
             fw.write('#Set Options for describing input files\n')
+            if(eval(XmlProtocol.getroot().find('GenomicControl').find('boUse').text)):
+                fw.write('GENOMICCONTROL ON\n')
             fw.write('MARKERLABEL SNPID\n')
             fw.write('PVALUELABEL pval\n')
             fw.write('STDERRLABEL SE\n')
