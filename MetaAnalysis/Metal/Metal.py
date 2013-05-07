@@ -219,6 +219,8 @@ def main(ExecutableName=str):
             fw.write('#Set Options for describing input files\n')
             if(eval(XmlProtocol.getroot().find('GenomicControl').find('boUse').text)):
                 fw.write('GENOMICCONTROL ON\n')
+            if(XmlProtocol.getroot().find('CustomFilter')!=None):
+                fw.write(XmlProtocol.getroot().find('CustomFilter').text.strip()+'\n')
             fw.write('MARKERLABEL SNPID\n')
             fw.write('PVALUELABEL pval\n')
             fw.write('STDERRLABEL SE\n')
