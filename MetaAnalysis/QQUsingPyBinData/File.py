@@ -1,6 +1,7 @@
 import gzip
 import re
 import os
+import scipy
 
 import DataContainer
 
@@ -19,6 +20,7 @@ class File:
         self.boHeader     = None
         self.FileHandle   = None
         self.boUsePigz    = None
+        self.boUseLbzip2  = None
         self.boCompressed = None
         self.TmpDir       = None
 
@@ -44,36 +46,53 @@ class File:
                               Delimiter=None):
 #       Parse an input file into the DataContainers object
         DCs  = DataContainer.DataContainers()
-        Line = self.GetFileHandle().readline()
-        if(self.GetboHeader()):
-            Line  = re.sub('#','',Line)
-            Names = Line.strip().split(Delimiter) # The file should be space or tab delimited!
-            for i in range(len(Names)):
-                Name                     = Names[i] # The names of the datacontainers are determined by the
-                                                    # header column names.
+        if(re.search('.npy',self.GetName())):
+            Arrays = None
+            if(self.GetboCompressed()):
+                Arrays = scipy.load(self.GetDecomprName())
+            else:
+                Arrays = scipy.load(self.GetName())
+            Header = Arrays[:,0].tolist()
+            for i in xrange(len(Header)):
+                Name                     = Header[i] # The names of the datacontainers are determined by the
+                                                     # header column names.
                 DCs.DataContainers[Name] = DataContainer.DataContainer()
                 DCs.Names2Columns[Name]  = i
                 DCs.Columns2Names[i]     = Name
-                DCs.DataContainers[Name].InitDataArray()
+                DCs.DataContainers[Name].SetDataArray(Arrays[i,1:])
                 DCs.DataContainers[Name].SetDataName(Name)
+            del Arrays
         else:
-            LSplit = Line.strip().split(Delimiter)
-            for i in range(len(LSplit)):
-                Name                     = str(i)
-                DCs.DataContainers[Name] = DataContainer.DataContainer()
-                DCs.Names2Columns[Name]  = i
-                DCs.Columns2Names[i]     = Name
-                DCs.DataContainers[Name].InitDataArray()
-                DCs.DataContainers[Name].SetDataName(Name)
-                Entry = LSplit[i]
-                DCs.DataContainers[Name].AppendToArray(Entry)
+            Line = self.GetFileHandle().readline()
+            if(self.GetboHeader()):
+                Line  = re.sub('#','',Line)
+                Names = Line.strip().split(Delimiter) # The file should be space or tab delimited!
+                for i in range(len(Names)):
+                    Name                     = Names[i] # The names of the datacontainers are determined by the
+                                                        # header column names.
+                    DCs.DataContainers[Name] = DataContainer.DataContainer()
+                    DCs.Names2Columns[Name]  = i
+                    DCs.Columns2Names[i]     = Name
+                    DCs.DataContainers[Name].InitDataArray()
+                    DCs.DataContainers[Name].SetDataName(Name)
+            else:
+                LSplit = Line.strip().split(Delimiter)
+                for i in range(len(LSplit)):
+                    Name                     = str(i)
+                    DCs.DataContainers[Name] = DataContainer.DataContainer()
+                    DCs.Names2Columns[Name]  = i
+                    DCs.Columns2Names[i]     = Name
+                    DCs.DataContainers[Name].InitDataArray()
+                    DCs.DataContainers[Name].SetDataName(Name)
+                    Entry = LSplit[i]
+                    DCs.DataContainers[Name].AppendToArray(Entry)
 
-        for Line in self.GetFileHandle():
-            LSplit = Line.strip().split(Delimiter)
-            for i in range(len(LSplit)):
-                Name  = DCs.Columns2Names[i]
-                Entry = LSplit[i]
-                DCs.DataContainers[Name].AppendToArray(Entry)
+            for Line in self.GetFileHandle():
+                LSplit = Line.strip().split(Delimiter)
+                for i in range(len(LSplit)):
+                    Name  = DCs.Columns2Names[i]
+                    Entry = LSplit[i]
+                    DCs.DataContainers[Name].AppendToArray(Entry)
 
         for Key in DCs.DataContainers.iterkeys():
             DCs.DataContainers[Key].CastDataArrayToScipy() # Make scipy.arrays of the lists.
@@ -87,13 +106,17 @@ class File:
         return
 
     def Close(self):
-        self.GetFileHandle().close()
+        if(self.GetFileHandle()!=None):
+            self.GetFileHandle().close()
         return
 
     def SetDecomprName(self):
 #       Sets the name of the decompressed file, to be located in the temporary directory
         if(self.GetboCompressed()):
-            self.DecomprName = re.sub('.gz','',os.path.basename(self.GetName()))
+            if(re.search('.bz2',os.path.basename(self.GetName()))):
+                self.DecomprName = re.sub('.bz2','',os.path.basename(self.GetName()))
+            elif(re.search('.gz',os.path.basename(self.GetName()))):
+                self.DecomprName = re.sub('.gz','',os.path.basename(self.GetName()))
             self.DecomprName = os.path.join(self.GetTmpDir(),self.DecomprName)
         return
 
@@ -103,6 +126,8 @@ class File:
     def SetboCompressed(self):
 #       Check if file is decompressed. For now only the .gz format!
         if(re.search('.gz',self.GetName())):
+            self.boCompressed = True
+        elif(re.search('.bz2',self.GetName())):
             self.boCompressed = True
         else:
             self.boCompressed = False
@@ -116,6 +141,11 @@ class File:
         self.boUsePigz = boUsePigz
         return
 
+    def SetboUseLbzip2(self,
+                       boUseLbzip2=bool):
+        self.boUseLbzip2 = boUseLbzip2
+        return
+
     def GetboUsePigz(self):
 #       Pigz is the multi-threaded equivalent of gzip and gunzip => should go faster.
 #       For now, there is no check on whether pigz is installed on the system.
@@ -123,17 +153,32 @@ class File:
             self.boUsePigz = False # default value
         return self.boUsePigz
 
+    def GetboUseLbzip2(self):
+#       lbzip2 is the multi-threaded equivalent of lbzip2 => should go faster.
+#       For now, there is no check on whether lbzip2 is installed on the system.
+        if(self.boUseLbzip2==None):
+            self.boUseLbzip2 = False # default value
+        return self.boUseLbzip2
+
     def SetFileHandle(self,
                       Mode='r'): # 'r' to be safe :-)
         if(self.GetboCompressed()):
             if(self.GetboUsePigz()):
 #               Decompress into the decompressed file located in the temporary directory.
                 os.system('pigz -d -k -f -c '+self.GetName()+' > '+self.GetDecomprName())
-                self.FileHandle = open(self.GetDecomprName(),Mode)
+                if(not re.search('.npy',self.GetDecomprName())):
+                    self.FileHandle = open(self.GetDecomprName(),Mode)
+            if(self.GetboUseLbzip2()):
+#               Decompress into the decompressed file located in the temporary directory.
+                os.system('lbzip2 -d -k -f -c '+self.GetName()+' > '+self.GetDecomprName())
+                if(not re.search('.npy',self.GetDecomprName())):
+                    self.FileHandle = open(self.GetDecomprName(),Mode)
             else:
-                self.FileHandle = gzip.open(self.GetName(),Mode)
+                if(not re.search('.npy',self.GetName())):
+                    self.FileHandle = gzip.open(self.GetName(),Mode)
         else:
-            self.FileHandle = open(self.GetName(),Mode)
+            if(not re.search('.npy',self.GetName())):
+                self.FileHandle = open(self.GetName(),Mode)
         return
 
     def GetFileHandle(self):

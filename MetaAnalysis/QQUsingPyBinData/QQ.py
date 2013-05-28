@@ -335,6 +335,95 @@ def PlotQQFilteredOnMAF(MtbName=str,
 
     return
 
+def PlotQQ(MtbName=str,
+           PlotPath=str,
+           SummaryPath=str,
+           LPValExpArray=scipy.array,
+           LPValObsArray=scipy.array,
+           PValObsArray=scipy.array,
+           Log=Logger):
+#   Perform QQ analysis in p-value mode and stratify on ImpQ.
+    PylabParameters,\
+    Rectangle         = PylabGetParams()
+    Size              = 2.5
+    pylab.rcParams.update(PylabParameters)
+    PylabFigure = pylab.figure()
+    PylabFigure.clf()
+    PylabAxis = PylabFigure.add_axes(Rectangle)
+    PlotName  = 'QQPVal_'+MtbName+'.png'
+    PlotName = os.path.join(PlotPath,PlotName)
+#   Initialize the Lamba arrays and start filling them (Lambda = genomic inflation factor)
+    Lambdas   = []
+    SEsLambda = []
+    LambdaEst,\
+    SELambdaEst = LambdaEstimate(Array=PValObsArray,Filter=False)
+    Lambdas.append(LambdaEst)
+    SEsLambda.append(SELambdaEst)
+#   Plot the unfiltered QQ plot.
+    PylabAxis.scatter(scipy.sort(LPValExpArray),
+                      scipy.sort(LPValObsArray),
+                      color=Defines.Colors[0],
+                      s=Size,
+                      facecolor='None',
+                      label=r'${\tt '+MtbName+r'}: {\rm ~all~SNPs}$\\$\lambda='+str(round(LambdaEst,4))+r'$')
+
+    MaxLPVal    = LPValObsArray.max()
+    MaxLPValExp = LPValExpArray.max()
+    Max         = max(MaxLPVal,MaxLPValExp)+0.5
+    PylabAxis.plot([0.0,Max],
+                   [0.0,Max],
+                   color='grey',
+                   linestyle='--',
+                   linewidth=0.5)
+    PylabAxis.set_ylim([0.0,Max])
+    PylabAxis.set_xlim([0.0,Max])
+    PylabAxis.set_xlabel(r'$-\log_{10}{(P)} {\rm ~(expected)~[-]}$')
+    PylabAxis.set_ylabel(r'$-\log_{10}{(P)} {\rm ~(observed)~[-]}$')
+    PylabAxis.spines['right'].set_visible(False)
+    PylabAxis.spines['top'].set_visible(False)
+    PylabAxis.xaxis.set_ticks_position('bottom')
+    PylabAxis.yaxis.set_ticks_position('left')
+    Handles,Labels = PylabAxis.get_legend_handles_labels()
+    PylabAxis.legend(Handles,
+                     Labels,
+                     fancybox=True,
+                     shadow=True,
+                     loc='lower right')
+    PylabAxis.grid(True)
+    LogString = '  ++ Saving QQ plot to \"'+PlotName+'\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+    PylabFigure.savefig(PlotName,dpi=300)
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+#   Generate Lambda and top 20 summaries.
+    SummaryName = 'QQPVal_'+MtbName+'.summary.txt'
+    SummaryName = os.path.join(SummaryPath,SummaryName)
+    LogString = '  ++ Saving summary to \"'+SummaryName+'\" ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+#   Set precision
+    Precision = 2
+    for SE in SEsLambda:
+        if(SE<1.0):
+            Precision = max(Precision,int(round(-scipy.log10(SE))))
+    fw = open(SummaryName,'w')
+    fw.write('# Filter,Lambda,SELambda\n')
+    fw.write('all SNPs,'+\
+             str(round(Lambdas[0],Precision))+','+\
+             str(round(SEsLambda[0],Precision))+\
+             '\n')
+    fw.close()
+
+    LogString = '  -- Done ...'
+    print LogString
+    Log.Write(LogString+'\n')
+
+    return
+
 def PlotQQFilteredOnImpQ(MtbName=str,
                          PlotPath=str,
                          SummaryPath=str,
@@ -677,15 +766,19 @@ def PlotQQFilteredOnScore(MtbName=str,
 
 def QQPlotAndSummary(DCs=DataContainer.DataContainers,
                      QQModes=argparse.Namespace,
+                     boFilterOnIQsLt75=bool,
                      MtbName=str,
                      Log=Logger):
 #   Initialize
-    boPMode = False
-    boSMode = False
+    boPMode    = False
+    boSMode    = False
+    boNoneMode = False
     if(re.search('P',QQModes)):
         boPMode = True
     if(re.search('S',QQModes)):
         boSMode = True
+    if(re.search('None',QQModes)):
+        boNoneMode = True
     PlotPath = os.path.join(os.getcwd(),'Plots')
     if(not os.path.isdir(PlotPath)):
         os.mkdir(PlotPath)
@@ -693,9 +786,35 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
     if(not os.path.isdir(SummaryPath)):
         os.mkdir(SummaryPath)
 
+#   Set scipy.random.seed
+    scipy.random.seed(3168679810)
+    if(boNoneMode):
+        LogString = '++ Plotting QQ plots in \"p-value\" mode ...'
+        print LogString
+        Log.Write(LogString+'\n')
+#       No Filtering
+        PValObsArray = DCs.DataContainers['P-value'].GetDataArray().astype(float)
+        if(boFilterOnIQsLt75):
+            FilterArray  = (DCs.DataContainers['HetISq'].GetDataArray().astype(float)<75.0)
+            PValObsArray = scipy.compress(FilterArray,PValObsArray)
+        LPValObsArray = -scipy.log10(PValObsArray)
+#       The 1's are for df=1
+        PValExpArray  = scipy.stats.chi2.sf(scipy.stats.chi2.rvs(1,\
+                                                                 size=len(PValObsArray)),\
+                                            1)
+        LPValExpArray = -scipy.log10(PValExpArray)
+        PlotQQ(MtbName,
+               PlotPath,
+               SummaryPath,
+               LPValExpArray,
+               LPValObsArray,
+               PValObsArray,
+               Log)
+        LogString = '-- Done ...'
+        print LogString
+        Log.Write(LogString+'\n')
+
     if(boPMode or boSMode):
-#       Set scipy.random.seed
-        scipy.random.seed(3168679810)
 #       Filter out 'NA' values
         FilterArray  = (DCs.DataContainers['beta'].GetDataArray()!='NA')
         FilterArray *= (DCs.DataContainers['SE'].GetDataArray()!='NA')
@@ -801,6 +920,7 @@ def QQPlotAndSummary(DCs=DataContainer.DataContainers,
             Log.Write(LogString+'\n')
 
     return
+
 def LaTeXQQPModeFilteredOnMafSection(PlotFile=str,
                                      SummaryFile=str):
 #   Generate the LaTeX section of the QQ analysis summary filtered on MAF
@@ -1507,7 +1627,7 @@ def main(ExecutableName):
         Log.Write(LogString+'\n')
         GwaFile = File.File(Name=GwaFileName,
                             boHeader=True)
-        GwaFile.SetboUsePigz(boUsePigz=True)
+        GwaFile.SetboUseLbzip2(boUseLbzip2=True)
         GwaFile.SetFileHandle(Mode='r')
         GwaFileDCs = GwaFile.ParseToDataContainers()
         GwaFile.Close()
@@ -1519,6 +1639,7 @@ def main(ExecutableName):
 #       Perform QQ analysis, plot and generate summary
         QQPlotAndSummary(GwaFileDCs,
                          Arguments.QQModes,
+                         Arguments.boFilterOnIQsLt75,
                          MtbName,
                          Log)
 

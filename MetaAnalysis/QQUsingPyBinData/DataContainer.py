@@ -2,6 +2,7 @@ import re
 import gzip
 import scipy
 import sys
+import copy
 
 import Logger
 
@@ -15,6 +16,11 @@ class DataContainer:
     def __init__(self):
         self.DataName  = None
         self.DataArray = None
+        return
+
+    def SetDataArray(self,
+                     Array=scipy.array):
+        self.DataArray = copy.deepcopy(Array)
         return
 
     def SetDataName(self,

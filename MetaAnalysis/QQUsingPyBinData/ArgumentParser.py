@@ -46,23 +46,30 @@ def ParseArguments(Log=None):
     ArgumentParser.add_argument('-p',
                                 '--GWAdatapath',
                                 dest='GWADataPath',
-                                help='PATH: Name of path that contains the GWA output files to be analyzed (input)',
+                                help='PATH: Name of path that contains the GWA output files to be analyzed (.npy input)',
                                 metavar='PATH',
-                                default=os.path.join(os.getcwd(),'Data'))
+                                default=os.path.join(os.getcwd(),'PyBinData'))
     ArgumentParser.add_argument('-m',
                                 '--qqmodes',
                                 dest='QQModes',
                                 help='PROPERTY: Determines the QQModes you want to run (input): '+\
                                      '\"P\"  sets the \"p-value\" mode; '+\
-                                     '\"S\"  sets the \"score\" mode;  '+\
-                                     '\"PS\" sets them both.',
+                                     '\"S\"  sets the \"score\" mode; '+\
+                                     '\"PS\" sets them both; '+\
+                                     '\"None\" uses no strata.',
                                 metavar='PROPERTY',
                                 default='P',
-                                choices=['P','S','PS'])
+                                choices=['P','S','PS','None'])
     ArgumentParser.add_argument('-r',
                                 '--PDFReport',
                                 dest='boGeneratePdfReport',
                                 help='FLAG: Generate a QQ analysis report in pdf format (input).',
+                                action='store_true',
+                                default=False)
+    ArgumentParser.add_argument('-i',
+                                '--ISqLt75',
+                                dest='boFilterOnIQsLt75',
+                                help='FLAG: Filter data on heterogeneity I^2 value .LT. 75.0%% (input).',
                                 action='store_true',
                                 default=False)
 
