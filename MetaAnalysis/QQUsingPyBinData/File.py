@@ -100,7 +100,8 @@ class File:
         return DCs
 
     def Cleanup(self):
-        if(self.GetboCompressed() and self.GetboUsePigz()):
+        if((self.GetboCompressed() and self.GetboUsePigz()) or
+           (self.GetboCompressed() and self.GetboUseLbzip2())):
 #           Remove the temporary file
             os.remove(self.GetDecomprName())
         return
