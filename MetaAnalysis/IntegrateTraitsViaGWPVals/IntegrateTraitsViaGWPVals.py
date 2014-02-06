@@ -56,22 +56,22 @@ if(False):
                    arr=Data)
         os.system('lbzip2 -f '+OutFile)
         print OutFile
-    fw = open('DataDict.json','w')
+    fw = open('Data/DataDict.json','w')
     json.dump(obj=DataDict,
               fp=fw)
     fw.close()
-    os.system('lbzip2 -f DataDict.json')
+    os.system('lbzip2 -f Data/DataDict.json')
 
 if(True):
-    JsonFile = 'DataDict.json.bz2'
+    JsonFile = 'Data/DataDict.json.bz2'
     os.system('lbzip2 -d -f -k '+JsonFile)
-    DecomprJsonFile = 'DataDict.json'
+    DecomprJsonFile = 'Data/DataDict.json'
     fr              = open(DecomprJsonFile,'r')
     DataDict        = json.load(fp=fr)
     fr.close()
     print DataDict.keys(),len(DataDict.keys())
     os.remove(DecomprJsonFile)
-    loop over keys => similarity matrix => Jaccard
+#     loop over keys => similarity matrix => Jaccard
 
 # if(True):
 #     # Filter PVals on overlap w/ PINA
