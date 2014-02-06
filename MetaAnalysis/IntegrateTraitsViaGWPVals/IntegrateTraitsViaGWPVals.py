@@ -6,16 +6,72 @@ import scipy.stats
 import statsmodels.stats.multitest
 import networkx
 import fnmatch
+import json
+import re
+from matplotlib._cm import datad
 
 # os.system('lbzip2 -d -k -f /home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy.bz2')
 # PVals = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[1,1:].astype(float)
 # Genes = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[0,1:]
 # os.remove('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')
 
-GeneWisePValuePath = '/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected'
-GWPValFiles        = os.listdir(GeneWisePValuePath)
 
-print GWPValFiles
+
+if(False):
+    GeneWisePValuePath = '/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected'
+    GWPValFiles        = os.listdir(GeneWisePValuePath)
+    GWPValFiles        = fnmatch.filter(GWPValFiles,'*.npy.bz2')
+
+    DataDict = {}
+
+    for F in GWPValFiles:
+        File            = os.path.join(GeneWisePValuePath,F)
+        DecomprFile     = File[:-4]
+        Trait           = re.sub('_','.',os.path.basename(DecomprFile)[:-4])
+        DataDict[Trait] = {}
+        os.system('lbzip2 -d -k -f '+File)
+        Data                      = scipy.load(DecomprFile)
+        PVals                     = Data[1,1:].astype(float)
+        Genes                     = Data[0,1:]
+        NGenes                    = len(Genes)
+        DataDict[Trait]['NGenes'] = NGenes
+        os.remove(DecomprFile)
+        for Alpha in [0.01,0.02,0.05,0.1,0.2,0.5]:
+            BH    = statsmodels.stats.multitest.multipletests(pvals=PVals,
+                                                              alpha=Alpha,
+                                                              method='fdr_bh',
+                                                              returnsorted=False)
+            DataDict[Trait]['Alpha_'+str(Alpha)]     = Alpha
+            DataDict[Trait]['AlphaBonf_'+str(Alpha)] = BH[3]
+            BHPVals  = scipy.array(['BHp_value_alpha='+str(Alpha)])
+            BHPVals  = scipy.append(BHPVals,BH[1].astype(str))
+            Data     = scipy.vstack((Data,BHPVals))
+            BHAccept = scipy.array(['BHAccept_alpha='+str(Alpha)])
+            BHAccept = scipy.append(BHAccept,BH[0].astype(str))
+            DataDict[Trait]['GeneSetAtAlpha_'+str(Alpha)] = scipy.compress(condition=BH[0],
+                                                                           a=Genes).tolist()
+            Data     = scipy.vstack((Data,BHAccept))
+        OutFile  = os.path.join('Data',os.path.basename(DecomprFile))
+        scipy.save(file=OutFile,
+                   arr=Data)
+        os.system('lbzip2 -f '+OutFile)
+        print OutFile
+    fw = open('DataDict.json','w')
+    json.dump(obj=DataDict,
+              fp=fw)
+    fw.close()
+    os.system('lbzip2 -f DataDict.json')
+
+if(True):
+    JsonFile = 'DataDict.json.bz2'
+    os.system('lbzip2 -d -f -k '+JsonFile)
+    DecomprJsonFile = 'DataDict.json'
+    fr              = open(DecomprJsonFile,'r')
+    DataDict        = json.load(fp=fr)
+    fr.close()
+    print DataDict.keys(),len(DataDict.keys())
+    os.remove(DecomprJsonFile)
+    loop over keys => similarity matrix => Jaccard
 
 # if(True):
 #     # Filter PVals on overlap w/ PINA
