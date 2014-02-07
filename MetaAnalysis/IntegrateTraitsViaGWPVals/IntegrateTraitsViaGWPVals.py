@@ -22,7 +22,9 @@ if(False):
     GWPValFiles        = os.listdir(GeneWisePValuePath)
     GWPValFiles        = fnmatch.filter(GWPValFiles,'*.npy.bz2')
 
-    DataDict = {}
+    DataDict              = {}
+    AlpaLvls              = [0.01,0.02,0.05,0.1,0.2,0.5]
+    DataDict['AlphaLvls'] = AlpaLvls
 
     for F in GWPValFiles:
         File            = os.path.join(GeneWisePValuePath,F)
@@ -36,7 +38,7 @@ if(False):
         NGenes                    = len(Genes)
         DataDict[Trait]['NGenes'] = NGenes
         os.remove(DecomprFile)
-        for Alpha in [0.01,0.02,0.05,0.1,0.2,0.5]:
+        for Alpha in AlpaLvls:
             BH    = statsmodels.stats.multitest.multipletests(pvals=PVals,
                                                               alpha=Alpha,
                                                               method='fdr_bh',
@@ -69,9 +71,30 @@ if(True):
     fr              = open(DecomprJsonFile,'r')
     DataDict        = json.load(fp=fr)
     fr.close()
-    print DataDict.keys(),len(DataDict.keys())
     os.remove(DecomprJsonFile)
-#     loop over keys => similarity matrix => Jaccard
+    Traits = DataDict.keys()
+    del Traits[Traits.index('AlphaLvls')]
+    Traits.sort()
+    fw = open('Data/IndicesOfTraits.csv','w')
+    fw.write('Index,Trait\n')
+    for i in xrange(len(Traits)):
+        fw.write(str(i)+','+Traits[i]+'\n')
+    fw.close()
+
+    for Alpha in DataDict['AlphaLvls']:
+        print Alpha
+        JaccardArray = scipy.array([[0.0]*len(Traits)]*len(Traits))
+        for i in xrange(len(Traits)):
+            for j in xrange(len(Traits)):
+                GSet_i            = scipy.array(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])
+                GSet_j            = scipy.array(DataDict[Traits[j]]['GeneSetAtAlpha_'+str(Alpha)])
+                Jaccard           = float(len(scipy.intersect1d(GSet_i,GSet_j)))
+                Jaccard          /= max(1.0e-10,float(len(scipy.union1d(GSet_i,GSet_j))))
+                JaccardArray[i,j] = Jaccard
+        scipy.savetxt(fname='Data/JaccardArrayAlpha'+str(Alpha)+'.csv',
+                      X=JaccardArray,
+                      fmt='%10.10e',
+                      delimiter=',')
 
 # if(True):
 #     # Filter PVals on overlap w/ PINA
