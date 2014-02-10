@@ -8,14 +8,12 @@ import networkx
 import fnmatch
 import json
 import re
-from matplotlib._cm import datad
+import goatools
 
 # os.system('lbzip2 -d -k -f /home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy.bz2')
 # PVals = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[1,1:].astype(float)
 # Genes = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[0,1:]
 # os.remove('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')
-
-
 
 if(False):
     GeneWisePValuePath = '/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected'
@@ -26,6 +24,7 @@ if(False):
     AlpaLvls              = [0.01,0.02,0.05,0.1,0.2,0.5]
     DataDict['AlphaLvls'] = AlpaLvls
 
+    AllGenes = scipy.array([])
     for F in GWPValFiles:
         File            = os.path.join(GeneWisePValuePath,F)
         DecomprFile     = File[:-4]
@@ -35,6 +34,8 @@ if(False):
         Data                      = scipy.load(DecomprFile)
         PVals                     = Data[1,1:].astype(float)
         Genes                     = Data[0,1:]
+        AllGenes                  = scipy.append(AllGenes,Genes)
+        AllGenes                  = scipy.unique(AllGenes)
         NGenes                    = len(Genes)
         DataDict[Trait]['NGenes'] = NGenes
         os.remove(DecomprFile)
@@ -64,7 +65,30 @@ if(False):
     fw.close()
     os.system('lbzip2 -f Data/DataDict.json')
 
+    AllGenesFile = 'Data/UniqGenesOverAllTraits.npy'
+    scipy.save(file=AllGenesFile,
+               arr=AllGenes)
+    os.system('lbzip2 -f '+AllGenesFile)
+
 if(True):
+    AllGenesFile = 'Data/UniqGenesOverAllTraits.npy'
+    os.system('lbzip2 -d -k '+AllGenesFile+'.bz2')
+    AllGenesInGWPValueFiles = scipy.load('Data/UniqGenesOverAllTraits.npy')
+    os.remove(AllGenesFile)
+#   Get GO terms of background GeneSet
+    print len(AllGenesInGWPValueFiles)
+#     OBORdr = goatools.obo_parser.OBOReader(obo_file='/home/r.pool/Downloads/goatools/gene_ontology.1_2.obo')
+    GODag  = goatools.obo_parser.GODag(obo_file='/home/r.pool/Downloads/goatools/gene_ontology.1_2.obo')
+    print GODag.paths_to_top(term='GO:0003682',
+                             verbose=True)
+    print GODag.viewkeys()
+#     print GODag
+#     for Rec in OBORdr:
+#         print Rec
+
+#   Get OMIM terms of background GeneSet
+
+if(False):
     JsonFile = 'Data/DataDict.json.bz2'
     os.system('lbzip2 -d -f -k '+JsonFile)
     DecomprJsonFile = 'Data/DataDict.json'
@@ -91,10 +115,52 @@ if(True):
                 Jaccard           = float(len(scipy.intersect1d(GSet_i,GSet_j)))
                 Jaccard          /= max(1.0e-10,float(len(scipy.union1d(GSet_i,GSet_j))))
                 JaccardArray[i,j] = Jaccard
+            JaccardArray[i,i] = 1.0
         scipy.savetxt(fname='Data/JaccardArrayAlpha'+str(Alpha)+'.csv',
                       X=JaccardArray,
                       fmt='%10.10e',
                       delimiter=',')
+        Thresholds = [0.0,0.01,0.02,0.05,0.1,0.2,0.4]
+        for t in Thresholds:
+            YoshikoThresholdFile = 'Data/Alpha_'+str(Alpha)+'_Threshold_'+str(t)+'.yok'
+            fw = open(YoshikoThresholdFile,'w')
+            fw.write(str(len(Traits))+'\n')
+            for T in Traits:
+                fw.write(T+'\n')
+            for i in xrange(len(Traits)-1):
+                fw.write(' '.join((JaccardArray[i,i+1:]-t).astype(str).tolist())+'\n')
+            fw.close()
+            YoshikoOutFile = re.sub('.yok','.o',YoshikoThresholdFile)
+            YoshikoErrFile = re.sub('.yok','.e',YoshikoThresholdFile)
+            YoshikoSolFile = re.sub('.yok','.sol',YoshikoThresholdFile)
+            os.system('yoshiko2.0 -F 0 -f '+YoshikoThresholdFile+' -o '+YoshikoSolFile+' -v 5 -r 11111 -m 10 > '+YoshikoOutFile+' 2> '+YoshikoErrFile)
+            fw           = open('Data/ClusterSummary_Alpha_'+str(Alpha)+'_Threshold_'+str(t)+'.tsv','w')
+            HeaderString = 'ClusterIndex\tTraits\tNTraits\tGeneSetUnion\tNGenesInUnion'
+            fw.write(HeaderString+'\n')
+            fr        = open(YoshikoSolFile+'_0.csv','r')
+            NClusters = 0
+            for Line in fr:
+                NClusters += 1
+                LSplit     = Line.strip().split()
+                LSplit.sort()
+                fw.write(str(NClusters)+'\t')
+                fw.write(str(LSplit)+'\t')
+                fw.write(str(len(LSplit))+'\t')
+                GeneSetUnion = []
+                for Trait in LSplit:
+                    GeneSetUnion.extend(DataDict[Trait]['GeneSetAtAlpha_'+str(Alpha)])
+                GeneSetUnion.sort()
+                fw.write(str(GeneSetUnion)+'\t')
+                fw.write(str(len(GeneSetUnion)))
+                fw.write('\n')
+            fr.close()
+            fw.close()
+
+#         Clusters = scipy.cluster.hierarchy.fclusterdata(X=JaccardArray,
+#                                                         t=0.8,
+#                                                         criterion='inconsistent')
+#         print len(Clusters),len(scipy.unique(Clusters))
+#         print Clusters
 
 # if(True):
 #     # Filter PVals on overlap w/ PINA
