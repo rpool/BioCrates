@@ -75,18 +75,21 @@ if(True):
     os.system('lbzip2 -d -k '+AllGenesFile+'.bz2')
     AllGenesInGWPValueFiles = scipy.load('Data/UniqGenesOverAllTraits.npy')
     os.remove(AllGenesFile)
+#    Output files for CytoScape
+    scipy.savetxt(fname='Data/UniqGenes.tsv',
+                  X=AllGenesInGWPValueFiles,
+                  fmt='%s')
 #   Get GO terms of background GeneSet
-    print len(AllGenesInGWPValueFiles)
 #     OBORdr = goatools.obo_parser.OBOReader(obo_file='/home/r.pool/Downloads/goatools/gene_ontology.1_2.obo')
-    GODag  = goatools.obo_parser.GODag(obo_file='/home/r.pool/Downloads/goatools/gene_ontology.1_2.obo')
-    print GODag.paths_to_top(term='GO:0003682',
-                             verbose=True)
-    print GODag.viewkeys()
-#     print GODag
-#     for Rec in OBORdr:
-#         print Rec
-
-#   Get OMIM terms of background GeneSet
+#     GODag  = goatools.obo_parser.GODag(obo_file='/home/r.pool/Downloads/goatools/gene_ontology.1_2.obo')
+#     print GODag.paths_to_top(term='GO:0003682',
+#                              verbose=True)
+#     print GODag.viewkeys()
+# #     print GODag
+# #     for Rec in OBORdr:
+# #         print Rec
+#
+# #   Get OMIM terms of background GeneSet
 
 if(False):
     JsonFile = 'Data/DataDict.json.bz2'
