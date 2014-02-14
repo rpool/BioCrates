@@ -198,18 +198,26 @@ if(True):
 #     for Alpha in DataDict['AlphaLvls']:
     for Alpha in [OptimalAlpha]:
         JaccardArray = scipy.array([[0.0]*len(Traits)]*len(Traits))
+        fw = open('Data/JaccardArrayAlpha'+str(Alpha)+'.csv','w')
+        Indices = []
         for i in xrange(len(Traits)):
-            for j in xrange(len(Traits)):
+            print Traits[i],len(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])
+            if(len(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])==0):
+                continue
+            Indices.append(i)
+        fw.write(','.join(scipy.array(Traits)[Indices].tolist())+'\n')
+        for i in Indices:
+            StringList = []
+            for j in Indices:
                 GSet_i            = scipy.array(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])
                 GSet_j            = scipy.array(DataDict[Traits[j]]['GeneSetAtAlpha_'+str(Alpha)])
                 Jaccard           = float(len(scipy.intersect1d(GSet_i,GSet_j)))
                 Jaccard          /= max(1.0e-10,float(len(scipy.union1d(GSet_i,GSet_j))))
                 JaccardArray[i,j] = Jaccard
+                StringList.append(str(JaccardArray[i,j]))
             JaccardArray[i,i] = 1.0
-        scipy.savetxt(fname='Data/JaccardArrayAlpha'+str(Alpha)+'.csv',
-                      X=JaccardArray,
-                      fmt='%10.10e',
-                      delimiter=',')
+            fw.write(','.join(StringList)+'\n')
+
         Thresholds = [0.0,0.01,0.02,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4]
         for t in Thresholds:
             YoshikoThresholdFile = 'Data/Alpha_'+str(Alpha)+'_Threshold_'+str(t)+'.yok'
