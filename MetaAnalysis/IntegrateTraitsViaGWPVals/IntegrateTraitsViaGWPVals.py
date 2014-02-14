@@ -15,14 +15,23 @@ import goatools
 # Genes = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[0,1:]
 # os.remove('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')
 
-if(False):
+if(True):
     GeneWisePValuePath = '/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected'
     GWPValFiles        = os.listdir(GeneWisePValuePath)
     GWPValFiles        = fnmatch.filter(GWPValFiles,'*.npy.bz2')
 
     DataDict              = {}
-    AlpaLvls              = [0.01,0.02,0.05,0.1,0.2,0.5]
-    DataDict['AlphaLvls'] = AlpaLvls
+
+    ALvls = scipy.linspace(0.0,0.001,10,False)
+    ALvls = scipy.append(ALvls,scipy.linspace(0.001,0.01,9,False))
+    ALvls = scipy.append(ALvls,scipy.linspace(0.01,0.05,8,False))
+    ALvls = scipy.append(ALvls,scipy.linspace(0.05,0.1,8,False))
+    ALvls = scipy.append(ALvls,scipy.linspace(0.1,1.0,20,True))
+
+    AlphaLvls = []
+    for a in ALvls:
+        AlphaLvls.append(a)
+    DataDict['AlphaLvls'] = AlphaLvls
 
     AllGenes = scipy.array([])
     for F in GWPValFiles:
@@ -39,7 +48,7 @@ if(False):
         NGenes                    = len(Genes)
         DataDict[Trait]['NGenes'] = NGenes
         os.remove(DecomprFile)
-        for Alpha in AlpaLvls:
+        for Alpha in AlphaLvls:
             BH    = statsmodels.stats.multitest.multipletests(pvals=PVals,
                                                               alpha=Alpha,
                                                               method='fdr_bh',
@@ -70,7 +79,7 @@ if(False):
                arr=AllGenes)
     os.system('lbzip2 -f '+AllGenesFile)
 
-if(True):
+if(False):
     AllGenesFile = 'Data/UniqGenesOverAllTraits.npy'
     os.system('lbzip2 -d -k '+AllGenesFile+'.bz2')
     AllGenesInGWPValueFiles = scipy.load('Data/UniqGenesOverAllTraits.npy')
@@ -90,6 +99,79 @@ if(True):
 # #         print Rec
 #
 # #   Get OMIM terms of background GeneSet
+
+if(True):
+    JsonFile = 'Data/DataDict.json.bz2'
+    os.system('lbzip2 -d -f -k '+JsonFile)
+    DecomprJsonFile = 'Data/DataDict.json'
+    fr              = open(DecomprJsonFile,'r')
+    DataDict        = json.load(fp=fr)
+    fr.close()
+    os.remove(DecomprJsonFile)
+    Traits = DataDict.keys()
+    del Traits[Traits.index('AlphaLvls')]
+    Traits.sort()
+    fw = open('Data/IndicesOfTraits.csv','w')
+    fw.write('Index,Trait\n')
+    for i in xrange(len(Traits)):
+        fw.write(str(i)+','+Traits[i]+'\n')
+    fw.close()
+
+    MAResultsFile   = 'Data/NewStuffEditAddNearestReportedSNP_PropVar_rMZ_PropH2_16092013_SheetAllData.csv'
+    fr              = open(MAResultsFile,'r')
+    MAResultsHeader = fr.readline().strip().split(',')
+    MATraits        = []
+    MAPVals         = []
+    for Line in fr:
+        LSplit = Line.strip().split(',')
+        MATraits.append(LSplit[MAResultsHeader.index('Trait')])
+        MAPVals.append(LSplit[MAResultsHeader.index('P-value')])
+    fr.close()
+    MATraits = scipy.array(MATraits)
+    MAPVals  = scipy.array(MAPVals).astype(float)
+
+    GWAlpha   = 5.0e-8
+    GWMWAlpha = GWAlpha/46.0
+
+    GWSignTraits   = scipy.unique(MATraits[scipy.where(MAPVals<GWAlpha)[0]])
+    GWMWSignTraits = scipy.unique(MATraits[scipy.where(MAPVals<GWMWAlpha)[0]])
+
+    fw = open('Data/NTotalGenesAndGeneSetInfoOfAlpha.tsv','w')
+    for Alpha in DataDict['AlphaLvls']:
+        if(Alpha==0.0):
+            continue
+        print Alpha
+        NTotalGenesOfAlpha   = 0
+        UniqGenes            = []
+        TraitSetAtAlpha      = []
+        for i in xrange(len(Traits)):
+            GeneSetAtAlpha      = DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)]
+            NTotalGenesOfAlpha += len(GeneSetAtAlpha)
+            UniqGenes.extend(GeneSetAtAlpha)
+            if(len(GeneSetAtAlpha)>0):
+                TraitSetAtAlpha.append(Traits[i])
+        TraitSetAtAlpha  = scipy.array(TraitSetAtAlpha)
+        GWIntersection   = scipy.intersect1d(ar1=TraitSetAtAlpha,
+                                             ar2=GWSignTraits,
+                                             assume_unique=False)
+        GWMWIntersection = scipy.intersect1d(ar1=TraitSetAtAlpha,
+                                             ar2=GWMWSignTraits,
+                                             assume_unique=False)
+        GWUnion          = scipy.union1d(ar1=TraitSetAtAlpha,
+                                         ar2=GWSignTraits)
+        GWMWUnion        = scipy.union1d(ar1=TraitSetAtAlpha,
+                                         ar2=GWMWSignTraits)
+        fw.write(str(Alpha)+'\t'+\
+                 str(NTotalGenesOfAlpha)+'\t'+\
+                 str(len(scipy.unique(scipy.array(UniqGenes))))+'\t'+\
+                 str(len(TraitSetAtAlpha))+'\t'+\
+                 str(len(GWSignTraits))+'\t'+\
+                 str(len(GWIntersection))+'\t'+\
+                 str(float(len(GWIntersection))/float(len(GWUnion)))+'\t'+\
+                 str(len(GWMWSignTraits))+'\t'+\
+                 str(len(GWMWIntersection))+'\t'+\
+                 str(float(len(GWMWIntersection))/float(len(GWMWUnion)))+'\n')
+    fw.close()
 
 if(False):
     JsonFile = 'Data/DataDict.json.bz2'
