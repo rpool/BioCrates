@@ -15,7 +15,7 @@ import goatools
 # Genes = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[0,1:]
 # os.remove('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')
 
-if(True):
+if(False):
     GeneWisePValuePath = '/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected'
     GWPValFiles        = os.listdir(GeneWisePValuePath)
     GWPValFiles        = fnmatch.filter(GWPValFiles,'*.npy.bz2')
@@ -26,7 +26,10 @@ if(True):
     ALvls = scipy.append(ALvls,scipy.linspace(0.001,0.01,9,False))
     ALvls = scipy.append(ALvls,scipy.linspace(0.01,0.05,8,False))
     ALvls = scipy.append(ALvls,scipy.linspace(0.05,0.1,8,False))
-    ALvls = scipy.append(ALvls,scipy.linspace(0.1,1.0,20,True))
+    ALvls = scipy.append(ALvls,scipy.linspace(0.1,0.25,16,False))
+    ALvls = scipy.append(ALvls,scipy.linspace(0.25,0.75,21,True))
+    ALvls = scipy.append(ALvls,scipy.array([0.241]))
+    ALvls = scipy.sort(ALvls)
 
     AlphaLvls = []
     for a in ALvls:
@@ -79,7 +82,7 @@ if(True):
                arr=AllGenes)
     os.system('lbzip2 -f '+AllGenesFile)
 
-if(False):
+if(True):
     AllGenesFile = 'Data/UniqGenesOverAllTraits.npy'
     os.system('lbzip2 -d -k '+AllGenesFile+'.bz2')
     AllGenesInGWPValueFiles = scipy.load('Data/UniqGenesOverAllTraits.npy')
@@ -100,7 +103,7 @@ if(False):
 #
 # #   Get OMIM terms of background GeneSet
 
-if(True):
+if(False):
     JsonFile = 'Data/DataDict.json.bz2'
     os.system('lbzip2 -d -f -k '+JsonFile)
     DecomprJsonFile = 'Data/DataDict.json'
@@ -168,12 +171,13 @@ if(True):
                  str(len(GWSignTraits))+'\t'+\
                  str(len(GWIntersection))+'\t'+\
                  str(float(len(GWIntersection))/float(len(GWUnion)))+'\t'+\
+                 str(len(TraitSetAtAlpha))+'\t'+\
                  str(len(GWMWSignTraits))+'\t'+\
                  str(len(GWMWIntersection))+'\t'+\
                  str(float(len(GWMWIntersection))/float(len(GWMWUnion)))+'\n')
     fw.close()
 
-if(False):
+if(True):
     JsonFile = 'Data/DataDict.json.bz2'
     os.system('lbzip2 -d -f -k '+JsonFile)
     DecomprJsonFile = 'Data/DataDict.json'
@@ -190,8 +194,9 @@ if(False):
         fw.write(str(i)+','+Traits[i]+'\n')
     fw.close()
 
-    for Alpha in DataDict['AlphaLvls']:
-        print Alpha
+    OptimalAlpha = 0.241
+#     for Alpha in DataDict['AlphaLvls']:
+    for Alpha in [OptimalAlpha]:
         JaccardArray = scipy.array([[0.0]*len(Traits)]*len(Traits))
         for i in xrange(len(Traits)):
             for j in xrange(len(Traits)):
@@ -205,7 +210,7 @@ if(False):
                       X=JaccardArray,
                       fmt='%10.10e',
                       delimiter=',')
-        Thresholds = [0.0,0.01,0.02,0.05,0.1,0.2,0.4]
+        Thresholds = [0.0,0.01,0.02,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4]
         for t in Thresholds:
             YoshikoThresholdFile = 'Data/Alpha_'+str(Alpha)+'_Threshold_'+str(t)+'.yok'
             fw = open(YoshikoThresholdFile,'w')
