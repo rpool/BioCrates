@@ -2,13 +2,11 @@
 
 import sys
 import os
-import scipy.stats
+import scipy
 import statsmodels.stats.multitest
-import networkx
 import fnmatch
 import json
 import re
-import goatools
 
 # os.system('lbzip2 -d -k -f /home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy.bz2')
 # PVals = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[1,1:].astype(float)
@@ -143,7 +141,6 @@ if(False):
     for Alpha in DataDict['AlphaLvls']:
         if(Alpha==0.0):
             continue
-        print Alpha
         NTotalGenesOfAlpha   = 0
         UniqGenes            = []
         TraitSetAtAlpha      = []
@@ -177,7 +174,7 @@ if(False):
                  str(float(len(GWMWIntersection))/float(len(GWMWUnion)))+'\n')
     fw.close()
 
-if(True):
+if(False):
     JsonFile = 'Data/DataDict.json.bz2'
     os.system('lbzip2 -d -f -k '+JsonFile)
     DecomprJsonFile = 'Data/DataDict.json'
@@ -201,7 +198,7 @@ if(True):
         fw = open('Data/JaccardArrayAlpha'+str(Alpha)+'.csv','w')
         Indices = []
         for i in xrange(len(Traits)):
-            print Traits[i],len(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])
+#             print Traits[i],len(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])
             if(len(DataDict[Traits[i]]['GeneSetAtAlpha_'+str(Alpha)])==0):
                 continue
             Indices.append(i)
@@ -217,7 +214,9 @@ if(True):
                 StringList.append(str(JaccardArray[i,j]))
             JaccardArray[i,i] = 1.0
             fw.write(','.join(StringList)+'\n')
+        fw.close()
 
+        # Yoshiko clustering
         Thresholds = [0.0,0.01,0.02,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4]
         for t in Thresholds:
             YoshikoThresholdFile = 'Data/Alpha_'+str(Alpha)+'_Threshold_'+str(t)+'.yok'
@@ -253,6 +252,220 @@ if(True):
                 fw.write('\n')
             fr.close()
             fw.close()
+
+        # R dynamic tree cut clustering
+        os.system('R CMD BATCH ./CutTree.R') # yields two files for different values of 'deepSplit'
+        for s in [0,4]:
+            DeepSplitFile = 'Data/TreeCutJaccardArrayAlpha'+str(OptimalAlpha)+'DeepSplit'+str(s)+'.csv'
+
+            fr = open(DeepSplitFile,'r')
+            fw = open('Data/TreeCutClusterSummaryAlpha'+str(OptimalAlpha)+'DeepSplit'+str(s)+'.tsv','w')
+            fr.readline() # skip header
+            Clusters  = []
+            ClustDict = {}
+            for Line in fr:
+                LSplit       = Line.strip().split(',')
+                ClusterIndex = int(LSplit[-1])
+                Clusters.append(ClusterIndex)
+                if(not ClustDict.has_key(ClusterIndex)):
+                    ClustDict[ClusterIndex]           = {}
+                    ClustDict[ClusterIndex]['Traits'] = []
+                    ClustDict[ClusterIndex]['Genes']  = []
+                ClustDict[ClusterIndex]['Traits'].append(re.sub('\"','',LSplit[0]))
+                ClustDict[ClusterIndex]['Genes'].extend(DataDict[re.sub('\"','',LSplit[0])]['GeneSetAtAlpha_'+str(OptimalAlpha)])
+            Clusters = list(set(Clusters))
+            Clusters.sort()
+            fw.write('ClusterIndex\tTraits\tNTraits\tGenes\tNGenes\n')
+            for c in Clusters:
+                fw.write(str(c)+'\t'+\
+                         '|'.join(ClustDict[c]['Traits'])+'\t'+\
+                         str(len(ClustDict[c]['Traits']))+'\t'+\
+                         '|'.join(list(set(ClustDict[c]['Genes'])))+'\t'+\
+                         str(len(list(set(ClustDict[c]['Genes']))))+'\n')
+            fr.close()
+            fw.close()
+
+if(True):
+    # Read GGM
+    fr     = open('Data/ggm_cn_sheet_partial.csv','r')
+    Header = fr.readline().strip().split(',')
+    del Header[Header.index('')]
+    for i in xrange(len(Header)):
+        KORATrait       = Header[i]
+        ConventionTrait = re.sub('[\(,\),\-,:,\ ,\/]','.',KORATrait)
+        while(re.search('\.\.',ConventionTrait)):
+            ConventionTrait = re.sub('\.\.','.',ConventionTrait)
+        if(re.match('C[0-9].0',ConventionTrait)):
+            ConventionTrait = re.sub('\.0','',ConventionTrait)
+        if(re.match('C1[0-9].0',ConventionTrait)):
+            ConventionTrait = re.sub('\.0','',ConventionTrait)
+        Header[i] = ConventionTrait
+    GGMPartCorr = {}
+    for Trait in Header:
+        GGMPartCorr[Trait] = {}
+    for Line in fr:
+        LSplit = Line.strip().split(',')
+        Trait  = LSplit[0]
+        Trait  = re.sub('[\(,\),\-,:,\ ,\/]','.',Trait)
+        while(re.search('\.\.',Trait)):
+            Trait = re.sub('\.\.','.',Trait)
+        if(re.match('C[0-9].0',Trait)):
+            Trait = re.sub('\.0','',Trait)
+        if(re.match('C1[0-9].0',Trait)):
+            Trait = re.sub('\.0','',Trait)
+        for i in xrange(len(Header)):
+            GGMPartCorr[Header[i]][Trait] = LSplit[i+1]
+    fr.close()
+
+    # Metabolite classes
+    MtbClassDict = {}
+    fr = open('Data/Biocrates_Metabolites.csv','r')
+    fr.readline()
+    for Line in fr:
+        LSplit = Line.strip().split(',')
+        MtbClassDict[LSplit[2]] = LSplit[4]
+    fr.close()
+
+    # Node properties GGM nodes
+    NodePropertyDict = {}
+    for Trait in GGMPartCorr.iterkeys():
+        NodePropertyDict[Trait]              = {}
+        NodePropertyDict[Trait]['NodeType']  = 'Metabolite'
+        NodePropertyDict[Trait]['NodeClass'] = 'None'
+        if(MtbClassDict.has_key(Trait)):
+            NodePropertyDict[Trait]['NodeClass'] = MtbClassDict[Trait]
+
+    # GGM edge properties
+    EdgePropertyDict = {}
+    for i in xrange(len(Header)-1):
+        for j in xrange(i+1,len(Header)):
+            EdgeId                   = Header[i]+'*'+Header[j]
+            EdgePropertyDict[EdgeId] = {}
+
+            EdgePropertyDict[EdgeId]['EdgeType']  = 'ggm-ggm'
+            EdgePropertyDict[EdgeId]['EdgeValue'] = GGMPartCorr[Header[i]][Header[j]]
+
+    # Read ENGAGE data
+    JsonFile = 'Data/DataDict.json.bz2'
+    os.system('lbzip2 -d -f -k '+JsonFile)
+    DecomprJsonFile = 'Data/DataDict.json'
+    fr              = open(DecomprJsonFile,'r')
+    DataDict        = json.load(fp=fr)
+    fr.close()
+    os.remove(DecomprJsonFile)
+    Traits = DataDict.keys()
+    del Traits[Traits.index('AlphaLvls')]
+    Traits.sort()
+    for i in xrange(len(Traits)):
+        Traits[i] = str(Traits[i])
+
+    # ENGAGE node properties
+    for Trait in Traits:
+        if(NodePropertyDict.has_key(Trait)):
+            continue
+        NodePropertyDict[Trait]              = {}
+        NodePropertyDict[Trait]['NodeType']  = 'Metabolite'
+        NodePropertyDict[Trait]['NodeClass'] = 'None'
+        if(MtbClassDict.has_key(Trait)):
+            NodePropertyDict[Trait]['NodeClass'] = MtbClassDict[Trait]
+
+    # ENGAGE edge properties
+    OptimalAlpha = 0.241
+    fr = open('Data/JaccardArrayAlpha'+str(OptimalAlpha)+'.csv','r')
+    JaccardTraits = fr.readline().strip().split(',')
+    JaccardDict   = {}
+    for Trait in JaccardTraits:
+        JaccardDict[str(Trait)] = {}
+    Index = 0
+    for Line in fr:
+        LSplit = Line.strip().split(',')
+        for i in xrange(len(JaccardTraits)):
+            JaccardDict[str(JaccardTraits[Index])][str(JaccardTraits[i])] = LSplit[i]
+        Index += 1
+    fr.close()
+    for i in xrange(len(JaccardTraits)-1):
+        for j in xrange(i+1,len(JaccardTraits)):
+            EdgeId = JaccardTraits[i]+'*'+JaccardTraits[j]
+            if(not EdgePropertyDict.has_key(EdgeId)):
+                EdgePropertyDict[EdgeId] = {}
+            EdgePropertyDict[EdgeId]['EdgeType']  = 'jaccard-jaccard'
+            EdgePropertyDict[EdgeId]['EdgeValue'] = JaccardDict[JaccardTraits[i]][JaccardTraits[j]]
+
+    # Gene based p-values
+    fr = open('Data/UniqGenes.tsv','r')
+    for Line in fr:
+        NodePropertyDict[Line.strip()]              = {}
+        NodePropertyDict[Line.strip()]['NodeType']  = 'Gene'
+        NodePropertyDict[Line.strip()]['NodeClass'] = 'GeneSymbol'
+    fr.close()
+
+    for s in [0,4]:
+        for Node in NodePropertyDict.iterkeys():
+            NodePropertyDict[Node]['NodeGroupDeepSplit'+str(s)] = 'None'
+
+        DeepSplitFile = 'Data/TreeCutJaccardArrayAlpha'+str(OptimalAlpha)+'DeepSplit'+str(s)+'.csv'
+        fr            = open(DeepSplitFile,'r')
+        fr.readline() # skip header
+        for Line in fr:
+            LSplit       = Line.strip().split(',')
+            ClusterIndex = LSplit[-1]
+            TraitId      = re.sub('\"','',LSplit[0])
+            NodePropertyDict[TraitId]['NodeGroupDeepSplit'+str(s)] = ClusterIndex
+            for GId in DataDict[TraitId]['GeneSetAtAlpha_'+str(OptimalAlpha)]:
+                NodePropertyDict[GId]['NodeGroupDeepSplit'+str(s)] = ClusterIndex
+        fr.close()
+
+    fw = open('Data/Nodes.tsv','w')
+    fw.write('NodeId\tNodeType\tNodeClass\tNodeClusterDeepSplit0\tNodeClusterDeepSplit4\n')
+    for Node in NodePropertyDict.iterkeys():
+        StringList = []
+        StringList.append(Node)
+        try:
+            StringList.append(NodePropertyDict[Node]['NodeType'])
+        except:
+            StringList.append('None')
+        try:
+            StringList.append(NodePropertyDict[Node]['NodeClass'])
+        except:
+            StringList.append('None')
+        for s in [0,4]:
+            StringList.append(NodePropertyDict[Node]['NodeGroupDeepSplit'+str(s)])
+        fw.write('\t'.join(StringList)+'\n')
+    fw.close()
+
+    for Trait in JaccardTraits:
+        print Trait
+        F    = re.sub('\.','_',Trait)+'.npy.bz2'
+        File = os.path.join('Data',F)
+        os.system('lbzip2 -d -k -f '+File)
+        DecomprFile = File[:-4]
+        Data        = scipy.load(DecomprFile)
+        PVals       = Data[1,1:].astype(float)
+        Genes       = Data[0,1:]
+        os.remove(DecomprFile)
+        GeneSetAtAlpha = DataDict[Trait]['GeneSetAtAlpha_'+str(OptimalAlpha)]
+        for G in GeneSetAtAlpha:
+            EdgeId = Trait+'*'+G
+            pPVal  = -scipy.log10(PVals[scipy.where(Genes==G)[0]][0])
+            if(not EdgePropertyDict.has_key(EdgeId)):
+                EdgePropertyDict[EdgeId] = {}
+            EdgePropertyDict[EdgeId]['EdgeType']  = 'trait-gene'
+            EdgePropertyDict[EdgeId]['EdgeValue'] = str(pPVal)
+
+    fw = open('Data/Edges.tsv','w')
+    fw.write('Source\tTarget\tEdgeType\tEdgeValue\n')
+    for Edge in EdgePropertyDict.iterkeys():
+        StringList = Edge.split('*')
+        try:
+            StringList.append(EdgePropertyDict[Edge]['EdgeType'])
+        except:
+            StringList.append('None')
+        try:
+            StringList.append(EdgePropertyDict[Edge]['EdgeValue'])
+        except:
+            StringList.append('None')
+        fw.write('\t'.join(StringList)+'\n')
+    fw.close()
 
 #         Clusters = scipy.cluster.hierarchy.fclusterdata(X=JaccardArray,
 #                                                         t=0.8,
