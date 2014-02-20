@@ -336,8 +336,8 @@ if(True):
         NodePropertyDict[NodeId]['NodeClass']          = MtbClassDict[Trait]
         NodePropertyDict[NodeId]['NodeName']           = Trait
         NodePropertyDict[NodeId]['NodeBiocratesName']  = MtbNameDict[Trait]
-        NodePropertyDict[NodeId]['NodeInENGAGE']       = 'true'
-        NodePropertyDict[NodeId]['NodeInENGAGEMA']     = 'false'
+        NodePropertyDict[NodeId]['NodeInENGAGE']       = '1'
+        NodePropertyDict[NodeId]['NodeInENGAGEMA']     = '0'
 
     # Node properties GGM nodes
     for Trait in GGMPartCorr.iterkeys():
@@ -348,8 +348,8 @@ if(True):
             NodePropertyDict[NodeId]['NodeClass']          = 'None'
             NodePropertyDict[NodeId]['NodeName']           = 'None'
             NodePropertyDict[NodeId]['NodeBiocratesName']  = 'None'
-            NodePropertyDict[NodeId]['NodeInENGAGE']       = 'false'
-            NodePropertyDict[NodeId]['NodeInENGAGEMA']     = 'false'
+            NodePropertyDict[NodeId]['NodeInENGAGE']       = '0'
+            NodePropertyDict[NodeId]['NodeInENGAGEMA']     = '0'
             if(MtbClassDict.has_key(Trait)):
                 NodePropertyDict[NodeId]['NodeClass']          = MtbClassDict[Trait]
                 NodePropertyDict[NodeId]['NodeName']           = Trait
@@ -382,7 +382,7 @@ if(True):
     # ENGAGE node properties
     for Trait in Traits:
         NodeId = 'Trait:'+Trait
-        NodePropertyDict[NodeId]['NodeInENGAGEMA']    = 'true'
+        NodePropertyDict[NodeId]['NodeInENGAGEMA']    = '1'
 
     # ENGAGE edge properties
     OptimalAlpha = 0.241
@@ -416,8 +416,8 @@ if(True):
         NodePropertyDict[NodeId]['NodeClass']         = 'GeneSymbol'
         NodePropertyDict[NodeId]['NodeName']          = re.sub('Gene:','',NodeId)
         NodePropertyDict[NodeId]['NodeBiocratesName'] = 'None'
-        NodePropertyDict[NodeId]['NodeInENGAGE']      = 'false'
-        NodePropertyDict[NodeId]['NodeInENGAGEMA']    = 'false'
+        NodePropertyDict[NodeId]['NodeInENGAGE']      = '0'
+        NodePropertyDict[NodeId]['NodeInENGAGEMA']    = '0'
     fr.close()
 
     for s in [0,4]:
@@ -435,7 +435,7 @@ if(True):
             NodePropertyDict[NodeId]['NodeGroupDeepSplit'+str(s)] = ClusterIndex
             for GId in DataDict[TraitId]['GeneSetAtAlpha_'+str(OptimalAlpha)]:
                 NodePropertyDict['Gene:'+GId]['NodeGroupDeepSplit'+str(s)] = ClusterIndex
-                NodePropertyDict['Gene:'+GId]['NodeInENGAGEMA']            = 'true'
+                NodePropertyDict['Gene:'+GId]['NodeInENGAGEMA']            = '1'
         fr.close()
 
     fw = open('Data/Nodes.tsv','w')
@@ -462,11 +462,11 @@ if(True):
         try:
             StringList.append(NodePropertyDict[Node]['NodeInENGAGE'])
         except:
-            StringList.append('false')
+            StringList.append('0')
         try:
             StringList.append(NodePropertyDict[Node]['NodeInENGAGEMA'])
         except:
-            StringList.append('false')
+            StringList.append('0')
         for s in [0,4]:
             StringList.append(NodePropertyDict[Node]['NodeGroupDeepSplit'+str(s)])
         fw.write('\t'.join(StringList)+'\n')
