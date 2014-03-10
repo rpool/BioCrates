@@ -9,7 +9,7 @@ import json
 import re
 
 # os.system('lbzip2 -d -k -f /home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy.bz2')
-# PVals = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[1,1:].astype(float)
+# PVals = scipy.load('/home/r.pool/Work/GWA/BioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[1,1:].astype(float)
 # Genes = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[0,1:]
 # os.remove('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')
 

@@ -3,6 +3,7 @@ M <- read.table('Data/JaccardArrayAlpha0.241.csv',sep=',',header=T)
 D <- as.dist(1.0-M)
 X <- hclust(D, method = "average", members = NULL)
 # plot(X, labels = NULL, hang = 0.1, axes = TRUE, frame.plot = FALSE, ann = TRUE, main = "Cluster Dendrogram", sub = NULL, xlab = NULL, ylab = "Height")
+save(X,file='Data/HClustOutput.RData')
 
 ctDIndex        <- cutreeDynamicTree(X, maxTreeHeight = 1, deepSplit = 0, minModuleSize = 1)
 Trait           <- colnames(M)
