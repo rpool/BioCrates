@@ -127,8 +127,8 @@ def rotanimate(ax, angles, output, **kwargs):
           '.ogv' : make_movie,
           '.gif': make_gif ,
           '.jpeg': make_strip,
-          '.png': make_strip}
-
+          '.png':make_strip}
+    
     output_ext = os.path.splitext(output)[1]
     if(output_ext=='.pdf'):
         make_still(ax,angles[0],output,**kwargs)
