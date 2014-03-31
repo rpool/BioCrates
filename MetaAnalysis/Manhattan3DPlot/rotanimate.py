@@ -34,6 +34,28 @@ def make_views(ax,angles,elevation=None, width=10, height = 7,
 
     return files
 
+def make_still(ax,angle,output='',elevation=None, width=10, height = 7,
+               **kwargs):
+    """
+    Makes pdf still of the given 3d ax, of first angle.
+    Args:
+        ax (3D axis): te ax
+        angles (list): the list of angles (in degree) under which to
+                       take the picture.
+        width,height (float): size, in inches, of the output images.
+        prefix (str): prefix for the files created.
+
+    Returns: the list of files created (for later removal)
+    """
+
+    ax.figure.set_size_inches(width,height)
+
+    ax.view_init(elev = elevation, azim=angle)
+    fname = output
+    ax.figure.savefig(fname)
+
+    return
+
 
 
 ##### TO TRANSFORM THE SERIES OF PICTURE INTO AN ANIMATION
@@ -101,20 +123,22 @@ def rotanimate(ax, angles, output, **kwargs):
             - repeat : True or False (.gif only)
     """
 
-    output_ext = os.path.splitext(output)[1]
-
-    files = make_views(ax,angles, **kwargs)
-
     D = { '.mp4' : make_movie,
           '.ogv' : make_movie,
           '.gif': make_gif ,
           '.jpeg': make_strip,
-          '.png':make_strip}
+          '.png': make_strip}
 
-    D[output_ext](files,output,**kwargs)
-
-    for f in files:
-        os.remove(f)
+    output_ext = os.path.splitext(output)[1]
+    if(output_ext=='.pdf'):
+        make_still(ax,angles[0],output,**kwargs)
+    else:
+        files = make_views(ax,angles, **kwargs)
+        D[output_ext](files,output,**kwargs)
+        for i in xrange(1,len(files)):
+            f = files[i]
+            os.remove(f)
+        os.rename(files[0],'InitialPng.png')
 
 
 ##### EXAMPLE

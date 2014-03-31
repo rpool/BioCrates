@@ -20,19 +20,19 @@ fLARGE = 1.0e500
 
 def main(ExecutableName):
 
-    Gene2RsIdDict = {}
-    RsId2GeneDict = {}
-    fr = open('AllAlphaNFHitsSheetUCSCGeneAnot.txt','r')
-    fr.readline()
-    for Line in fr:
-        LSplit = Line.strip().split()
-        if(not Gene2RsIdDict.has_key(LSplit[1])):
-            Gene2RsIdDict[LSplit[1]] = []
-        Gene2RsIdDict[LSplit[1]].append(LSplit[0])
-        if(not RsId2GeneDict.has_key(LSplit[0])):
-            RsId2GeneDict[LSplit[0]] = []
-        RsId2GeneDict[LSplit[0]].append(LSplit[1])
-    fr.close()
+#    Gene2RsIdDict = {}
+#    RsId2GeneDict = {}
+#    fr = open('AllAlphaNFHitsSheetUCSCGeneAnot.txt','r')
+#    fr.readline()
+#    for Line in fr:
+#        LSplit = Line.strip().split()
+#        if(not Gene2RsIdDict.has_key(LSplit[1])):
+#            Gene2RsIdDict[LSplit[1]] = []
+#        Gene2RsIdDict[LSplit[1]].append(LSplit[0])
+#        if(not RsId2GeneDict.has_key(LSplit[0])):
+#            RsId2GeneDict[LSplit[0]] = []
+#        RsId2GeneDict[LSplit[0]].append(LSplit[1])
+#    fr.close()
 
     ArgParser,\
     Arguments   = ArgumentParser.ParseArguments()
@@ -310,7 +310,7 @@ def main(ExecutableName):
             P          = 'PHE'+str(p+1)+'_'
             PHE        = re.sub('_','',P)
             Mtb        = MName[MNumber.index(str(p+1))]
-            FName      = os.path.join(Arguments.MAOutputPath,'AlphaNfFilteredMetaAnalysis_'+Mtb+'_1.tbl')
+            FName      = os.path.join(Arguments.MAOutputPath,'FilteredAlpha5e-08_MetaAnalysis_'+Mtb+'_1.csv')
             if(not (os.path.isfile(FName) or
                os.path.islink(FName))):
                 NoPlotList.append(p)
@@ -319,7 +319,7 @@ def main(ExecutableName):
             print LogString
             Log.Write(LogString+'\n')
             FH     = open(FName,'r')
-            Header = FH.readline().strip().split()
+            Header = FH.readline().strip().split(',')
             CountLines = 0
             for Line in FH:
                 CountLines += 1
@@ -331,6 +331,7 @@ def main(ExecutableName):
             Arrays   = scipy.loadtxt(fname=FName,
                                      dtype=str,
                                      skiprows=1,
+                                     delimiter=',',
                                      usecols=[SNPIDCol,PValCol],
                                      unpack=True)
             RsIdArray  = Arrays[0]
@@ -343,12 +344,13 @@ def main(ExecutableName):
             ColorList  = []
 #            if(RsId2GeneDict.has_key[Rsid])
             for RsId in RsIdArray:
+                ColorList.append('black')
 #                if(RsId in Gene2RsIdDict[Gene]):
-                if(RsId2GeneDict.has_key(RsId)):
+#                if(RsId2GeneDict.has_key(RsId)):
 #                    ColorList.append('red')
-                    ColorList.append('black')
-                else:
-                    ColorList.append('black')
+#                    ColorList.append('black')
+#                else:
+
 #            TmpArray   = scipy.append(SNPIDArray,RSIdArray)
 #            TmpArray,\
 #            IndexArray = scipy.unique(ar=TmpArray,
@@ -387,9 +389,12 @@ def main(ExecutableName):
 #                        FMem  = scipy.real(-scipy.log10(scipy.array(FMem)))
 #                        ZZ.extend(list(FMem))
 #                        del FMem
-            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(14))))
-            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(14))))
-            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(14))))
+            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(46))))
+            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(46))))
+            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(46))))
+#             Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(14))))
+#             Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(14))))
+#             Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(14))))
 #            Sign  = (ZZ  > (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
 #            Sugg  = (ZZ >= (-scipy.log10(1.0e-6/float(Arguments.NPhe))))
 #            Sugg *= (ZZ <= (-scipy.log10(5.0e-8/float(Arguments.NPhe))))
@@ -591,6 +596,7 @@ def main(ExecutableName):
 #            XTickLabels[t] = ''
         PylabAxis.w_xaxis.set_ticklabels(Labels)
         PylabAxis.w_xaxis.set_major_locator(ticker.FixedLocator(Ticks))
+        PylabAxis.set_zlim3d([0.0,ZMax+5.0])
 
 
 #        PylabAxis.set_zlim3d([0.0,PylabAxis.get_zlim3d()[-1]])
@@ -623,6 +629,8 @@ def main(ExecutableName):
         rotanimate(PylabAxis, angles,'movie.mp4',fps=10,bitrate=2000)
 #        # create an ogv movie
 #        rotanimate(ax, angles, 'movie.ogv',fps=10)
+#         create still of first snapshot
+        rotanimate(PylabAxis, angles,'movie.pdf')
     else:
         print '!! NOT IMPLEMENTED YET !!'
 
