@@ -492,6 +492,10 @@ def main(ExecutableName=str):
     fw = open('RawPCA.out.csv','w')
     fw.write('PC,Frac,CummFrac\n')
     MyData = scipy.array(RawData).T
+    scipy.savetxt(fname='CorrMatRawData.txt',
+                  X=(scipy.corrcoef(MyData.T)),
+                  fmt=('%10.5e'),
+                  delimiter=' ')
     MyPCA  = matplotlib.mlab.PCA(MyData)
     Sum    = 0.0
     for i in range(len(MyPCA.fracs)):
@@ -536,6 +540,10 @@ def main(ExecutableName=str):
     fw = open('MeanCenteredAutoScaledPCA.out.csv','w')
     fw.write('PC,Frac,CummFrac\n')
     MyData = scipy.array(MeanCenteredAutoScaledData).T
+    scipy.savetxt(fname='CorrMatMeanCenteredautoScaledData.txt',
+                  X=(scipy.corrcoef(MyData.T)),
+                  fmt=('%10.5e'),
+                  delimiter=' ')
     MyPCA  = matplotlib.mlab.PCA(MyData)
     Sum    = 0.0
     for i in range(len(MyPCA.fracs)):
