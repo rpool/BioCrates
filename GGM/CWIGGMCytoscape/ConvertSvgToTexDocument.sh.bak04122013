@@ -1,0 +1,37 @@
+#! /bin/bash
+
+if [ -e Body.tex ]; then
+    rm Body.tex
+fi
+
+#inkscape -f legend.svg -E legend.eps
+#epstopdf legend.eps
+
+for FILENAME in CM46.svg  CM47.svg  CM48.svg  CM49.svg  CM50.svg  CM51.svg  CM52.svg  CM53.svg  CM54.svg  CM55.svg  CM58.svg
+do
+    BASENAME=$(basename $FILENAME | awk -F. '{print $1}')
+    echo $FILENAME $BASENAME
+#    inkscape -f ${BASENAME}.svg -E ${BASENAME}.eps
+#    epstopdf ${BASENAME}.eps
+    echo "\\clearpage"                                                                                                  >> Body.tex
+    echo "\\thispagestyle{empty}"                                                                                       >> Body.tex
+    echo "\\vspace*{\\stretch{1}}"                                                                                      >> Body.tex
+    echo "\\begin{tabular}{cc}"                                                                                         >> Body.tex
+    echo "\\vcent{\\includegraphics[height=10cm]{$BASENAME.pdf}} & \\vcent{\\includegraphics[height=10cm]{legend.pdf}}" >> Body.tex
+    echo "\\end{tabular}"                                                                                               >> Body.tex
+    echo ""                                                                                                             >> Body.tex
+    echo "\\vspace{0.5cm}"                                                                                              >> Body.tex
+    cat ${BASENAME}.tex                                                                                                 >> Body.tex
+    echo "\\vspace*{\\stretch{3}}"                                                                                      >> Body.tex
+    echo "\\newpage"                                                                                                    >> Body.tex
+    echo ""                                                                                                             >> Body.tex
+done
+
+cat Header.tex  > Document.tex
+cat Body.tex   >> Document.tex
+cat Footer.tex >> Document.tex
+
+pdflatex Document.tex
+pdflatex Document.tex
+
+exit

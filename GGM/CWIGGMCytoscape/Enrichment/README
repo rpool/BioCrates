@@ -1,0 +1,8 @@
+13/12/2013
+Here's what I did to end up with the background gene data sets:
+- Use file "UniqGeneSymbols.txt" for upload in next step;
+- Use webgestalt (db versions in "WebGestalt (WEB-based GEne SeT AnaLysis Toolkit).html") to get background gene list;
+- Download annotated list => "UniqGeneSymbols.txt_1386949612.txt_complete_info_results.txt";
+- Run "FilterUniqGeneSymbols.txt_1386949612.txt_complete_info_results.sh" => "NULLFilteredUniqEntrezIds.txt" for later use in KOBAS2.0;
+- 
+
