@@ -13,12 +13,12 @@ import re
 # Genes = scipy.load('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')[0,1:]
 # os.remove('/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected/PC_aa_C38_4.npy')
 
-if(False):
+if(True):
     GeneWisePValuePath = '/home/r.pool/Work/GWABioCrates/GeneWisePValues/Biocrates_ENGAGE_genewise_pvalues_corrected'
     GWPValFiles        = os.listdir(GeneWisePValuePath)
     GWPValFiles        = fnmatch.filter(GWPValFiles,'*.npy.bz2')
 
-    DataDict              = {}
+    DataDict           = {}
 
     ALvls = scipy.linspace(0.0,0.001,10,False)
     ALvls = scipy.append(ALvls,scipy.linspace(0.001,0.01,9,False))
@@ -80,7 +80,7 @@ if(False):
                arr=AllGenes)
     os.system('lbzip2 -f '+AllGenesFile)
 
-if(False):
+if(True):
     AllGenesFile = 'Data/UniqGenesOverAllTraits.npy'
     os.system('lbzip2 -d -k '+AllGenesFile+'.bz2')
     AllGenesInGWPValueFiles = scipy.load('Data/UniqGenesOverAllTraits.npy')
@@ -174,7 +174,7 @@ if(False):
                  str(float(len(GWMWIntersection))/float(len(GWMWUnion)))+'\n')
     fw.close()
 
-if(False):
+if(True):
     JsonFile = 'Data/DataDict.json.bz2'
     os.system('lbzip2 -d -f -k '+JsonFile)
     DecomprJsonFile = 'Data/DataDict.json'
